@@ -383,9 +383,129 @@
         }
       }
       @media (max-width: 768px) {
-        .main-container,
-        .content-card {
-          padding: 1rem;
+      }
+      .main-container,
+      .content-card {
+        padding: 1rem;
+      }
+      /* === FIX FOR WIDE SCHEDULE MODAL === */
+
+      /* 1. Target the CORRECT ID and set a max-width */
+
+      #scheduleViewModal .modal-dialog {
+        max-width: 900px; /* Fixed maximum width */
+        width: 90%;
+        margin: 1.5rem auto;
+      }
+
+      /* 2. Modal Content */
+      #scheduleViewModal .modal-content {
+        border-radius: 12px;
+        overflow: hidden;
+      }
+
+      /* 3. Modal Body - Scrollable */
+      #scheduleViewModal .modal-body {
+        padding: 1.5rem;
+        overflow-x: auto;
+        max-height: calc(100vh - 250px);
+      }
+
+      /* 4. Table Container */
+      #scheduleViewModal .table-responsive {
+        margin: 0;
+        border-radius: 8px;
+        overflow-x: auto;
+      }
+
+      /* 5. Compact Table Styling */
+      #scheduleViewModal table {
+        margin-bottom: 0;
+        font-size: 0.8rem;
+        min-width: 100%;
+        width: 100%;
+        table-layout: fixed;
+      }
+
+      #scheduleViewModal table th:first-child,
+      #scheduleViewModal table td:first-child {
+        width: 90px;
+        min-width: 90px;
+        padding: 0.6rem 0.4rem;
+        font-size: 0.75rem;
+      }
+
+      #scheduleViewModal table th:not(:first-child),
+      #scheduleViewModal table td:not(:first-child) {
+        width: calc((100% - 90px) / 7);
+        padding: 0.6rem 0.3rem;
+        font-size: 0.75rem;
+        word-wrap: break-word;
+        overflow-wrap: break-word;
+        hyphens: auto;
+      }
+
+      #scheduleViewModal table thead th {
+        font-size: 0.7rem;
+        padding: 0.5rem 0.3rem;
+        white-space: nowrap;
+        background-color: #e9ecef;
+      }
+
+      /* 6. Course Content */
+      #scheduleViewModal table td {
+        line-height: 1.3;
+        vertical-align: middle;
+      }
+
+      /* 7. Conflict Badges */
+      #scheduleViewModal .conflict-badge {
+        font-size: 0.65rem;
+        padding: 2px 4px;
+        margin-top: 2px;
+        display: inline-block;
+      }
+
+      /* 8. Responsive Adjustments */
+      @media (max-width: 1400px) {
+        #scheduleViewModal .modal-dialog {
+          max-width: 95%;
+          width: 95%;
+        }
+
+        #scheduleViewModal table {
+          font-size: 0.75rem;
+        }
+      }
+
+      @media (max-width: 992px) {
+        #scheduleViewModal .modal-dialog {
+          max-width: 98%;
+          width: 98%;
+          margin: 1rem;
+        }
+
+        #scheduleViewModal table {
+          font-size: 0.7rem;
+        }
+
+        #scheduleViewModal table th,
+        #scheduleViewModal table td {
+          padding: 0.4rem 0.2rem;
+        }
+      }
+
+      @media (max-width: 768px) {
+        #scheduleViewModal .modal-dialog {
+          margin: 0.5rem;
+        }
+
+        #scheduleViewModal .modal-body {
+          padding: 0.75rem;
+        }
+
+        #scheduleViewModal table {
+          font-size: 0.65rem;
         }
       }
     </style>
@@ -665,7 +785,7 @@
     <script src="assets/js/courseService.js"></script>
     <script src="assets/js/scheduleService.js"></script>
     <script src="assets/js/courseManager.js"></script>
-    <script src="assetsjs/sectionManager.js"></script>
+    <script src="assets/js/sectionManager.js"></script>
     <script src="assets/js/fileUploadManager.js"></script>
     <script src="assets/js/faculty-dashboard.js"></script>
     <script src="assets/js/faculty-comments.js"></script>
