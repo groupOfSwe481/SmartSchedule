@@ -231,6 +231,12 @@
         </div>
     </div>
 
+    <script>
+  // Clean any stale session data the moment the login page loads
+  sessionStorage.clear();
+  localStorage.removeItem('justRedirected');
+</script>
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         // Auto-detect API URL based on environment
