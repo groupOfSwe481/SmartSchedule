@@ -13,9 +13,21 @@ export default async function handler(req: any, res: any) {
       console.log('✅ Database connected in serverless function');
     } catch (error) {
       console.error('❌ Database connection failed:', error);
+      res.status(500).json({ error: 'Database connection failed' });
+      return;
     }
   }
 
   // Handle the request with Express app
-  return app(req, res);
+  // Express app expects (req, res, next) but Vercel provides (req, res)
+  return new Promise((resolve, reject) => {
+    app(req, res, (err: any) => {
+      if (err) {
+        console.error('Express error:', err);
+        reject(err);
+      } else {
+        resolve(undefined);
+      }
+    });
+  });
 }
