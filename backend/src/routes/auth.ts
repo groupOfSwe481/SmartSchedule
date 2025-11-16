@@ -3,7 +3,7 @@ import { Router, Request, Response } from "express";
 import jwt from "jsonwebtoken"; // if this errors, change to: import * as jwt from "jsonwebtoken";
 import nodemailer from "nodemailer";
 import validator from "validator";
-import DOMPurify from "isomorphic-dompurify";
+// Removed: import DOMPurify from "isomorphic-dompurify"; // Not compatible with Vercel serverless
 import rateLimit from "express-rate-limit";
 import { User } from "../db/models/User.js"; // named import + .js for ESM
 import { Student } from "../db/models/Student.js"; // Import Student model
@@ -120,8 +120,8 @@ router.post("/login", loginLimiter, emailLimiter, async (req: Request, res: Resp
     let sanitizedPassword = Password.trim();
 
     // Advanced sanitization
-    sanitizedEmail = DOMPurify.sanitize(sanitizedEmail);
-    sanitizedPassword = DOMPurify.sanitize(sanitizedPassword);
+    // Email already trimmed and validated
+    // Password already trimmed
 
     // Email validation and normalization
     if (!validator.isEmail(sanitizedEmail)) {
@@ -146,7 +146,7 @@ router.post("/login", loginLimiter, emailLimiter, async (req: Request, res: Resp
         return res.status(400).json({ message: "Invalid verification code format" });
       }
       
-      sanitizedVerificationCode = DOMPurify.sanitize(verificationCode.trim());
+      sanitizedVerificationCode = verificationCode.trim();
       
       // Validate verification code format (6 digits)
       if (!/^\d{6}$/.test(sanitizedVerificationCode)) {
@@ -258,16 +258,16 @@ router.post("/register", async (req: Request, res: Response) => {
     const validRoles = ['LoadCommittee', 'Faculty', 'Student', 'Scheduler'];
     let sanitizedRole = 'Student'; // default fallback
     if (role && typeof role === 'string') {
-      const roleValue = DOMPurify.sanitize(role.trim());
+      const roleValue = role.trim();
       if (validRoles.includes(roleValue)) {
         sanitizedRole = roleValue; // ✅ use the role sent by the frontend
       }
     }
 
     // Basic sanitization
-    let sanitizedFirstName = DOMPurify.sanitize(First_Name.trim());
-    let sanitizedLastName = DOMPurify.sanitize(Last_Name.trim());
-    let sanitizedEmail = DOMPurify.sanitize(Email.trim());
+    let sanitizedFirstName = First_Name.trim();
+    let sanitizedLastName = Last_Name.trim();
+    let sanitizedEmail = Email.trim();
     let sanitizedPassword = Password.trim(); // Don't sanitize password with DOMPurify
 
     // Email validation and normalization
