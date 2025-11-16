@@ -31,7 +31,10 @@
       "Bash(cat:*)",
       "Bash(npx vercel --prod --yes)",
       "Bash(curl:*)",
-      "Bash(find:*)"
+      "Bash(find:*)",
+      "Bash(npx http-server -p 3000)",
+      "Bash(npx http-server:*)",
+      "Bash(npx vercel:*)"
     ],
     "deny": [],
     "ask": []

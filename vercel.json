@@ -3,10 +3,10 @@
   "outputDirectory": ".",
   "cleanUrls": true,
   "trailingSlash": false,
-  "redirects": [
+  "rewrites": [
     {
-      "source": "/",
-      "destination": "/public/index.html"
+      "source": "/(.*)",
+      "destination": "/$1"
     }
   ],
   "headers": [
