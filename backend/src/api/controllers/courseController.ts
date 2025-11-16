@@ -1,8 +1,8 @@
 import { Request, Response } from 'express';
 
 
-import courseService from '../../business/services/courseService';
-import { CourseCreateInput } from '../../types';
+import courseService from '../../business/services/courseService.js';
+import { CourseCreateInput } from '../../types/index.js';
 
 
 export const getAllCourses = async (req: Request, res: Response): Promise<void> => {
