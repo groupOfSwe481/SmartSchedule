@@ -15,29 +15,25 @@
                 try {
                     const user = JSON.parse(userStr);
                     const rolePages = {
-                        'Scheduler':     '/index.html',
-                        'Student':       '/StudentHP.html',
-                        'Faculty':       '/FacultyHP.html',
-                        'LoadCommittee': '/LoadCommitteeHP.html'
+                        'Scheduler':     'index.html',
+                        'Student':       'StudentHP.html',
+                        'Faculty':       'FacultyHP.html',
+                        'LoadCommittee': 'LoadCommitteeHP.html'
                     };
-                    const targetPage = rolePages[user.role] || '/LoginReg.html';
-
-                    // Only redirect if we're on the public landing page
-                    if (window.location.pathname === '/' || window.location.pathname === '/public/index.html') {
-                        window.location.replace(targetPage);
-                    }
+                    const targetPage = rolePages[user.role] || 'LoginReg.html';
+                    window.location.href = '/' + targetPage;
                 } catch (error) {
-                    window.location.replace('/LoginReg.html');
+                    window.location.href = '/LoginReg.html';
                 }
             } else {
                 // No authentication - redirect to login
-                window.location.replace('/LoginReg.html');
+                window.location.href = '/LoginReg.html';
             }
         })();
     </script>
 </head>
 <body>
-    <div style="display: flex; align-items: center; justify-content: center; height: 100vh; font-family: sans-serif;">
+    <div style="display: flex; align-items: center; justify-content: center; height: 100vh; font-family: sans-serif; color: #333;">
         <p>Redirecting to SmartSchedule...</p>
     </div>
 </body>
