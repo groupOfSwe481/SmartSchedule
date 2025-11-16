@@ -1,0 +1,913 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Schedules - SmartSchedule</title>
+    <link rel="stylesheet" href="assets/css/bootstrap.min.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css"
+    />
+    <style>
+      :root {
+        --primary: #6366f1;
+        --primary-dark: #4f46e5;
+        --sidebar-width: 280px;
+      }
+
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI",
+          Roboto, sans-serif;
+        background: #1e293b;
+        min-height: 100vh;
+        color: #1e293b;
+        display: flex;
+        overflow-x: hidden;
+      }
+
+      /* SIDEBAR */
+      .sidebar {
+        width: var(--sidebar-width);
+        background: #2d3748;
+        height: 100vh;
+        position: fixed;
+        left: 0;
+        top: 0;
+        box-shadow: 4px 0 24px rgba(0, 0, 0, 0.3);
+        display: flex;
+        flex-direction: column;
+        z-index: 2000;
+      }
+
+      .sidebar-header {
+        padding: 2rem 1.5rem;
+        border-bottom: 2px solid rgba(255, 255, 255, 0.1);
+        background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+      }
+
+      .sidebar-brand {
+        font-size: 1.5rem;
+        font-weight: 800;
+        color: white;
+        text-decoration: none;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+      }
+
+      .sidebar-nav {
+        flex: 1;
+        overflow-y: auto;
+        padding: 1.5rem 0;
+      }
+
+      .sidebar-nav-item {
+        list-style: none;
+        margin: 0.25rem 1rem;
+      }
+
+      .sidebar-nav-link {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 0.875rem 1rem;
+        color: rgba(255, 255, 255, 0.8);
+        text-decoration: none;
+        border-radius: 12px;
+        font-weight: 500;
+        transition: all 0.3s ease;
+      }
+
+      .sidebar-nav-link:hover {
+        background: rgba(255, 255, 255, 0.1);
+        color: white;
+        transform: translateX(4px);
+      }
+
+      .sidebar-nav-link.active {
+        background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+        color: white;
+        font-weight: 600;
+        box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+      }
+
+      .sidebar-nav-link i {
+        font-size: 1.25rem;
+        width: 24px;
+      }
+
+      .sidebar-footer {
+        padding: 1rem 1.5rem;
+        border-top: 1px solid rgba(255, 255, 255, 0.1);
+        position: relative;
+      }
+      /* ✅ STYLES FOR THE DROPUP MENU */
+      .sidebar-footer .dropdown-menu {
+        /* We only set the width and a small margin. */
+        /* Bootstrap's 'dropup' class handles the position. */
+        width: calc(var(--sidebar-width) - 3rem);
+        margin-bottom: 0.5rem;
+      }
+
+      .sidebar-user {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 0.75rem;
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 12px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+      }
+
+      .sidebar-user:hover {
+        background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+        transform: translateY(-2px);
+      }
+
+      .sidebar-user-avatar {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-weight: 700;
+      }
+
+      .sidebar-user-name {
+        font-weight: 600;
+        color: white;
+      }
+
+      .sidebar-user-role {
+        font-size: 0.75rem;
+        color: rgba(255, 255, 255, 0.7);
+      }
+
+      /* MAIN CONTENT */
+      .main-wrapper {
+        flex: 1;
+        margin-left: var(--sidebar-width);
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+      }
+
+      .top-header {
+        background: rgba(30, 41, 59, 0.95);
+        padding: 1.5rem 2rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border-bottom: 1px solid rgba(99, 102, 241, 0.2);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      }
+
+      .top-header h1 {
+        color: white;
+        font-size: 1.75rem;
+        font-weight: 700;
+        margin: 0;
+      }
+
+      .notification-btn {
+        position: relative;
+        background: rgba(255, 255, 255, 0.15);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        border-radius: 12px;
+        padding: 0.75rem 1rem;
+        color: white;
+        cursor: pointer;
+        transition: all 0.3s ease;
+      }
+
+      .notification-btn:hover {
+        background: rgba(255, 255, 255, 0.25);
+        transform: translateY(-2px);
+      }
+
+      .notification-badge {
+        position: absolute;
+        top: -5px;
+        right: -5px;
+        background: #ef4444;
+        color: white;
+        border-radius: 10px;
+        padding: 0.25rem 0.5rem;
+        font-size: 0.7rem;
+        font-weight: 700;
+      }
+
+      /* MAIN CONTAINER */
+      .main-container {
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: 2rem;
+        width: 100%;
+      }
+
+      /* LEVEL SELECTOR */
+      .level-selector-wrapper {
+        background: white;
+        border-radius: 20px;
+        padding: 2rem;
+        box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1);
+        margin-bottom: 2rem;
+      }
+
+      .level-selector-wrapper h5 {
+        font-weight: 700;
+        margin-bottom: 1.5rem;
+        color: #1e293b;
+        font-size: 1.1rem;
+      }
+
+      .level-btn-group {
+        display: flex;
+        gap: 0.75rem;
+        flex-wrap: wrap;
+      }
+
+      /* Override Bootstrap button styles */
+      .level-btn.btn {
+        flex: 1;
+        min-width: 120px;
+        padding: 1rem;
+        background: white;
+        border: 2px solid #e2e8f0;
+        border-radius: 16px !important;
+        font-weight: 600;
+        color: #1e293b;
+        transition: all 0.3s ease;
+        cursor: pointer;
+      }
+
+      .level-btn.btn:hover {
+        border-color: #6366f1;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(99, 102, 241, 0.2);
+        background: #f8f9ff;
+        color: #1e293b;
+      }
+
+      .level-btn.btn.active,
+      .level-btn.btn-dark {
+        background: linear-gradient(
+          135deg,
+          #6366f1 0%,
+          #8b5cf6 100%
+        ) !important;
+        border-color: transparent !important;
+        color: white !important;
+        box-shadow: 0 8px 20px rgba(99, 102, 241, 0.3);
+      }
+
+      .level-btn.btn-outline-dark {
+        background: white;
+        border-color: #e2e8f0;
+        color: #1e293b;
+      }
+
+      .level-btn.btn-outline-dark:hover {
+        background: #f8f9ff;
+        border-color: #6366f1;
+        color: #1e293b;
+      }
+
+      /* SCHEDULE CONTAINER */
+      #schedule-container {
+        background: white;
+        border-radius: 20px;
+        padding: 2rem;
+        box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1);
+        min-height: 400px;
+      }
+
+      /* Schedule Card Styling */
+      #schedule-container .card {
+        background: white;
+        border: 1px solid #e2e8f0;
+        border-radius: 16px;
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+        box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+      }
+
+      #schedule-container .card h5 {
+        color: #1e293b;
+        font-weight: 700;
+        font-size: 1.25rem;
+      }
+
+      /* Card Header Alignment */
+      #schedule-container .card .d-flex {
+        align-items: center;
+        gap: 1rem;
+      }
+
+      /* Action Buttons in Schedule Cards */
+      #schedule-container .btn {
+        border-radius: 10px;
+        font-weight: 600;
+        padding: 0.625rem 1.25rem;
+        font-size: 0.875rem;
+        transition: all 0.3s ease;
+        border: none;
+        white-space: nowrap;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+      }
+
+      #schedule-container .btn-sm {
+        padding: 0.5rem 1rem;
+        font-size: 0.8rem;
+      }
+
+      /* Button container spacing */
+      #schedule-container .d-flex > div {
+        display: flex;
+        gap: 0.75rem;
+        align-items: center;
+        flex-wrap: wrap;
+      }
+
+      #schedule-container .btn-info {
+        background: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%);
+        color: white;
+      }
+
+      #schedule-container .btn-info:hover {
+        background: linear-gradient(135deg, #0891b2 0%, #0e7490 100%);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(6, 182, 212, 0.3);
+      }
+
+      #schedule-container .btn-success {
+        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        color: white;
+      }
+
+      #schedule-container .btn-success:hover {
+        background: linear-gradient(135deg, #059669 0%, #047857 100%);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+      }
+
+      #schedule-container .btn-warning {
+        background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+        color: white;
+      }
+
+      #schedule-container .btn-warning:hover {
+        background: linear-gradient(135deg, #d97706 0%, #b45309 100%);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
+      }
+
+      #schedule-container .btn-primary {
+        background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+        color: white;
+      }
+
+      #schedule-container .btn-primary:hover {
+        background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+      }
+
+      #schedule-container .btn-secondary {
+        background: #64748b;
+        color: white;
+      }
+
+      #schedule-container .btn-secondary:hover {
+        background: #475569;
+      }
+
+      /* Schedule Table Styling */
+      #schedule-container .table {
+        margin-top: 1rem;
+        border-radius: 12px;
+        overflow: hidden;
+      }
+
+      #schedule-container .table thead {
+        background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+      }
+
+      #schedule-container .table thead th {
+        color: #1e293b;
+        font-weight: 700;
+        font-size: 0.8rem;
+        text-transform: uppercase;
+        padding: 1rem 0.75rem;
+        border: none;
+      }
+
+      #schedule-container .table tbody td {
+        padding: 0.75rem;
+        border: 1px solid #e2e8f0;
+        vertical-align: middle;
+      }
+
+      #schedule-container .table tbody th {
+        background: #f8f9fa;
+        font-weight: 600;
+        color: #1e293b;
+      }
+
+      /* Course Items */
+      #schedule-container .course-item {
+        background: linear-gradient(
+          135deg,
+          rgba(99, 102, 241, 0.08) 0%,
+          rgba(139, 92, 246, 0.08) 100%
+        );
+        border-left: 3px solid #6366f1;
+        padding: 0.5rem 0.75rem;
+        border-radius: 8px;
+        margin: 0.25rem 0;
+        font-size: 0.8rem;
+        font-weight: 500;
+      }
+
+      /* Conflict Styling */
+      #schedule-container .conflict-cell {
+        background: linear-gradient(135deg, #fff5f5 0%, #ffe4e6 100%);
+        border: 2px solid #ef4444 !important;
+      }
+
+      #schedule-container .conflict-badge {
+        display: inline-block;
+        background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        color: white;
+        font-size: 0.7rem;
+        font-weight: 700;
+        padding: 0.375rem 0.875rem;
+        border-radius: 12px;
+        margin-top: 0.5rem;
+      }
+
+      /* Break cells */
+      #schedule-container .bg-light-subtle {
+        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        font-weight: 600;
+        color: #64748b;
+      }
+
+      /* RESPONSIVE */
+      .sidebar-toggle {
+        display: none;
+        position: fixed;
+        top: 1.5rem;
+        left: 1.5rem;
+        z-index: 2001;
+        background: white;
+        border: none;
+        border-radius: 12px;
+        padding: 0.875rem 1rem;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        cursor: pointer;
+      }
+
+      @media (max-width: 992px) {
+        .sidebar {
+          transform: translateX(-100%);
+        }
+        .sidebar.active {
+          transform: translateX(0);
+        }
+        .sidebar-toggle {
+          display: block;
+        }
+        .main-wrapper {
+          margin-left: 0;
+        }
+        .top-header {
+          padding-left: 5rem;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <button class="sidebar-toggle" id="sidebarToggle">
+      <i class="bi bi-list" style="font-size: 1.5rem; color: #6366f1"></i>
+    </button>
+
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-header">
+        <a href="#" class="sidebar-brand">
+          <i class="bi bi-calendar-check"></i>
+          <span>SmartSchedule</span>
+        </a>
+      </div>
+
+      <nav class="sidebar-nav">
+        <ul style="list-style: none; padding: 0; margin: 0">
+          <li class="sidebar-nav-item">
+            <a href="#" class="sidebar-nav-link">
+              <i class="bi bi-calendar3"></i>
+              <span>Schedules</span>
+            </a>
+          </li>
+          <li class="sidebar-nav-item">
+            <a href="irregulars.html" class="sidebar-nav-link">
+              <i class="bi bi-person-exclamation"></i>
+              <span>Irregular Students</span>
+            </a>
+          </li>
+          <li class="sidebar-nav-item">
+            <a href="course-management.html" class="sidebar-nav-link">
+              <i class="bi bi-folder-plus"></i>
+              <span>Section Management</span>
+            </a>
+          </li>
+          <li class="sidebar-nav-item">
+            <a href="feedback.html" class="sidebar-nav-link">
+              <i class="bi bi-chat-dots"></i>
+              <span>Comments managment</span>
+            </a>
+          </li>
+          <li class="sidebar-nav-item">
+            <a href="faculty-electives.html" class="sidebar-nav-link">
+              <i class="bi bi-bookmark-check"></i>
+              <span>Elective course</span>
+            </a>
+          </li>
+
+          <li class="sidebar-nav-item">
+            <a href="students.html" class="sidebar-nav-link">
+              <i class="bi bi-people-fill"></i>
+              <span>Students managment</span>
+            </a>
+          </li>
+          <li class="sidebar-nav-item">
+            <a href="rules.html" class="sidebar-nav-link">
+              <i class="bi bi-sliders"></i>
+              <span>Rules managment</span>
+            </a>
+          </li>
+          <li class="sidebar-nav-item">
+            <a href="version-history.html" class="sidebar-nav-link">
+              <i class="bi bi-clock-history"></i>
+              <span>versions control</span>
+            </a>
+          </li>
+        </ul>
+      </nav>
+
+      <div class="sidebar-footer dropup">
+        <div
+          class="sidebar-user"
+          id="sidebarUser"
+          data-bs-toggle="dropdown"
+          aria-expanded="false"
+        >
+          <div class="sidebar-user-avatar" id="userAvatar">CM</div>
+          <div class="sidebar-user-info">
+            <div class="sidebar-user-name" id="sidebarUserName">
+              Committee Member
+            </div>
+            <div class="sidebar-user-role">Faculty</div>
+          </div>
+        </div>
+
+        <ul
+          class="dropdown-menu dropdown-menu-dark"
+          aria-labelledby="sidebarUser"
+        >
+          <li>
+            <a class="dropdown-item" href="#" id="logoutButton">Logout</a>
+          </li>
+        </ul>
+      </div>
+    </aside>
+
+    <div class="main-wrapper">
+      <header class="top-header">
+        <h1>Schedule Management</h1>
+        <div class="top-header-actions">
+          <button
+            class="notification-btn"
+            data-bs-toggle="modal"
+            data-bs-target="#notificationsModal"
+          >
+            <i class="bi bi-bell-fill"></i>
+            <span class="notification-badge">3</span>
+          </button>
+        </div>
+      </header>
+
+      <div class="main-container">
+        <div class="level-selector-wrapper">
+          <h5><i class="bi bi-layers me-2"></i>Select Academic Level</h5>
+          <div
+            class="level-btn-group btn-group"
+            role="group"
+            id="level-selector-buttons"
+          >
+            <button
+              type="button"
+              class="level-btn btn btn-dark active"
+              data-level="3"
+            >
+              Level 3
+            </button>
+            <button
+              type="button"
+              class="level-btn btn btn-outline-dark"
+              data-level="4"
+            >
+              Level 4
+            </button>
+            <button
+              type="button"
+              class="level-btn btn btn-outline-dark"
+              data-level="5"
+            >
+              Level 5
+            </button>
+            <button
+              type="button"
+              class="level-btn btn btn-outline-dark"
+              data-level="6"
+            >
+              Level 6
+            </button>
+            <button
+              type="button"
+              class="level-btn btn btn-outline-dark"
+              data-level="7"
+            >
+              Level 7
+            </button>
+            <button
+              type="button"
+              class="level-btn btn btn-outline-dark"
+              data-level="8"
+            >
+              Level 8
+            </button>
+          </div>
+        </div>
+
+        <div id="schedule-container"></div>
+      </div>
+    </div>
+
+    <script src="assets/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+      document.addEventListener("DOMContentLoaded", () => {
+        const sidebar = document.getElementById("sidebar");
+        const sidebarToggle = document.getElementById("sidebarToggle");
+
+        // --- 1. AUTO-ACTIVE SIDEBAR ---
+        const currentPage =
+          window.location.pathname.split("/").pop() || "index.html";
+        const allLinks = document.querySelectorAll(".sidebar-nav-link");
+
+        allLinks.forEach((link) => {
+          link.classList.remove("active");
+          const linkHref = link.getAttribute("href");
+
+          // Check for index page (href="#" or index.html)
+          if (
+            (currentPage === "index.html" || currentPage === "") &&
+            linkHref === "#"
+          ) {
+            link.classList.add("active");
+          }
+          // Check for other pages
+          else if (linkHref === currentPage) {
+            link.classList.add("active");
+          }
+        });
+
+        // --- 2. USER DISPLAY LOGIC ---
+        const displayEl = document.getElementById("sidebarUserName");
+        const avatarEl = document.getElementById("userAvatar");
+
+        const raw = sessionStorage.getItem("user");
+        let user = null;
+        try {
+          user = raw ? JSON.parse(raw) : null;
+        } catch (e) {
+          console.warn("Could not parse user:", e);
+        }
+
+        const first = user?.First_Name ?? user?.firstName ?? "";
+        const last = user?.Last_Name ?? user?.lastName ?? "";
+        const displayName =
+          [first, last].filter(Boolean).join(" ").trim() || "Committee Member";
+
+        if (displayEl) displayEl.textContent = displayName;
+        if (avatarEl) {
+          const initials = displayName
+            .split(" ")
+            .map((n) => n[0])
+            .join("")
+            .toUpperCase()
+            .substring(0, 2);
+          avatarEl.textContent = initials || "CM";
+        }
+
+        // --- 3. SIDEBAR TOGGLE LOGIC ---
+        if (sidebarToggle && sidebar) {
+          sidebarToggle.addEventListener("click", () => {
+            sidebar.classList.toggle("active");
+          });
+
+          document.addEventListener("click", (e) => {
+            if (window.innerWidth <= 992) {
+              if (
+                !sidebar.contains(e.target) &&
+                !sidebarToggle.contains(e.target)
+              ) {
+                sidebar.classList.remove("active");
+              }
+            }
+          });
+        }
+
+        // --- 4. LOGOUT BUTTON LOGIC ---
+        const logoutBtn = document.getElementById("logoutButton");
+        if (logoutBtn) {
+          logoutBtn.addEventListener("click", (e) => {
+            e.preventDefault();
+            sessionStorage.removeItem("user");
+            sessionStorage.removeItem("token");
+            // Set this to your actual login page
+            window.location.href = "loginReg.html";
+          });
+        }
+      });
+    </script>
+
+    <script src="assets/js/main.js"></script>
+    <script src="assets/js/irregulars.js"></script>
+    <script src="assets/js/notifications.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <script>
+      if (typeof pdfjsLib !== "undefined") {
+        pdfjsLib.GlobalWorkerOptions.workerSrc =
+          "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
+      }
+    </script>
+    <script src="assets/js/api.js"></script>
+    <script src="assets/js/validation.js"></script>
+    <script src="assets/js/notifications-util.js"></script>
+    <script src="assets/js/courseService.js"></script>
+    <script src="assets/js/scheduleService.js"></script>
+    <script src="assets/js/courseManager.js"></script>
+    <script src="assets/js/sectionManager.js"></script>
+    <script src="assets/js/fileUploadManager.js"></script>
+    <script src="assets/js/faculty-dashboard.js"></script>
+    <script src="assets/js/version-history.js"></script>
+    <script src="assets/js/faculty-comments.js"></script>
+
+    <div
+      class="modal fade"
+      id="impactReportModal"
+      tabindex="-1"
+      aria-labelledby="impactReportModalLabel"
+      aria-hidden="true"
+    >
+      <div class="modal-dialog modal-dialog-scrollable">
+        <div class="modal-content border-0 shadow-lg">
+          <div class="modal-header text-white" id="impactModalHeader">
+            <div class="d-flex align-items-center gap-3">
+              <i class="bi bi-check-circle-fill fs-2" id="impactModalIcon"></i>
+              <div>
+                <h5 class="modal-title fw-bold" id="impactReportModalLabel">
+                  Irregular Student Impact Report
+                </h5>
+                <small id="impactModalSubtitle">Section - Level</small>
+              </div>
+            </div>
+            <button
+              type="button"
+              class="btn-close btn-close-white"
+              data-bs-dismiss="modal"
+              aria-label="Close"
+            ></button>
+          </div>
+
+          <div class="modal-body p-4 bg-light-subtle">
+            <div class="row g-3 mb-4">
+              <div class="col-md-4">
+                <div
+                  class="card border-2 border-primary bg-primary bg-opacity-10 h-100"
+                >
+                  <div class="card-body text-center">
+                    <small class="text-primary fw-semibold mb-2 d-block"
+                      >Total Irregular Students (in Level)</small
+                    >
+                    <div
+                      class="display-4 fw-bold text-primary"
+                      id="totalIrregulars"
+                    >
+                      0
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="col-md-4">
+                <div
+                  class="card border-2 border-danger bg-danger bg-opacity-10 h-100"
+                  id="affectedCard"
+                >
+                  <div class="card-body text-center">
+                    <small
+                      class="text-danger fw-semibold mb-2 d-block"
+                      id="affectedLabel"
+                      >Students with Conflicts</small
+                    >
+                    <div
+                      class="display-4 fw-bold text-danger"
+                      id="affectedCount"
+                    >
+                      0
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="col-md-4">
+                <div
+                  class="card border-2 border-secondary bg-secondary bg-opacity-10 h-100"
+                >
+                  <div class="card-body text-center">
+                    <small class="text-secondary fw-semibold mb-2 d-block"
+                      >Conflict Impact Rate</small
+                    >
+                    <div
+                      class="display-4 fw-bold text-secondary"
+                      id="impactRate"
+                    >
+                      0%
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div
+              class="alert alert-success d-flex align-items-start gap-3"
+              id="statusAlert"
+            >
+              <i class="bi bi-check-circle-fill fs-3" id="statusIcon"></i>
+              <div>
+                <h5 class="fw-bold mb-1" id="statusTitle">All Clear!</h5>
+                <p class="mb-0" id="statusMessage">
+                  No irregular students found for this level.
+                </p>
+              </div>
+            </div>
+
+            <div id="noConflictsSection" style="display: none">
+              <div class="text-center p-5">
+                <i class="bi bi-shield-check fs-1 text-success"></i>
+                <h3 class="mt-3">No Conflicts Found</h3>
+                <p class="text-muted">
+                  This schedule does not conflict with any irregular students'
+                  remaining courses.
+                </p>
+              </div>
+            </div>
+
+            <div id="affectedStudentsSection" style="display: none">
+              <h5 class="fw-bold mb-3">
+                <i class="bi bi-people-fill me-2"></i>Affected Student Details
+              </h5>
+              <div id="studentsList"></div>
+            </div>
+          </div>
+
+          <div class="modal-footer justify-content-between">
+            <small class="text-muted" id="reportTimestamp"
+              >Generated: ...</small
+            >
+            <button
+              type="button"
+              class="btn btn-primary"
+              data-bs-dismiss="modal"
+            >
+              Close Report
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

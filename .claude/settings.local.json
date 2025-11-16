@@ -1,0 +1,32 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(.env.main)",
+      "Bash(.env.dev)",
+      "Bash(git checkout:*)",
+      "Bash(cp:*)",
+      "Bash(npm install)",
+      "Bash(while read status file)",
+      "Bash(do echo \"$status $file\")",
+      "Bash(done)",
+      "Bash(git ls-tree:*)",
+      "Bash(npm install:*)",
+      "Bash(echo:*)",
+      "Bash(npm run dev:*)",
+      "Bash(git fetch:*)",
+      "Bash(npm run build:*)",
+      "Bash(node createStudentProfile.cjs:*)",
+      "Bash(node:*)",
+      "Bash(netstat:*)",
+      "Bash(findstr:*)",
+      "Bash(taskkill:*)",
+      "Bash(powershell \"Stop-Process -Id 14648 -Force\")",
+      "Bash(dir:*)",
+      "Bash(git init:*)",
+      "Bash(git remote add:*)",
+      "Bash(git add:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SmartSchedule - Login & Register</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .auth-container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+            max-width: 900px;
+        }
+
+        .auth-left {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 60px 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+        }
+
+        .logo-icon {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+        }
+
+        .input-group-text {
+            border-right: none;
+        }
+
+        .form-control {
+            border-left: none;
+        }
+
+        .password-wrapper {
+            position: relative;
+        }
+
+        .password-toggle {
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            cursor: pointer;
+            z-index: 10;
+            color: #6c757d;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+        }
+
+        .auth-step {
+            display: none;
+        }
+
+        .auth-step.active {
+            display: block;
+        }
+
+        .verification-code-input {
+            font-size: 1.5rem;
+            text-align: center;
+            letter-spacing: 0.5rem;
+        }
+
+        .nav-tabs .nav-link {
+            color: #667eea;
+        }
+
+        .nav-tabs .nav-link.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="auth-container">
+            <div class="row g-0">
+                <div class="col-md-5 auth-left">
+                    <div>
+                        <i class="bi bi-calendar-check logo-icon"></i>
+                        <h2 class="fw-bold mb-3">SmartSchedule</h2>
+                        <p class="mb-0">Your intelligent academic scheduling solution</p>
+                    </div>
+                </div>
+                <div class="col-md-7 auth-right p-4 p-md-5">
+                    <div id="alert-container"></div>
+
+                    <!-- Tabs for Login/Register -->
+                    <ul class="nav nav-tabs mb-4" id="authTabs" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link active" id="login-tab" data-bs-toggle="tab" data-bs-target="#login-content" type="button">
+                                Login
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="register-tab" data-bs-toggle="tab" data-bs-target="#register-content" type="button">
+                                Register
+                            </button>
+                        </li>
+                    </ul>
+
+                    <div class="tab-content" id="authTabContent">
+                        <!-- LOGIN TAB -->
+                        <div class="tab-pane fade show active" id="login-content">
+                            <!-- Step 1: Email/Password Login -->
+                            <div id="login-step" class="auth-step active">
+                                <h4 class="fw-bold mb-4">Welcome Back!</h4>
+                                <form id="login-form">
+                                    <div class="mb-3">
+                                        <label class="form-label">Email Address</label>
+                                        <div class="input-group">
+                                            <span class="input-group-text"><i class="bi bi-envelope"></i></span>
+                                            <input type="email" class="form-control" placeholder="Enter your email" id="login-email" required>
+                                        </div>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">Password</label>
+                                        <div class="input-group password-wrapper">
+                                            <span class="input-group-text"><i class="bi bi-lock"></i></span>
+                                            <input type="password" class="form-control" placeholder="Enter your password" id="login-password" required>
+                                            <span class="password-toggle" id="toggle-login-password">
+                                                <i class="bi bi-eye"></i>
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <button type="submit" class="btn btn-primary w-100 mb-3" id="login-btn">
+                                        <i class="bi bi-box-arrow-in-right me-2"></i>Login
+                                    </button>
+                                </form>
+                            </div>
+
+                            <!-- Step 2: Email Verification -->
+                            <div id="verification-step" class="auth-step">
+                                <h4 class="fw-bold mb-4">Check Your Email</h4>
+                                <p class="text-muted mb-4">We've sent a 6-digit verification code to your email address.</p>
+                                <form id="verification-form">
+                                    <div class="mb-3">
+                                        <label class="form-label">Verification Code</label>
+                                        <div class="input-group">
+                                            <span class="input-group-text"><i class="bi bi-shield-check"></i></span>
+                                            <input type="text" class="form-control verification-code-input"
+                                                   placeholder="000000" id="verification-code"
+                                                   maxlength="6" pattern="[0-9]{6}" required>
+                                        </div>
+                                        <div class="form-text">Enter the 6-digit code from your email</div>
+                                    </div>
+                                    <button type="submit" class="btn btn-primary w-100 mb-3" id="verify-btn">
+                                        <i class="bi bi-check-circle me-2"></i>Verify & Login
+                                    </button>
+                                    <button type="button" class="btn btn-outline-secondary w-100" id="back-btn">
+                                        <i class="bi bi-arrow-left me-2"></i>Back to Login
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+
+                        <!-- REGISTER TAB -->
+                        <div class="tab-pane fade" id="register-content">
+                            <h4 class="fw-bold mb-4">Create Account</h4>
+                            <form id="register-form">
+                                <div class="mb-3">
+                                    <label class="form-label">First Name</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text"><i class="bi bi-person"></i></span>
+                                        <input type="text" class="form-control" placeholder="First name" id="first-name" required>
+                                    </div>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Last Name</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text"><i class="bi bi-person"></i></span>
+                                        <input type="text" class="form-control" placeholder="Last name" id="last-name" required>
+                                    </div>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Email Address</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text"><i class="bi bi-envelope"></i></span>
+                                        <input type="email" class="form-control" placeholder="Enter your email" id="register-email" required>
+                                    </div>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Password</label>
+                                    <div class="input-group password-wrapper">
+                                        <span class="input-group-text"><i class="bi bi-lock"></i></span>
+                                        <input type="password" class="form-control" placeholder="Create a password" id="register-password" required>
+                                        <span class="password-toggle" id="toggle-register-password">
+                                            <i class="bi bi-eye"></i>
+                                        </span>
+                                    </div>
+                                    <div class="form-text">Password must be at least 6 characters</div>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Role</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text"><i class="bi bi-person-badge"></i></span>
+                                        <select class="form-control" id="role" required>
+                                            <option value="Student">Student</option>
+                                            <option value="Faculty">Faculty</option>
+                                            <option value="LoadCommittee">Load Committee</option>
+                                            <option value="Scheduler">Scheduler</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <button type="submit" class="btn btn-primary w-100 mb-3" id="register-btn">
+                                    <i class="bi bi-person-plus me-2"></i>Register
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        const API_URL = 'http://localhost:4000/api';
+        let currentEmail = '';
+        let currentPassword = '';
+
+        // Password toggles
+        document.getElementById('toggle-login-password').addEventListener('click', function() {
+            togglePassword('login-password', this);
+        });
+        document.getElementById('toggle-register-password').addEventListener('click', function() {
+            togglePassword('register-password', this);
+        });
+
+        function togglePassword(inputId, toggleElement) {
+            const input = document.getElementById(inputId);
+            const icon = toggleElement.querySelector('i');
+
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.classList.remove('bi-eye');
+                icon.classList.add('bi-eye-slash');
+            } else {
+                input.type = 'password';
+                icon.classList.remove('bi-eye-slash');
+                icon.classList.add('bi-eye');
+            }
+        }
+
+        // Alert functions
+        function showAlert(message, type) {
+            const alertContainer = document.getElementById('alert-container');
+            alertContainer.innerHTML = `
+                <div class="alert alert-${type} alert-dismissible fade show" role="alert">
+                    ${message}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            `;
+            setTimeout(() => {
+                const alert = alertContainer.querySelector('.alert');
+                if (alert) alert.remove();
+            }, 5000);
+        }
+
+        // Step navigation
+        function showVerificationStep() {
+            document.getElementById('login-step').classList.remove('active');
+            document.getElementById('verification-step').classList.add('active');
+        }
+
+        function showLoginStep() {
+            document.getElementById('verification-step').classList.remove('active');
+            document.getElementById('login-step').classList.add('active');
+        }
+
+        // Check if email was verified in this session
+        function isEmailVerified(email) {
+            const verifiedEmails = JSON.parse(sessionStorage.getItem('verifiedEmails') || '[]');
+            return verifiedEmails.includes(email.toLowerCase());
+        }
+
+        // Mark email as verified for this session
+        function markEmailVerified(email) {
+            const verifiedEmails = JSON.parse(sessionStorage.getItem('verifiedEmails') || '[]');
+            if (!verifiedEmails.includes(email.toLowerCase())) {
+                verifiedEmails.push(email.toLowerCase());
+                sessionStorage.setItem('verifiedEmails', JSON.stringify(verifiedEmails));
+            }
+        }
+
+        // Login form (Step 1)
+        document.getElementById('login-form').addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            currentEmail = document.getElementById('login-email').value;
+            currentPassword = document.getElementById('login-password').value;
+
+            const loginBtn = document.getElementById('login-btn');
+            loginBtn.disabled = true;
+
+            // Check if already verified in this session
+            if (isEmailVerified(currentEmail)) {
+                loginBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Logging in...';
+                console.log('✅ Email already verified in this session, skipping 2FA');
+                // Skip 2FA - send dummy code to backend or implement direct login
+                // For now, we'll still send to backend but indicate no verification needed
+            } else {
+                loginBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Sending code...';
+            }
+
+            try {
+                const response = await fetch(`${API_URL}/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ Email: currentEmail, Password: currentPassword })
+                });
+
+                const data = await response.json();
+
+                if (response.ok && data.requiresVerification) {
+                    showAlert('Verification code sent to your email!', 'success');
+                    showVerificationStep();
+                } else if (response.ok && data.token) {
+                    // Direct login (2FA was disabled or already verified)
+                    showAlert('Login successful! Redirecting...', 'success');
+                    markEmailVerified(currentEmail); // Mark as verified for future logins
+                    handleSuccessfulLogin(data);
+                } else {
+                    showAlert(data.message || 'Login failed. Please check your credentials.', 'danger');
+                }
+            } catch (error) {
+                console.error('Login error:', error);
+                showAlert('Connection error. Please check if the backend server is running.', 'danger');
+            } finally {
+                loginBtn.disabled = false;
+                loginBtn.innerHTML = '<i class="bi bi-box-arrow-in-right me-2"></i>Login';
+            }
+        });
+
+        // Verification form (Step 2)
+        document.getElementById('verification-form').addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            const verificationCode = document.getElementById('verification-code').value;
+            const verifyBtn = document.getElementById('verify-btn');
+
+            verifyBtn.disabled = true;
+            verifyBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Verifying...';
+
+            try {
+                const response = await fetch(`${API_URL}/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        Email: currentEmail,
+                        Password: currentPassword,
+                        verificationCode: verificationCode
+                    })
+                });
+
+                const data = await response.json();
+
+                if (response.ok && data.token) {
+                    showAlert('Login successful! Redirecting...', 'success');
+                    markEmailVerified(currentEmail); // Mark email as verified for this session
+                    handleSuccessfulLogin(data);
+                } else {
+                    showAlert(data.message || 'Invalid verification code.', 'danger');
+                }
+            } catch (error) {
+                console.error('Verification error:', error);
+                showAlert('Connection error. Please try again.', 'danger');
+            } finally {
+                verifyBtn.disabled = false;
+                verifyBtn.innerHTML = '<i class="bi bi-check-circle me-2"></i>Verify & Login';
+            }
+        });
+
+        // Back button
+        document.getElementById('back-btn').addEventListener('click', function() {
+            showLoginStep();
+            document.getElementById('verification-code').value = '';
+        });
+
+        // Register form
+        document.getElementById('register-form').addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            const firstName = document.getElementById('first-name').value;
+            const lastName = document.getElementById('last-name').value;
+            const email = document.getElementById('register-email').value;
+            const password = document.getElementById('register-password').value;
+            const role = document.getElementById('role').value;
+
+            const registerBtn = document.getElementById('register-btn');
+            registerBtn.disabled = true;
+            registerBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Registering...';
+
+            try {
+                const response = await fetch(`${API_URL}/register`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        First_Name: firstName,
+                        Last_Name: lastName,
+                        Email: email,
+                        Password: password,
+                        role: role
+                    })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    showAlert('Registration successful! Please login.', 'success');
+                    document.getElementById('register-form').reset();
+                    setTimeout(() => {
+                        document.getElementById('login-tab').click();
+                    }, 2000);
+                } else {
+                    showAlert(data.message || 'Registration failed. Please try again.', 'danger');
+                }
+            } catch (error) {
+                console.error('Registration error:', error);
+                showAlert('Connection error. Please check if the backend server is running.', 'danger');
+            } finally {
+                registerBtn.disabled = false;
+                registerBtn.innerHTML = '<i class="bi bi-person-plus me-2"></i>Register';
+            }
+        });
+
+        // Handle successful login
+        function handleSuccessfulLogin(data) {
+            // Store in BOTH sessionStorage AND localStorage
+            sessionStorage.setItem('user', JSON.stringify(data.user));
+            sessionStorage.setItem('token', data.token);
+            localStorage.setItem('user', JSON.stringify(data.user));
+            localStorage.setItem('token', data.token);
+
+            setTimeout(() => {
+                // Redirect based on role using replace to prevent back button issues
+                switch (data.user.role) {
+                    case 'Scheduler':
+                    case 'LoadCommittee':
+                        window.location.replace('index.html');
+                        break;
+                    case 'Student':
+                        window.location.replace('StudentHP.html');
+                        break;
+                    case 'Faculty':
+                        window.location.replace('index.html');
+                        break;
+                    default:
+                        // Clear session and show error for unknown roles
+                        sessionStorage.clear();
+                        localStorage.clear();
+                        showAlert('Access denied: Invalid user role. Please contact administrator.', 'danger');
+                        console.error('Unknown user role:', data.user.role);
+                        return;
+                }
+            }, 1500);
+        }
+
+        // Auto-format verification code input
+        document.getElementById('verification-code').addEventListener('input', function(e) {
+            this.value = this.value.replace(/[^0-9]/g, '');
+        });
+
+        // Auto-login: Check if user already has a valid session
+        function checkExistingSession() {
+            // Don't auto-redirect if we just came from another page (prevents redirect loops)
+            const justRedirected = sessionStorage.getItem('justRedirected');
+            if (justRedirected) {
+                sessionStorage.removeItem('justRedirected');
+                console.log('⚠️ Skipping auto-login - just redirected from protected page');
+                // Clear ALL session data when redirected from protected page
+                console.log('🧹 Clearing all stale session data...');
+                sessionStorage.clear();
+                localStorage.clear();
+                return;
+            }
+
+            const token = sessionStorage.getItem('token') || localStorage.getItem('token');
+            const userStr = sessionStorage.getItem('user') || localStorage.getItem('user');
+
+            if (token && userStr) {
+                try {
+                    const user = JSON.parse(userStr);
+                    console.log('✅ Found existing session for:', user.Email, 'Role:', user.role);
+
+                    // Redirect to appropriate page based on role
+                    const rolePages = {
+                        'Scheduler': 'index.html',
+                        'Student': 'StudentHP.html',  // Students go to their own page
+                        'Faculty': 'index.html',
+                        'LoadCommittee': 'index.html'  // LoadCommittee also goes to dashboard
+                    };
+
+                    const targetPage = rolePages[user.role];
+                    if (targetPage) {
+                        console.log('🔄 Auto-redirecting to', targetPage);
+                        window.location.replace(targetPage);
+                    }
+                } catch (error) {
+                    console.error('Error parsing stored user data:', error);
+                    // Clear invalid session data
+                    sessionStorage.clear();
+                    localStorage.clear();
+                }
+            }
+        }
+
+        // Run auto-login check on page load (with delay to prevent redirect loops)
+        window.addEventListener('DOMContentLoaded', function() {
+            setTimeout(checkExistingSession, 300);
+        });
+    </script>
+</body>
+</html>

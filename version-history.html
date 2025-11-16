@@ -1,0 +1,748 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Version History - SmartSchedule</title>
+    <link rel="stylesheet" href="assets/css/bootstrap.min.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css"
+    />
+    <style>
+      /* == Base Styles from Master Template == */
+      :root {
+        --primary: #6366f1;
+        --primary-dark: #4f46e5;
+        --sidebar-width: 280px;
+      }
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      body {
+        font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI",
+          Roboto, sans-serif;
+        background: #1e293b;
+        min-height: 100vh;
+        color: #1e293b;
+        display: flex;
+        overflow-x: hidden;
+      }
+      .sidebar {
+        width: var(--sidebar-width);
+        background: #2d3748;
+        height: 100vh;
+        position: fixed;
+        left: 0;
+        top: 0;
+        box-shadow: 4px 0 24px rgba(0, 0, 0, 0.3);
+        display: flex;
+        flex-direction: column;
+        z-index: 2000;
+      }
+      .sidebar-header {
+        padding: 2rem 1.5rem;
+        border-bottom: 2px solid rgba(255, 255, 255, 0.1);
+        background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+      }
+      .sidebar-brand {
+        font-size: 1.5rem;
+        font-weight: 800;
+        color: white;
+        text-decoration: none;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+      }
+      .sidebar-nav {
+        flex: 1;
+        overflow-y: auto;
+        padding: 1.5rem 0;
+      }
+      .sidebar-nav-item {
+        list-style: none;
+        margin: 0.25rem 1rem;
+      }
+      .sidebar-nav-link {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 0.875rem 1rem;
+        color: rgba(255, 255, 255, 0.8);
+        text-decoration: none;
+        border-radius: 12px;
+        font-weight: 500;
+        transition: all 0.3s ease;
+      }
+      .sidebar-nav-link:hover {
+        background: rgba(255, 255, 255, 0.1);
+        color: white;
+        transform: translateX(4px);
+      }
+      .sidebar-nav-link.active {
+        background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+        color: white;
+        font-weight: 600;
+        box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+      }
+      .sidebar-nav-link i {
+        font-size: 1.25rem;
+        width: 24px;
+      }
+      .sidebar-footer {
+        padding: 1rem 1.5rem;
+        border-top: 1px solid rgba(255, 255, 255, 0.1);
+        position: relative; /* For dropup */
+      }
+      .sidebar-footer .dropdown-menu {
+        width: calc(var(--sidebar-width) - 3rem);
+        margin-bottom: 0.5rem;
+      }
+      .sidebar-user {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 0.75rem;
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 12px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+      }
+      .sidebar-user:hover {
+        background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+        transform: translateY(-2px);
+      }
+      .sidebar-user-avatar {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-weight: 700;
+      }
+      .sidebar-user-name {
+        font-weight: 600;
+        color: white;
+      }
+      .sidebar-user-role {
+        font-size: 0.75rem;
+        color: rgba(255, 255, 255, 0.7);
+      }
+      .main-wrapper {
+        flex: 1;
+        margin-left: var(--sidebar-width);
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+      }
+      .top-header {
+        background: rgba(30, 41, 59, 0.95);
+        padding: 1.5rem 2rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border-bottom: 1px solid rgba(99, 102, 241, 0.2);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      }
+      .top-header h1 {
+        color: white;
+        font-size: 1.75rem;
+        font-weight: 700;
+        margin: 0;
+        display: flex;
+        align-items: center;
+      }
+      .notification-btn {
+        position: relative;
+        background: rgba(255, 255, 255, 0.15);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        border-radius: 12px;
+        padding: 0.75rem 1rem;
+        color: white;
+        cursor: pointer;
+        transition: all 0.3s ease;
+      }
+      .notification-btn:hover {
+        background: rgba(255, 255, 255, 0.25);
+        transform: translateY(-2px);
+      }
+      .notification-badge {
+        position: absolute;
+        top: -5px;
+        right: -5px;
+        background: #ef4444;
+        color: white;
+        border-radius: 10px;
+        padding: 0.25rem 0.5rem;
+        font-size: 0.7rem;
+        font-weight: 700;
+      }
+      .main-container {
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: 2rem;
+        width: 100%;
+      }
+      .sidebar-toggle {
+        display: none;
+        position: fixed;
+        top: 1.5rem;
+        left: 1.5rem;
+        z-index: 2001;
+        background: white;
+        border: none;
+        border-radius: 12px;
+        padding: 0.875rem 1rem;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        cursor: pointer;
+      }
+
+      /* == Page-Specific Content Styles == */
+      .level-filter-card {
+        background: white;
+        border-radius: 20px;
+        padding: 0;
+        box-shadow: 0 10px 25px -5px rgb(0 0 0 / 0.1);
+        position: sticky;
+        top: 2rem;
+      }
+      .level-filter-header {
+        background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+        color: white;
+        padding: 1.25rem 1.5rem;
+        border-radius: 20px 20px 0 0;
+      }
+      .level-filter-header h6 {
+        margin: 0;
+        font-weight: 700;
+        font-size: 1rem;
+      }
+      #versionLevelButtons {
+        padding: 0.5rem;
+      }
+      #versionLevelButtons button {
+        border: none;
+        background: white;
+        padding: 1rem 1.5rem;
+        margin: 0.25rem 0;
+        border-radius: 12px;
+        text-align: left;
+        font-weight: 500;
+        color: #1e293b;
+        transition: all 0.3s ease;
+        border-left: 4px solid transparent;
+        width: 100%; /* Make buttons full width */
+      }
+      #versionLevelButtons button:hover {
+        background: #f8f9ff;
+        border-left-color: #6366f1;
+        transform: translateX(4px);
+      }
+      #versionLevelButtons button.active,
+      #versionLevelButtons button.list-group-item-primary {
+        background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+        color: white;
+        font-weight: 600;
+        box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+      }
+      .content-card {
+        background: white;
+        border-radius: 20px;
+        padding: 2rem;
+        box-shadow: 0 10px 25px -5px rgb(0 0 0 / 0.1);
+        margin-bottom: 1.5rem;
+      }
+      .content-card h5 {
+        color: #1e293b;
+        font-weight: 700;
+        margin-bottom: 1rem;
+      }
+      #versionSchedulesList .list-group-item {
+        border: none;
+        border-radius: 12px;
+        margin-bottom: 0.5rem;
+        padding: 1rem 1.5rem;
+        transition: all 0.3s ease;
+        cursor: pointer;
+        border-left: 4px solid transparent;
+      }
+      #versionSchedulesList .list-group-item:hover {
+        background: #f8f9ff;
+        border-left-color: #6366f1;
+        transform: translateX(4px);
+        box-shadow: 0 4px 12px rgba(99, 102, 241, 0.1);
+      }
+      #versionTimeline .card {
+        background: white;
+        border: 2px solid #e2e8f0;
+        border-radius: 16px;
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+        transition: all 0.3s ease;
+      }
+      #versionTimeline .card:hover {
+        border-color: #6366f1;
+        box-shadow: 0 8px 20px rgba(99, 102, 241, 0.15);
+        transform: translateY(-2px);
+      }
+      #versionTimeline .card.border-primary {
+        border-width: 3px;
+        border-color: #6366f1;
+        background: linear-gradient(
+          135deg,
+          rgba(99, 102, 241, 0.03) 0%,
+          transparent 100%
+        );
+      }
+      .badge {
+        padding: 0.5rem 1rem;
+        border-radius: 10px;
+        font-weight: 600;
+      }
+      .breadcrumb {
+        background: transparent;
+        padding: 0;
+        margin-bottom: 1.5rem;
+      }
+      .breadcrumb-item a {
+        color: #6366f1;
+        text-decoration: none;
+        font-weight: 600;
+      }
+      .breadcrumb-item a:hover {
+        color: #4f46e5;
+      }
+      .btn {
+        border-radius: 10px;
+        font-weight: 600;
+        padding: 0.625rem 1.25rem;
+        transition: all 0.3s ease;
+      }
+      .btn-outline-secondary {
+        border-color: #e2e8f0;
+        color: #64748b;
+      }
+      .btn-outline-secondary:hover {
+        background: #64748b;
+        border-color: #64748b;
+        color: white;
+        transform: translateY(-2px);
+      }
+      .btn-success {
+        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        border: none;
+        color: white;
+      }
+      .btn-success:hover {
+        background: linear-gradient(135deg, #059669 0%, #047857 100%);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+      }
+      #versionLoadingState,
+      #versionEmptyState {
+        text-align: center;
+        padding: 4rem 2rem;
+      }
+      #versionLoadingState i,
+      #versionEmptyState i {
+        color: #94a3b8;
+        opacity: 0.5;
+      }
+      #versionLoadingState h4,
+      #versionEmptyState h4 {
+        color: #64748b;
+        font-weight: 700;
+        margin-top: 1.5rem;
+      }
+      #versionLoadingState p,
+      #versionEmptyState p {
+        color: #94a3b8;
+      }
+
+      /* == Responsive == */
+      @media (max-width: 992px) {
+        .sidebar {
+          transform: translateX(-100%);
+        }
+        .sidebar.active {
+          transform: translateX(0);
+        }
+        .sidebar-toggle {
+          display: block;
+        }
+        .main-wrapper {
+          margin-left: 0;
+        }
+        .top-header {
+          padding-left: 5rem;
+        }
+      }
+      @media (max-width: 768px) {
+        .main-container,
+        .content-card {
+          padding: 1rem;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <button class="sidebar-toggle" id="sidebarToggle">
+      <i class="bi bi-list" style="font-size: 1.5rem; color: #6366f1"></i>
+    </button>
+
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-header">
+        <a href="index.html" class="sidebar-brand">
+          <i class="bi bi-calendar-check"></i>
+          <span>SmartSchedule</span>
+        </a>
+      </div>
+      <nav class="sidebar-nav">
+        <ul style="list-style: none; padding: 0; margin: 0">
+          <li class="sidebar-nav-item">
+            <a href="index.html" class="sidebar-nav-link">
+              <i class="bi bi-calendar3"></i>
+              <span>Schedules</span>
+            </a>
+          </li>
+          <li class="sidebar-nav-item">
+            <a href="irregulars.html" class="sidebar-nav-link">
+              <i class="bi bi-person-exclamation"></i>
+              <span>Irregular Students</span>
+            </a>
+          </li>
+          <li class="sidebar-nav-item">
+            <a href="course-management.html" class="sidebar-nav-link">
+              <i class="bi bi-folder-plus"></i>
+              <span>Section Management</span>
+            </a>
+          </li>
+          <li class="sidebar-nav-item">
+            <a href="feedback.html" class="sidebar-nav-link">
+              <i class="bi bi-chat-dots"></i>
+              <span>Comments managment</span>
+            </a>
+          </li>
+          <li class="sidebar-nav-item">
+            <a href="faculty-electives.html" class="sidebar-nav-link">
+              <i class="bi bi-bookmark-check"></i>
+              <span>Elective course</span>
+            </a>
+          </li>
+          <li class="sidebar-nav-item">
+            <a href="students.html" class="sidebar-nav-link">
+              <i class="bi bi-people-fill"></i>
+              <span>Students managment</span>
+            </a>
+          </li>
+          <li class="sidebar-nav-item">
+            <a href="rules.html" class="sidebar-nav-link">
+              <i class="bi bi-sliders"></i>
+              <span>Rules managment</span>
+            </a>
+          </li>
+          <li class="sidebar-nav-item">
+            <a href="version-history.html" class="sidebar-nav-link active">
+              <i class="bi bi-clock-history"></i>
+              <span>versions control</span>
+            </a>
+          </li>
+        </ul>
+      </nav>
+
+      <div class="sidebar-footer dropup">
+        <div
+          class="sidebar-user"
+          id="sidebarUser"
+          data-bs-toggle="dropdown"
+          aria-expanded="false"
+        >
+          <div class="sidebar-user-avatar" id="userAvatar">CM</div>
+          <div class="sidebar-user-info">
+            <div class="sidebar-user-name" id="sidebarUserName">
+              Committee Member
+            </div>
+            <div class="sidebar-user-role">Faculty</div>
+          </div>
+        </div>
+        <ul
+          class="dropdown-menu dropdown-menu-dark"
+          aria-labelledby="sidebarUser"
+        >
+          <li>
+            <a class="dropdown-item" href="#" id="logoutButton">Logout</a>
+          </li>
+        </ul>
+      </div>
+    </aside>
+
+    <div class="main-wrapper">
+      <header class="top-header">
+        <h1><i class="bi bi-clock-history me-3"></i>Version History</h1>
+        <div class="top-header-actions">
+          <button
+            class="notification-btn"
+            data-bs-toggle="modal"
+            data-bs-target="#notificationsModal"
+          >
+            <i class="bi bi-bell-fill"></i>
+            <span class="notification-badge">3</span>
+          </button>
+        </div>
+      </header>
+
+      <div class="main-container">
+        <div class="row">
+          <div class="col-lg-3 mb-4">
+            <div class="level-filter-card">
+              <div class="level-filter-header">
+                <h6><i class="bi bi-funnel me-2"></i>Filter by Level</h6>
+              </div>
+              <div id="versionLevelButtons">
+                <button type="button" data-level="3">
+                  <i
+                    class="bi bi-circle-fill me-2"
+                    style="font-size: 0.5rem; color: #6366f1"
+                  ></i>
+                  Level 3
+                </button>
+                <button type="button" data-level="4">
+                  <i
+                    class="bi bi-circle-fill me-2"
+                    style="font-size: 0.5rem; color: #6366f1"
+                  ></i>
+                  Level 4
+                </button>
+                <button type="button" data-level="5">
+                  <i
+                    class="bi bi-circle-fill me-2"
+                    style="font-size: 0.5rem; color: #6366f1"
+                  ></i>
+                  Level 5
+                </button>
+                <button type="button" data-level="6">
+                  <i
+                    class="bi bi-circle-fill me-2"
+                    style="font-size: 0.5rem; color: #6366f1"
+                  ></i>
+                  Level 6
+                </button>
+                <button type="button" data-level="7">
+                  <i
+                    class="bi bi-circle-fill me-2"
+                    style="font-size: 0.5rem; color: #6366f1"
+                  ></i>
+                  Level 7
+                </button>
+                <button type="button" data-level="8">
+                  <i
+                    class="bi bi-circle-fill me-2"
+                    style="font-size: 0.5rem; color: #6366f1"
+                  ></i>
+                  Level 8
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div class="col-lg-9">
+            <div id="versionLoadingState" class="content-card">
+              <i class="bi bi-clock-history" style="font-size: 5rem"></i>
+              <h4 class="mt-4">Select a Level</h4>
+              <p>Choose a level from the sidebar to view version history</p>
+            </div>
+
+            <div id="versionSchedulesContainer" style="display: none">
+              <div class="content-card">
+                <h5>
+                  <i class="bi bi-journal-text me-2"></i>
+                  Schedules for Level <span id="selectedLevelDisplay"></span>
+                </h5>
+                <div
+                  id="versionSchedulesList"
+                  class="list-group list-group-flush"
+                ></div>
+              </div>
+            </div>
+
+            <div id="versionTimelineContainer" style="display: none">
+              <nav aria-label="breadcrumb" class="mb-3">
+                <ol class="breadcrumb">
+                  <li class="breadcrumb-item">
+                    <a href="#" id="breadcrumbLevel">Level</a>
+                  </li>
+                  <li class="breadcrumb-item active" id="breadcrumbSchedule">
+                    Schedule
+                  </li>
+                </ol>
+              </nav>
+
+              <div class="content-card" style="border-left: 4px solid #6366f1">
+                <div class="d-flex justify-content-between align-items-center">
+                  <div>
+                    <h5 id="timelineScheduleTitle" class="mb-1"></h5>
+                    <p
+                      class="text-muted mb-0"
+                      id="timelineScheduleSubtitle"
+                    ></p>
+                  </div>
+                  <button
+                    class="btn btn-outline-secondary"
+                    id="backToSchedules"
+                  >
+                    <i class="bi bi-arrow-left me-2"></i>Back
+                  </button>
+                </div>
+              </div>
+
+              <h5 class="fw-bold mb-3 mt-4" style="color: white">
+                <i class="bi bi-git me-2"></i>Version Timeline
+              </h5>
+              <div id="versionTimeline"></div>
+            </div>
+
+            <div
+              id="versionEmptyState"
+              class="content-card"
+              style="display: none"
+            >
+              <i class="bi bi-inbox" style="font-size: 5rem"></i>
+              <h4 class="mt-4">No Version History</h4>
+              <p>This schedule has no recorded changes yet</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal fade" id="notificationsModal" tabindex="-1">
+      <div class="modal-dialog modal-lg modal-dialog-scrollable">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title fw-semibold">
+              <i class="bi bi-bell me-2 text-primary"></i> Notifications
+            </h5>
+            <button
+              type="button"
+              class="btn-close"
+              data-bs-dismiss="modal"
+            ></button>
+          </div>
+          <div class="modal-body p-0">
+            <div
+              id="notificationsList"
+              style="max-height: 500px; overflow-y: auto"
+            >
+              <div class="text-center py-3">
+                <div class="spinner-border spinner-border-sm me-2"></div>
+                Loading notifications...
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script src="assets/js/bootstrap.bundle.min.js"></script>
+
+    <script src="assets/js/main.js"></script>
+    <script src="assets/js/irregulars.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <script>
+      if (typeof pdfjsLib !== "undefined") {
+        pdfjsLib.GlobalWorkerOptions.workerSrc =
+          "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
+      }
+    </script>
+    <script src="assets/js/api.js"></script>
+    <script src="assets/js/validation.js"></script>
+    <script src="assets/js/notifications-util.js"></script>
+    <script src="assets/js/courseService.js"></script>
+    <script src="assets/js/scheduleService.js"></script>
+    <script src="assets/js/courseManager.js"></script>
+    <script src="assetsjs/sectionManager.js"></script>
+    <script src="assets/js/fileUploadManager.js"></script>
+    <script src="assets/js/faculty-dashboard.js"></script>
+    <script src="assets/js/faculty-comments.js"></script>
+
+    <script src="assets/js/notifications.js"></script>
+    <script src="assets/js/version-history.js"></script>
+
+    <script>
+      document.addEventListener("DOMContentLoaded", () => {
+        // --- 1. USER INFO (from master) ---
+        loadUserInfo();
+
+        // --- 2. SIDEBAR TOGGLE (from master) ---
+        setupSidebarToggle();
+
+        // --- 3. LOGOUT (from master) ---
+        const logoutBtn = document.getElementById("logoutButton");
+        if (logoutBtn) {
+          logoutBtn.addEventListener("click", (e) => {
+            e.preventDefault();
+            sessionStorage.removeItem("user");
+            sessionStorage.removeItem("token");
+            window.location.href = "loginReg.html";
+          });
+        }
+      });
+
+      function setupSidebarToggle() {
+        const sidebar = document.getElementById("sidebar");
+        const sidebarToggle = document.getElementById("sidebarToggle");
+
+        if (sidebarToggle && sidebar) {
+          sidebarToggle.addEventListener("click", () => {
+            sidebar.classList.toggle("active");
+          });
+
+          document.addEventListener("click", (e) => {
+            if (window.innerWidth <= 992) {
+              if (
+                !sidebar.contains(e.target) &&
+                !sidebarToggle.contains(e.target)
+              ) {
+                sidebar.classList.remove("active");
+              }
+            }
+          });
+        }
+      }
+
+      function loadUserInfo() {
+        const raw = sessionStorage.getItem("user");
+        let user = null;
+        try {
+          user = raw ? JSON.parse(raw) : null;
+        } catch (e) {
+          console.warn("Could not parse user:", e);
+        }
+
+        const first = user?.First_Name ?? user?.firstName ?? "";
+        const last = user?.Last_Name ?? user?.lastName ?? "";
+        const displayName =
+          [first, last].filter(Boolean).join(" ").trim() || "Committee Member";
+
+        const displayEl = document.getElementById("sidebarUserName");
+        const avatarEl = document.getElementById("userAvatar");
+
+        if (displayEl) displayEl.textContent = displayName;
+        if (avatarEl) {
+          const initials = displayName
+            .split(" ")
+            .map((n) => n[0])
+            .join("")
+            .toUpperCase()
+            .substring(0, 2);
+          avatarEl.textContent = initials || "CM";
+        }
+      }
+    </script>
+  </body>
+</html>

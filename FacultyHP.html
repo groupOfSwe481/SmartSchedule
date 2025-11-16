@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Faculty Dashboard - SmartSchedule</title>
+    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+    
+    <!-- استخدام ملف style.css الأساسي -->
+    <link rel="stylesheet" href="assets/css/style.css">
+    
+    <style>
+        /* نفس الستايلات من StudentHP.html */
+        body {
+            display: block;
+        }
+
+        .navbar {
+            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%) !important;
+            box-shadow: 0 4px 24px rgba(0, 0, 0, 0.3);
+            padding: 1rem 0;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .navbar-brand {
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: white !important;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .navbar-brand i {
+            font-size: 1.75rem;
+        }
+
+        .nav-link {
+            color: rgba(255, 255, 255, 0.9) !important;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            padding: 0.5rem 1rem !important;
+            border-radius: 8px;
+        }
+
+        .nav-link:hover {
+            background: rgba(255, 255, 255, 0.15);
+            color: white !important;
+        }
+
+        .nav-link.active {
+            background: rgba(255, 255, 255, 0.2);
+            color: white !important;
+        }
+
+        .container {
+            max-width: 1400px;
+            padding: 2rem;
+        }
+
+        .student-welcome {
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.95) 0%, rgba(139, 92, 246, 0.95) 100%);
+            border-radius: 20px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            color: white;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3);
+        }
+
+        .student-welcome h3 {
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        .student-welcome p {
+            opacity: 0.95;
+            font-size: 1rem;
+        }
+
+        .student-welcome .bg-light {
+            background: rgba(255, 255, 255, 0.15) !important;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .nav-tabs {
+            border: none;
+            margin-bottom: 2rem;
+        }
+
+        .nav-tabs .nav-link {
+            border: none;
+            background: rgba(255, 255, 255, 0.1);
+            color: rgba(255, 255, 255, 0.7);
+            border-radius: 12px 12px 0 0;
+            padding: 1rem 1.5rem;
+            font-weight: 600;
+            margin-right: 0.5rem;
+            transition: all 0.3s ease;
+        }
+
+        .nav-tabs .nav-link:hover {
+            background: rgba(255, 255, 255, 0.15);
+            color: white;
+        }
+
+        .nav-tabs .nav-link.active {
+            background: white;
+            color: var(--primary);
+            box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .dashboard-card {
+            background: white;
+            border-radius: 20px;
+            padding: 2rem;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+            margin-bottom: 2rem;
+        }
+
+        .dashboard-card h5 {
+            font-weight: 700;
+            color: #1e293b;
+            margin-bottom: 1.5rem;
+        }
+
+        .level-buttons .btn-group {
+            display: flex;
+            gap: 0.75rem;
+            flex-wrap: wrap;
+        }
+
+        .level-buttons .btn {
+            flex: 1;
+            min-width: 120px;
+            padding: 1rem;
+            border: 2px solid #e2e8f0;
+            border-radius: 16px !important;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            color: #1e293b;
+        }
+
+        .level-buttons .btn-outline-primary {
+            background: white;
+            border-color: #e2e8f0;
+        }
+
+        .level-buttons .btn-outline-primary:hover {
+            background: #f8f9ff;
+            border-color: var(--primary);
+            color: var(--primary);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.2);
+        }
+
+        .level-buttons .btn-primary {
+            background: var(--gradient-primary) !important;
+            border: none !important;
+            color: white !important;
+            box-shadow: 0 8px 20px rgba(99, 102, 241, 0.3);
+        }
+
+        #scheduleContainer {
+            min-height: 400px;
+        }
+
+        .course-cell {
+            transition: all 0.2s ease;
+            cursor: pointer;
+            position: relative;
+        }
+
+        .course-cell:hover {
+            transform: scale(1.02);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+            background-color: rgba(99, 102, 241, 0.1) !important;
+        }
+
+        .modal-content {
+            border-radius: 20px;
+            border: none;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3);
+        }
+
+        .modal-header {
+            background: var(--gradient-primary);
+            color: white;
+            border-radius: 20px 20px 0 0;
+            padding: 1.5rem;
+        }
+
+        .dropdown-menu {
+            border-radius: 12px;
+            border: none;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.2);
+        }
+
+        .dropdown-item {
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            margin: 0.25rem 0.5rem;
+            transition: all 0.2s ease;
+        }
+
+        .dropdown-item:hover {
+            background: rgba(99, 102, 241, 0.1);
+            color: var(--primary);
+        }
+
+        .btn {
+            border-radius: 10px;
+            font-weight: 600;
+            padding: 0.75rem 1.5rem;
+            transition: all 0.3s ease;
+            border: none;
+        }
+
+        .btn-primary {
+            background: var(--gradient-primary);
+        }
+
+        .btn-primary:hover {
+            background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+        }
+
+        .form-control {
+            border: 2px solid #e2e8f0;
+            border-radius: 10px;
+            padding: 0.75rem;
+            transition: all 0.3s ease;
+        }
+
+        .form-control:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 0.25rem rgba(99, 102, 241, 0.1);
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
+
+            .student-welcome {
+                padding: 1.5rem;
+            }
+
+            .level-buttons .btn-group {
+                flex-direction: column;
+            }
+
+            .level-buttons .btn {
+                min-width: 100%;
+            }
+
+            .dashboard-card {
+                padding: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark">
+        <div class="container-fluid">
+            <a class="navbar-brand fw-bold" href="#">
+                <i class="bi bi-calendar-check"></i> SmartSchedule
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link active" href="#">
+                            <i class="bi bi-house-door"></i> Home
+                        </a>
+                    </li>
+                </ul>
+                <ul class="navbar-nav">
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">
+                            <i class="bi bi-person-circle"></i>
+                            <span id="userDisplay">Faculty Member</span>
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li><a class="dropdown-item" href="#"><i class="bi bi-person me-2"></i>Profile</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="#" onclick="logout()"><i class="bi bi-box-arrow-right me-2"></i>Logout</a></li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container my-4">
+        <div class="student-welcome">
+            <div class="row align-items-center">
+                <div class="col-md-8">
+                    <h3 class="fw-bold mb-2" id="welcomeMessage">Welcome back!</h3>
+                    <p class="mb-0" id="userInfo">Faculty Dashboard</p>
+                </div>
+                <div class="col-md-4 text-end">
+                    <div class="bg-light p-3 rounded">
+                        <h5 class="mb-1">Current Semester</h5>
+                        <p class="mb-0 fw-bold">Fall 2025</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <ul class="nav nav-tabs mb-4" id="studentTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="schedule-tab" data-bs-toggle="tab" data-bs-target="#schedule" type="button" role="tab">
+                    <i class="bi bi-calendar3"></i> View Schedule
+                </button>
+            </li>
+        </ul>
+
+        <div class="tab-content" id="studentTabsContent">
+            <div class="tab-pane fade show active" id="schedule" role="tabpanel">
+                <div class="dashboard-card">
+                    <h5 class="fw-bold mb-3"><i class="bi bi-layers me-2"></i>Select Academic Level</h5>
+                    <div class="level-buttons">
+                        <div class="btn-group" role="group" id="levelButtonsGroup">
+                            <button class="btn btn-primary" data-level="3">Level 3</button>
+                            <button class="btn btn-outline-primary" data-level="4">Level 4</button>
+                            <button class="btn btn-outline-primary" data-level="5">Level 5</button>
+                            <button class="btn btn-outline-primary" data-level="6">Level 6</button>
+                            <button class="btn btn-outline-primary" data-level="7">Level 7</button>
+                            <button class="btn btn-outline-primary" data-level="8">Level 8</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="dashboard-card">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h5 class="fw-bold mb-0" id="scheduleTitle">
+                            <i class="bi bi-calendar3"></i> Academic Schedule - Level 3
+                        </h5>
+                    </div>
+
+                    <div class="alert alert-info">
+                        <i class="bi bi-info-circle"></i> 
+                        <strong>Tip:</strong> Click on any course to add your comments as a faculty member.
+                    </div>
+
+                    <div id="scheduleContainer">
+                        <div class="text-center py-5">
+                            <div class="spinner-border text-primary" role="status">
+                                <span class="visually-hidden">Loading schedule...</span>
+                            </div>
+                            <p class="mt-3 text-muted">Loading schedule...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Comment Modal -->
+    <div class="modal fade" id="commentModal" tabindex="-1" aria-labelledby="commentModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content comment-modal">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="commentModalLabel">
+                        <i class="bi bi-chat-dots"></i> Add Faculty Comment
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <p><strong>Course:</strong> <span id="modalCourseName"></span></p>
+                        <p><strong>Time:</strong> <span id="modalTimeSlot"></span></p>
+                    </div>
+                    <div class="mb-3">
+                        <label for="commentText" class="form-label">Your Comment:</label>
+                        <textarea class="form-control" id="commentText" rows="4" placeholder="Share your thoughts about this course...
+
+Examples:
+- This course conflicts with a faculty meeting
+- Suggest moving to another time
+- The assigned room is not suitable"></textarea>
+                        <div class="form-text">Minimum 5 characters required</div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" id="saveCommentBtn">
+                        <i class="bi bi-send"></i> Submit Comment
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <script>
+        function logout() {
+            sessionStorage.removeItem("user");
+            sessionStorage.removeItem("token");
+            window.location.href = "LoginReg.html";
+        }
+        
+        document.addEventListener("DOMContentLoaded", () => {
+            const displayEl = document.getElementById("userDisplay");
+            const welcomeMsg = document.getElementById("welcomeMessage");
+            const userInfo = document.getElementById("userInfo");
+            
+            const raw = sessionStorage.getItem("user");
+            let user = null;
+            try {
+                user = raw ? JSON.parse(raw) : null;
+            } catch (e) { console.warn("Could not parse user"); }
+
+            if (user) {
+                const displayName = `${user.First_Name || ''} ${user.Last_Name || ''}`.trim() || user.email;
+                if (displayEl) displayEl.textContent = displayName;
+                if (welcomeMsg) welcomeMsg.textContent = `Welcome back, ${displayName}!`;
+                if (userInfo) userInfo.textContent = `Role: ${user.role || 'Faculty'}`;
+            }
+        });
+    </script>
+
+    <script src="assets/js/faculty-comment-maker.js"></script>
+    <script src="assets/js/faculty-schedule-viewer.js"></script>
+    
+</body>
+</html>

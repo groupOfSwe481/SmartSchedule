@@ -1,0 +1,710 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Course & Section Management - SmartSchedule</title>
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css"
+    />
+    <link rel="stylesheet" href="assets/css/style.css" />
+    <style>
+      /* Fix modal z-index to appear above sidebar */
+      .modal {
+        z-index: 2100 !important;
+      }
+      .modal-backdrop {
+        z-index: 2050 !important;
+      }
+
+      /* Responsive Design for Course Management */
+      @media (max-width: 992px) {
+        .nav-pills .nav-link {
+          font-size: 0.9rem;
+          padding: 0.5rem 0.75rem;
+        }
+        .card-header h6 {
+          font-size: 0.95rem;
+        }
+      }
+
+      @media (max-width: 768px) {
+        /* Stack nav pills vertically on mobile */
+        .nav-pills {
+          flex-direction: column;
+        }
+        .nav-pills .nav-item {
+          width: 100%;
+          margin-bottom: 0.5rem;
+        }
+        .nav-pills .nav-link {
+          width: 100%;
+          text-align: center;
+        }
+
+        /* Make filter controls stack */
+        .row.g-3 > div {
+          margin-bottom: 0.75rem;
+        }
+
+        /* Adjust form inputs */
+        .form-label {
+          font-size: 0.9rem;
+        }
+
+        /* File upload section */
+        .alert ul {
+          padding-left: 1.25rem;
+          font-size: 0.85rem;
+        }
+
+        /* Tables responsive */
+        .table-responsive {
+          font-size: 0.85rem;
+        }
+
+        /* Button groups stack on mobile */
+        .btn-group {
+          flex-direction: column !important;
+        }
+        .btn-group .btn {
+          width: 100%;
+          border-radius: 0.375rem !important;
+          margin-bottom: 0.5rem;
+        }
+      }
+
+      @media (max-width: 576px) {
+        /* Smaller padding on mobile */
+        .content-card {
+          padding: 1rem;
+        }
+
+        .alert {
+          font-size: 0.9rem;
+          padding: 0.75rem;
+        }
+
+        .card-body {
+          padding: 1rem;
+        }
+
+        /* Smaller buttons */
+        .btn {
+          font-size: 0.875rem;
+          padding: 0.5rem 0.75rem;
+        }
+
+        /* Adjust badge spacing */
+        .badge {
+          font-size: 0.75rem;
+        }
+
+        /* Stack course forms */
+        .row .col-md-4,
+        .row .col-md-3,
+        .row .col-md-6 {
+          margin-bottom: 0.75rem;
+        }
+      }
+
+      /* Ensure tables scroll on small screens */
+      @media (max-width: 768px) {
+        .table-responsive {
+          overflow-x: auto;
+          -webkit-overflow-scrolling: touch;
+        }
+
+        /* Modal responsive design */
+        .modal-body {
+          padding: 1rem !important;
+        }
+        .modal-header {
+          padding: 1rem !important;
+        }
+        .modal-footer {
+          padding: 1rem !important;
+        }
+      }
+
+      @media (max-width: 576px) {
+        /* Modal takes almost full screen on small devices */
+        .modal-dialog {
+          max-width: 95% !important;
+          margin: 0.5rem !important;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <button class="sidebar-toggle" id="sidebarToggle">
+      <i class="bi bi-list" style="font-size: 1.5rem; color: #6366f1"></i>
+    </button>
+
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-header">
+        <a href="index.html" class="sidebar-brand">
+          <i class="bi bi-calendar-check"></i> <span>SmartSchedule</span>
+        </a>
+      </div>
+      <nav class="sidebar-nav">
+        <ul style="list-style: none; padding: 0; margin: 0">
+          <li class="sidebar-nav-item">
+            <a href="index.html" class="sidebar-nav-link">
+              <i class="bi bi-calendar3"></i> <span>Schedules</span>
+            </a>
+          </li>
+          <li class="sidebar-nav-item">
+            <a href="irregulars.html" class="sidebar-nav-link">
+              <i class="bi bi-person-exclamation"></i>
+              <span>Irregular Students</span>
+            </a>
+          </li>
+          <li class="sidebar-nav-item">
+            <a href="course-management.html" class="sidebar-nav-link active">
+              <i class="bi bi-folder-plus"></i>
+              <span>Section Management</span>
+            </a>
+          </li>
+          <li class="sidebar-nav-item">
+            <a href="feedback.html" class="sidebar-nav-link">
+              <i class="bi bi-chat-dots"></i> <span>comments managment</span>
+            </a>
+          </li>
+          <li class="sidebar-nav-item">
+            <a href="faculty-electives.html" class="sidebar-nav-link">
+              <i class="bi bi-bookmark-check"></i> <span>Elective courses</span>
+            </a>
+          </li>
+          <li class="sidebar-nav-item">
+            <a href="students.html" class="sidebar-nav-link">
+              <i class="bi bi-people-fill"></i> <span>Students managment</span>
+            </a>
+          </li>
+          <li class="sidebar-nav-item">
+            <a href="rules.html" class="sidebar-nav-link">
+              <i class="bi bi-sliders"></i> <span>Rules managment</span>
+            </a>
+          </li>
+          <li class="sidebar-nav-item">
+            <a href="version-history.html" class="sidebar-nav-link">
+              <i class="bi bi-clock-history"></i> <span>version control</span>
+            </a>
+          </li>
+        </ul>
+      </nav>
+      <div class="sidebar-footer">
+        <div class="sidebar-user">
+          <div class="sidebar-user-avatar">CM</div>
+          <div class="sidebar-user-info">
+            <div class="sidebar-user-name">Committee Member</div>
+            <div class="sidebar-user-role">Faculty</div>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <div class="main-wrapper">
+      <header class="top-header">
+        <h1>
+          <i class="bi bi-folder-plus me-3"></i>Course & Section Management
+        </h1>
+      </header>
+
+      <div class="main-container">
+        <div class="content-card">
+          <ul class="nav nav-pills mb-4" id="managementTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+              <button
+                class="nav-link active fw-bold"
+                id="course-tab"
+                data-bs-toggle="tab"
+                data-bs-target="#courseCreation"
+                type="button"
+              >
+                <i class="bi bi-plus-circle me-2"></i>Add Courses
+              </button>
+            </li>
+            <li class="nav-item" role="presentation">
+              <button
+                class="nav-link fw-bold"
+                id="section-tab"
+                data-bs-toggle="tab"
+                data-bs-target="#sectionCreation"
+                type="button"
+              >
+                <i class="bi bi-plus-circle me-2"></i>Add Sections
+              </button>
+            </li>
+            <li class="nav-item" role="presentation">
+              <button
+                class="nav-link fw-bold"
+                id="view-edit-tab"
+                data-bs-toggle="tab"
+                data-bs-target="#viewEdit"
+                type="button"
+              >
+                <i class="bi bi-pencil-square me-2"></i>View & Edit
+              </button>
+            </li>
+          </ul>
+
+          <div class="tab-content" id="managementTabsContent">
+            <!-- COURSE CREATION TAB -->
+            <div class="tab-pane fade show active" id="courseCreation">
+              <div class="alert alert-info d-flex align-items-center mb-4">
+                <i class="bi bi-info-circle fs-4 me-3"></i>
+                <div>Add new courses to the system.</div>
+              </div>
+
+              <div id="coursesContainer"></div>
+
+              <div class="text-center mb-3">
+                <button
+                  type="button"
+                  class="btn btn-outline-primary"
+                  onclick="addCourseForm()"
+                >
+                  <i class="bi bi-plus-circle me-2"></i> Add Another Course
+                </button>
+              </div>
+
+              <div class="text-center">
+                <button
+                  type="button"
+                  class="btn-modern"
+                  onclick="createAllCourses()"
+                >
+                  <i class="bi bi-check-circle me-2"></i> Create All Courses
+                </button>
+              </div>
+            </div>
+
+            <!-- SECTION CREATION TAB -->
+            <div class="tab-pane fade" id="sectionCreation">
+              <div class="alert alert-info d-flex align-items-center mb-4">
+                <i class="bi bi-info-circle fs-4 me-3"></i>
+                <div>
+                  Add course sections. You can create sections manually or
+                  upload a schedule file.
+                </div>
+              </div>
+
+              <div class="btn-group w-100 mb-4" role="group">
+                <button
+                  type="button"
+                  class="btn btn-outline-primary active"
+                  onclick="showManualEntry()"
+                >
+                  <i class="bi bi-pencil-square me-2"></i> Manual Entry
+                </button>
+                <button
+                  type="button"
+                  class="btn btn-outline-primary"
+                  onclick="showFileUpload()"
+                >
+                  <i class="bi bi-upload me-2"></i> Upload Schedule File
+                </button>
+              </div>
+
+              <!-- MANUAL ENTRY SECTION -->
+              <div id="manualEntrySection">
+                <form id="sectionForm">
+                  <div class="card mb-3">
+                    <div class="card-header bg-light">
+                      <h6 class="mb-0">
+                        <i class="bi bi-book me-2"></i> Course Information
+                      </h6>
+                    </div>
+                    <div class="card-body">
+                      <div class="row">
+                        <div class="col-md-4">
+                          <div class="mb-3">
+                            <label class="form-label fw-bold"
+                              >Academic Level</label
+                            >
+                            <select
+                              class="form-control"
+                              id="sectionAcademicLevel"
+                            >
+                              <option value="">Not Specified</option>
+                              <option value="3">Level 3</option>
+                              <option value="4">Level 4</option>
+                              <option value="5">Level 5</option>
+                              <option value="6">Level 6</option>
+                              <option value="7">Level 7</option>
+                              <option value="8">Level 8</option>
+                            </select>
+                          </div>
+                        </div>
+                        <div class="col-md-4">
+                          <div class="mb-3">
+                            <label class="form-label fw-bold"
+                              >Department *</label
+                            >
+                            <select
+                              class="form-control"
+                              id="sectionDepartment"
+                              onchange="filterCourses()"
+                              required
+                            >
+                              <option value="">Select Department</option>
+                              <option value="Physics & Astronomy">
+                                Physics & Astronomy
+                              </option>
+                              <option value="Computer Science">
+                                Computer Science
+                              </option>
+                              <option value="Mathematics">Mathematics</option>
+                              <option value="Botany & Microbiology">
+                                Botany & Microbiology
+                              </option>
+                              <option value="Islamic Culture">
+                                Islamic Culture
+                              </option>
+                              <option value="Islamic study">
+                                Islamic study
+                              </option>
+                              <option value="Statistics & Operations Research">
+                                Statistics & Operations Research
+                              </option>
+                            </select>
+                          </div>
+                        </div>
+                        <div class="col-md-4">
+                          <div class="mb-3">
+                            <label class="form-label fw-bold"
+                              >Course Code *</label
+                            >
+                            <select
+                              class="form-control"
+                              id="sectionCourseCode"
+                              onchange="updateCourseName()"
+                              required
+                            >
+                              <option value="">Select Course</option>
+                            </select>
+                          </div>
+                        </div>
+                      </div>
+                      <div class="row">
+                        <div class="col-md-12">
+                          <div class="mb-0">
+                            <label class="form-label fw-bold"
+                              >Course Name</label
+                            >
+                            <input
+                              type="text"
+                              class="form-control"
+                              id="sectionCourseName"
+                              readonly
+                              placeholder="Course name will auto-fill"
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div
+                    id="patternGuidanceAlert"
+                    class="alert alert-info mb-3"
+                    style="display: none"
+                  >
+                    <h6 class="alert-heading">
+                      <i class="bi bi-info-circle"></i> Course Pattern
+                      Requirements
+                    </h6>
+                    <div id="patternRequirements"></div>
+                  </div>
+
+                  <div id="sectionsContainer"></div>
+
+                  <div class="text-center mb-3">
+                    <button
+                      type="button"
+                      class="btn btn-outline-primary"
+                      onclick="addSectionForm()"
+                    >
+                      <i class="bi bi-plus-circle me-2"></i> Add Section
+                    </button>
+                  </div>
+
+                  <div class="text-center">
+                    <button
+                      type="button"
+                      class="btn-modern"
+                      onclick="createAllSections()"
+                    >
+                      <i class="bi bi-check-circle me-2"></i> Create All
+                      Sections
+                    </button>
+                  </div>
+                </form>
+              </div>
+
+              <!-- FILE UPLOAD SECTION -->
+              <div id="fileUploadSection" style="display: none">
+                <div class="row mb-4">
+                  <div class="col-md-12">
+                    <div class="card bg-light border-0 p-4">
+                      <h6 class="fw-bold mb-3">
+                        <i class="bi bi-file-earmark-spreadsheet me-2"></i
+                        >Upload Schedule Report
+                      </h6>
+                      <div class="alert alert-warning">
+                        <i class="bi bi-exclamation-triangle me-2"></i>
+                        <strong>File Format Requirements:</strong>
+                        <ul class="mb-0 mt-2">
+                          <li>
+                            Supported formats: PDF, Excel (.xlsx, .xls), CSV
+                          </li>
+                          <li>
+                            Required columns: Course code, Section, Type, Day,
+                            Time
+                          </li>
+                          <li>
+                            Days: 1=Sunday, 2=Monday, 3=Tuesday, 4=Wednesday,
+                            5=Thursday
+                          </li>
+                        </ul>
+                      </div>
+
+                      <div class="mb-3">
+                        <label class="form-label fw-bold"
+                          >Select Schedule File</label
+                        >
+                        <input
+                          type="file"
+                          class="form-control"
+                          id="scheduleFile"
+                          accept=".pdf,.xlsx,.xls,.csv"
+                          onchange="handleFileSelect(event)"
+                        />
+                      </div>
+
+                      <div id="filePreviewSection" style="display: none">
+                        <h6 class="fw-bold mb-3">File Preview</h6>
+                        <div
+                          class="table-responsive mb-3"
+                          style="max-height: 400px; overflow-y: auto"
+                        >
+                          <table
+                            class="table table-sm table-bordered"
+                            id="filePreviewTable"
+                          >
+                            <thead class="table-light sticky-top">
+                              <tr>
+                                <th>Course Code</th>
+                                <th>Section</th>
+                                <th>Type</th>
+                                <th>Days</th>
+                                <th>Time</th>
+                                <th>Status</th>
+                              </tr>
+                            </thead>
+                            <tbody id="filePreviewBody"></tbody>
+                          </table>
+                        </div>
+
+                        <div class="alert alert-info" id="uploadSummary"></div>
+
+                        <div class="text-center">
+                          <button
+                            type="button"
+                            class="btn-modern"
+                            onclick="processUploadedSchedule()"
+                          >
+                            <i class="bi bi-check-circle me-2"></i> Create All
+                            Sections from File
+                          </button>
+                          <button
+                            type="button"
+                            class="btn btn-secondary ms-2"
+                            onclick="cancelFileUpload()"
+                          >
+                            <i class="bi bi-x-circle me-2"></i> Cancel
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- VIEW & EDIT TAB -->
+            <div class="tab-pane fade" id="viewEdit">
+              <div class="alert alert-info d-flex align-items-center mb-4">
+                <i class="bi bi-info-circle fs-4 me-3"></i>
+                <div>View and edit existing courses and sections.</div>
+              </div>
+
+              <!-- Filter Controls -->
+              <div class="card mb-4 bg-light border-0 p-3">
+                <div class="row g-3">
+                  <div class="col-md-3">
+                    <label class="form-label fw-bold"
+                      >Filter by Department</label
+                    >
+                    <select
+                      class="form-select"
+                      id="filterDepartment"
+                      onchange="window.viewEditManager.filterData()"
+                    >
+                      <option value="all">All Departments</option>
+                      <option value="Physics & Astronomy">
+                        Physics & Astronomy
+                      </option>
+                      <option value="Computer Science">Computer Science</option>
+                      <option value="Software Engineering">
+                        Software Engineering
+                      </option>
+                      <option value="Information Technology">
+                        Information Technology
+                      </option>
+                      <option value="Information Systems">
+                        Information Systems
+                      </option>
+                      <option value="Mathematics">Mathematics</option>
+                      <option value="Computer engineering">
+                        Computer engineering
+                      </option>
+                      <option value="Botany & Microbiology">
+                        Botany & Microbiology
+                      </option>
+                      <option value="Islamic Culture">Islamic Culture</option>
+                      <option value="Islamic study">Islamic study</option>
+                      <option value="Statistics & Operations Research">
+                        Statistics & Operations Research
+                      </option>
+                    </select>
+                  </div>
+                  <div class="col-md-3">
+                    <label class="form-label fw-bold">Filter by Level</label>
+                    <select
+                      class="form-select"
+                      id="filterLevel"
+                      onchange="window.viewEditManager.filterData()"
+                    >
+                      <option value="all">All Levels</option>
+                      <option value="3">Level 3</option>
+                      <option value="4">Level 4</option>
+                      <option value="5">Level 5</option>
+                      <option value="6">Level 6</option>
+                      <option value="7">Level 7</option>
+                      <option value="8">Level 8</option>
+                    </select>
+                  </div>
+                  <div class="col-md-3">
+                    <label class="form-label fw-bold">Search</label>
+                    <input
+                      type="text"
+                      class="form-control"
+                      id="searchQuery"
+                      placeholder="Search by name or code..."
+                      oninput="window.viewEditManager.filterData()"
+                    />
+                  </div>
+                  <div class="col-md-3">
+                    <label class="form-label fw-bold">View</label>
+                    <select
+                      class="form-select"
+                      id="viewType"
+                      onchange="window.viewEditManager.changeView()"
+                    >
+                      <option value="courses">Courses</option>
+                      <option value="sections">Sections</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Courses View -->
+              <div id="coursesView" style="display: block">
+                <h6 class="fw-bold mb-3">
+                  <i class="bi bi-book me-2"></i> Existing Courses
+                  <span class="badge bg-primary ms-2" id="coursesCount">0</span>
+                </h6>
+                <div id="coursesListContainer">
+                  <div class="text-center py-4">
+                    <div class="spinner-border text-primary" role="status">
+                      <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <p class="mt-2">Loading courses...</p>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Sections View -->
+              <div id="sectionsView" style="display: none">
+                <h6 class="fw-bold mb-3">
+                  <i class="bi bi-door-open me-2"></i> Existing Sections
+                  <span class="badge bg-success ms-2" id="sectionsCount"
+                    >0</span
+                  >
+                </h6>
+                <div id="sectionsListContainer">
+                  <div class="text-center py-4">
+                    <div class="spinner-border text-success" role="status">
+                      <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <p class="mt-2">Loading sections...</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <script>
+      if (typeof pdfjsLib !== "undefined") {
+        pdfjsLib.GlobalWorkerOptions.workerSrc =
+          "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
+      }
+    </script>
+    <script>
+      // Sidebar Toggle Logic
+      document.addEventListener("DOMContentLoaded", () => {
+        const sidebar = document.getElementById("sidebar");
+        const sidebarToggle = document.getElementById("sidebarToggle");
+
+        if (sidebarToggle && sidebar) {
+          sidebarToggle.addEventListener("click", () => {
+            sidebar.classList.toggle("active");
+          });
+
+          // Close sidebar when clicking outside on mobile
+          document.addEventListener("click", (e) => {
+            if (window.innerWidth <= 992) {
+              if (
+                !sidebar.contains(e.target) &&
+                !sidebarToggle.contains(e.target)
+              ) {
+                sidebar.classList.remove("active");
+              }
+            }
+          });
+        }
+      });
+    </script>
+    <script src="assets/js/main.js"></script>
+    <script src="assets/js/api.js"></script>
+    <script src="assets/js/validation.js"></script>
+    <script src="assets/js/courseService.js"></script>
+    <script src="assets/js/courseManager.js"></script>
+    <script src="assets/js/sectionManager.js"></script>
+    <script src="assets/js/fileUploadManager.js"></script>
+    <script src="assets/js/viewEditManager.js"></script>
+    <script src="assets/js/faculty-dashboard.js"></script>
+  </body>
+</html>

@@ -1,0 +1,677 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Schedule Committee</title>
+
+    <link rel="stylesheet" href="assets/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="assets/css/style.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css"
+    />
+  </head>
+
+  <body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+      <div class="container-fluid">
+        <a class="navbar-brand fw-bold" href="#">
+          <i class="bi bi-calendar-check me-2"></i>SmartSchedule
+        </a>
+        <button
+          class="navbar-toggler"
+          type="button"
+          data-bs-toggle="collapse"
+          data-bs-target="#navbarNav"
+        >
+          <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+          <ul class="navbar-nav me-auto">
+            <li class="nav-item">
+              <a class="nav-link active" href="#">
+                <i class="bi bi-house-door"></i> Dashboard
+              </a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="students.html">
+                <i class="bi bi-people"></i> Student Sections
+              </a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="rules.html">
+                <i class="bi bi-sliders"></i> Rules
+              </a>
+            </li>
+            <li class="nav-item">
+              <a
+                class="nav-link"
+                href="#"
+                data-bs-toggle="modal"
+                data-bs-target="#versionsModal"
+              >
+                <i class="bi bi-clock-history"></i> Version History
+              </a>
+            </li>
+          </ul>
+          <ul class="navbar-nav">
+            <li class="nav-item">
+              <a
+                class="nav-link position-relative"
+                href="#"
+                data-bs-toggle="modal"
+                data-bs-target="#notificationsModal"
+              >
+                <i class="bi bi-bell"></i> Notifications
+                <span class="notification-badge badge bg-danger">3</span>
+              </a>
+            </li>
+            <li class="nav-item dropdown">
+              <a
+                class="nav-link dropdown-toggle"
+                href="#"
+                data-bs-toggle="dropdown"
+              >
+                <i class="bi bi-person-circle"></i>
+                <span id="userDisplay">Committee Member</span>
+              </a>
+              <ul class="dropdown-menu dropdown-menu-end">
+                <li><a class="dropdown-item" href="#">Profile</a></li>
+                <li><a class="dropdown-item" href="#">Settings</a></li>
+                <li><hr class="dropdown-divider" /></li>
+                <li>
+                  <a class="dropdown-item" href="#" id="logoutBtn">Logout</a>
+                </li>
+              </ul>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </nav>
+
+    <div class="container mt-4">
+      <div class="row mb-4">
+        <div class="col-md-3">
+          <div class="dashboard-card text-center">
+            <i class="bi bi-person-exclamation fs-1 text-danger mb-3"></i>
+            <h5>Irregular Students</h5>
+            <p>Manage students with special schedules</p>
+            <button class="btn btn-outline-danger btn-sm" id="btnIrregulars">
+              Manage Students
+            </button>
+          </div>
+        </div>
+
+        <div class="col-md-3">
+          <div class="dashboard-card text-center">
+            <i class="bi bi-building fs-1 text-success mb-3"></i>
+            <h5>Department Data</h5>
+            <p>Enter course information from other departments</p>
+            <!-- ✅ UPDATED: Opens External Department Modal -->
+            <button class="btn btn-outline-success btn-sm" data-bs-toggle="modal" data-bs-target="#departmentModal">
+              Manage Courses
+            </button>
+          </div>
+        </div>
+        <div class="col-md-3">
+          <div class="dashboard-card text-center">
+            <i class="bi bi-calendar-plus fs-1 text-warning mb-3"></i>
+            <h5>Generate Schedule</h5>
+            <p>Create new schedule based on current data</p>
+            <button id="generateBtn" class="btn btn-outline-warning btn-sm">
+              Generate Now
+            </button>
+          </div>
+        </div>
+        <div class="col-md-3">
+          <div class="dashboard-card text-center">
+            <i class="bi bi-chat-dots fs-1 text-info mb-3"></i>
+            <h5>Student Comments</h5>
+            <p>Review and manage student feedback</p>
+            <button class="btn btn-outline-info btn-sm">
+              View All Comments
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="container my-4">
+      <div class="card shadow-sm border-0 rounded-3 p-3">
+        <h5 class="fw-semibold mb-3">Academic Levels</h5>
+        <div class="btn-group" role="group" aria-label="Academic Levels">
+          <button type="button" class="btn btn-dark">Level 3</button>
+          <button type="button" class="btn btn-outline-dark">Level 4</button>
+          <button type="button" class="btn btn-outline-dark">Level 5</button>
+          <button type="button" class="btn btn-outline-dark">Level 6</button>
+          <button type="button" class="btn btn-outline-dark">Level 7</button>
+          <button type="button" class="btn btn-outline-dark">Level 8</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="schedule-container" class="container my-4"></div>
+
+    <!-- ========================================== -->
+    <!-- ✨ NEW: EXTERNAL DEPARTMENT MODAL -->
+    <!-- ========================================== -->
+    <div class="modal fade" id="departmentModal" tabindex="-1">
+      <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+          <div class="modal-header bg-primary text-white">
+            <h5 class="modal-title">
+              <i class="bi bi-building"></i> Manage External Department Data
+            </h5>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+          </div>
+          <div class="modal-body">
+            <!-- Navigation Tabs -->
+            <ul class="nav nav-tabs mb-4" id="managementTabs" role="tablist">
+              <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="course-tab" data-bs-toggle="tab" data-bs-target="#courseCreation" type="button" role="tab">
+                  <i class="bi bi-book"></i> Add Courses
+                </button>
+              </li>
+              <li class="nav-item" role="presentation">
+                <button class="nav-link" id="section-tab" data-bs-toggle="tab" data-bs-target="#sectionCreation" type="button" role="tab">
+                  <i class="bi bi-door-open"></i> Add Sections
+                </button>
+              </li>
+            </ul>
+
+            <div class="tab-content" id="managementTabsContent">
+              
+              <!-- COURSE CREATION TAB -->
+              <div class="tab-pane fade show active" id="courseCreation" role="tabpanel">
+                <div class="alert alert-info">
+                  <i class="bi bi-info-circle"></i> Add new courses from other departments that SWE students need to take.
+                </div>
+
+                <div id="coursesContainer"></div>
+
+                <div class="text-center mb-3">
+                  <button type="button" class="btn btn-outline-primary" onclick="addCourseForm()">
+                    <i class="bi bi-plus-circle"></i> Add Another Course
+                  </button>
+                </div>
+
+                <div class="text-center">
+                  <button type="button" class="btn btn-success btn-lg" onclick="createAllCourses()">
+                    <i class="bi bi-check-circle"></i> Create All Courses
+                  </button>
+                </div>
+              </div>
+
+              <!-- SECTION CREATION TAB -->
+              <div class="tab-pane fade" id="sectionCreation" role="tabpanel">
+                <div class="alert alert-info">
+                  <i class="bi bi-info-circle"></i> Add course sections from other departments. You can create sections manually or upload a schedule file.
+                </div>
+
+                <div class="btn-group w-100 mb-4" role="group">
+                  <button type="button" class="btn btn-outline-primary active" onclick="showManualEntry()">
+                    <i class="bi bi-pencil-square"></i> Manual Entry
+                  </button>
+                  <button type="button" class="btn btn-outline-primary" onclick="showFileUpload()">
+                    <i class="bi bi-upload"></i> Upload Schedule File
+                  </button>
+                </div>
+
+                <!-- FILE UPLOAD SECTION -->
+                <div id="fileUploadSection" style="display: none;">
+                  <div class="card mb-4">
+                    <div class="card-header bg-primary text-white">
+                      <h6 class="mb-0"><i class="bi bi-file-earmark-spreadsheet"></i> Upload Schedule Report</h6>
+                    </div>
+                    <div class="card-body">
+                      <div class="alert alert-warning">
+                        <i class="bi bi-exclamation-triangle"></i> 
+                        <strong>File Format Requirements:</strong>
+                        <ul class="mb-0 mt-2">
+                          <li>Supported formats: PDF, Excel (.xlsx, .xls), CSV</li>
+                          <li>Required columns: Course code, Section, Type, Day, Time</li>
+                          <li>Days: 1=Sunday, 2=Monday, 3=Tuesday, 4=Wednesday, 5=Thursday</li>
+                          <li>Example: PHYS103, 1, lecture, 1-3-5, 8-9</li>
+                        </ul>
+                      </div>
+
+                      <div class="mb-3">
+                        <label class="form-label fw-bold">Select Schedule File</label>
+                        <input type="file" class="form-control" id="scheduleFile" accept=".pdf,.xlsx,.xls,.csv" onchange="handleFileSelect(event)">
+                      </div>
+
+                      <div id="filePreviewSection" style="display: none;">
+                        <h6 class="fw-bold mb-3">File Preview</h6>
+                        <div class="table-responsive mb-3" style="max-height: 400px; overflow-y: auto;">
+                          <table class="table table-sm table-bordered" id="filePreviewTable">
+                            <thead class="table-light sticky-top">
+                              <tr>
+                                <th>Course Code</th>
+                                <th>Section</th>
+                                <th>Type</th>
+                                <th>Days</th>
+                                <th>Time</th>
+                                <th>Status</th>
+                              </tr>
+                            </thead>
+                            <tbody id="filePreviewBody"></tbody>
+                          </table>
+                        </div>
+
+                        <div class="alert alert-info" id="uploadSummary"></div>
+
+                        <div class="text-center">
+                          <button type="button" class="btn btn-success btn-lg" onclick="processUploadedSchedule()">
+                            <i class="bi bi-check-circle"></i> Create All Sections from File
+                          </button>
+                          <button type="button" class="btn btn-secondary ms-2" onclick="cancelFileUpload()">
+                            <i class="bi bi-x-circle"></i> Cancel
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- MANUAL ENTRY SECTION -->
+                <div id="manualEntrySection">
+                  <form id="sectionForm">
+                    <div class="card mb-3">
+                      <div class="card-header bg-light">
+                        <h6 class="mb-0"><i class="bi bi-book"></i> Course Information</h6>
+                      </div>
+                      <div class="card-body">
+                        <div class="row">
+                          <div class="col-md-4">
+                            <div class="mb-3">
+                              <label class="form-label fw-bold">Academic Level <span class="text-muted">(Optional)</span></label>
+                              <select class="form-control" id="sectionAcademicLevel">
+                                <option value="">Not Specified</option>
+                                <option value="3">Level 3</option>
+                                <option value="4">Level 4</option>
+                                <option value="5">Level 5</option>
+                                <option value="6">Level 6</option>
+                                <option value="7">Level 7</option>
+                                <option value="8">Level 8</option>
+                              </select>
+                            </div>
+                          </div>
+                          <div class="col-md-4">
+                            <div class="mb-3">
+                              <label class="form-label fw-bold">Department *</label>
+                              <select class="form-control" id="sectionDepartment" onchange="filterCourses()" required>
+                                <option value="">Select Department</option>
+                                <option value="Science">Physics & Astronomy</option>
+                                <option value="CSC">Computer Science</option>
+                                <option value="Math">Mathematics</option>
+                                <option value="IC">Islamic Culture</option>
+                              </select>
+                            </div>
+                          </div>
+                          <div class="col-md-4">
+                            <div class="mb-3">
+                              <label class="form-label fw-bold">Course Code *</label>
+                              <select class="form-control" id="sectionCourseCode" onchange="updateCourseName()" required>
+                                <option value="">Select Course</option>
+                              </select>
+                            </div>
+                          </div>
+                        </div>
+                        <div class="row">
+                          <div class="col-md-12">
+                            <div class="mb-0">
+                              <label class="form-label fw-bold">Course Name</label>
+                              <input type="text" class="form-control" id="sectionCourseName" readonly placeholder="Course name will auto-fill" />
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div id="patternGuidanceAlert" class="alert alert-info" style="display: none;">
+                        <h6><i class="bi bi-diagram-3"></i> Course Pattern Requirements</h6>
+                        <div id="patternRequirements"></div>
+                    </div>
+
+                    <div id="sectionsContainer"></div>
+
+                    <div class="text-center mb-3">
+                      <button type="button" class="btn btn-outline-primary" onclick="addSectionForm()">
+                        <i class="bi bi-plus-circle"></i> Add Section
+                      </button>
+                    </div>
+
+                    <div class="text-center">
+                      <button type="button" class="btn btn-success btn-lg" onclick="createAllSections()">
+                        <i class="bi bi-check-circle"></i> Create All Sections
+                      </button>
+                    </div>
+                  </form>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+              <i class="bi bi-x-circle"></i> Close
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Irregulars: View Modal -->
+    <div
+      class="modal fade"
+      id="irregularsModal"
+      tabindex="-1"
+      aria-labelledby="irregularsModalLabel"
+      aria-hidden="true"
+    >
+      <div class="modal-dialog modal-xl modal-dialog-scrollable">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title fw-semibold" id="irregularsModalLabel">
+              <i class="bi bi-person-exclamation me-2 text-danger"></i>
+              Irregular Students
+            </h5>
+            <button
+              type="button"
+              class="btn-close"
+              data-bs-dismiss="modal"
+              aria-label="Close"
+            ></button>
+          </div>
+          <div class="modal-body">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+              <p class="text-muted mb-0">
+                <small>Showing only students marked as irregular.</small>
+              </p>
+              <button
+                type="button"
+                class="btn btn-sm btn-danger"
+                id="openAddIrregularModal"
+              >
+                <i class="bi bi-plus-lg me-1"></i> Add Irregular Student
+              </button>
+            </div>
+
+            <div class="table-responsive border rounded">
+              <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                  <tr>
+                    <th style="width: 160px">Student ID</th>
+                    <th style="width: 90px">Level</th>
+                    <th>Remaining Courses</th>
+                    <th style="width: 110px">Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="irregularsTbody">
+                  <tr>
+                    <td colspan="4" class="text-center text-muted py-4">
+                      <div
+                        class="spinner-border spinner-border-sm text-danger me-2"
+                      ></div>
+                      Loading...
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button class="btn btn-secondary" data-bs-dismiss="modal">
+              Close
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Irregulars: Add Modal -->
+    <div
+      class="modal fade"
+      id="addIrregularModal"
+      tabindex="-1"
+      aria-labelledby="addIrregularModalLabel"
+      aria-hidden="true"
+    >
+      <div class="modal-dialog modal-lg modal-dialog-scrollable">
+        <div class="modal-content">
+          <form id="addIrregularForm">
+            <div class="modal-header">
+              <h5 class="modal-title fw-semibold" id="addIrregularModalLabel">
+                <i class="bi bi-person-plus-fill me-2 text-danger"></i> Add
+                Irregular Student
+              </h5>
+              <button
+                type="button"
+                class="btn-close"
+                data-bs-dismiss="modal"
+                aria-label="Close"
+              ></button>
+            </div>
+            <div class="modal-body">
+              <div class="row g-3">
+                <div class="col-md-6">
+                  <label class="form-label fw-semibold"
+                    >Student ID <span class="text-danger">*</span></label
+                  >
+                  <input
+                    type="text"
+                    class="form-control"
+                    id="irStudentId"
+                    placeholder="e.g., 443200002"
+                    required
+                  />
+                  <div class="form-text">Enter the student's ID number</div>
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label fw-semibold"
+                    >Level <span class="text-danger">*</span></label
+                  >
+                  <select class="form-select" id="irLevel" required>
+                    <option value="" disabled selected>Select a level</option>
+                    <option value="6">Level 6</option>
+                    <option value="7">Level 7</option>
+                    <option value="8">Level 8</option>
+                  </select>
+                  <div class="form-text">
+                    Select the student's current level
+                  </div>
+                </div>
+
+                <div class="col-12">
+                  <label class="form-label fw-semibold"
+                    >Remaining Courses</label
+                  >
+                  <select
+                    class="form-select"
+                    id="irRemainingCourses"
+                    multiple
+                    size="10"
+                  >
+                    <option value="" disabled>
+                      Select a level first to load courses
+                    </option>
+                  </select>
+                  <div class="form-text">
+                    <i class="bi bi-info-circle me-1"></i>
+                    Hold <kbd>Ctrl</kbd> (Windows) or <kbd>Cmd</kbd> (Mac) to
+                    select multiple courses.
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="modal-footer">
+              <button
+                class="btn btn-outline-secondary"
+                data-bs-dismiss="modal"
+                type="button"
+              >
+                Cancel
+              </button>
+              <button class="btn btn-danger" type="submit">
+                <i class="bi bi-save me-1"></i> Save Irregular Student
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- Notifications Modal -->
+    <div class="modal fade" id="notificationsModal" tabindex="-1" aria-labelledby="notificationsModalLabel" aria-hidden="true">
+      <div class="modal-dialog modal-lg modal-dialog-scrollable">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title fw-semibold" id="notificationsModalLabel">
+              <i class="bi bi-bell me-2 text-primary"></i> Notifications & Deadlines
+            </h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body p-0">
+            <ul class="nav nav-tabs px-3 pt-3" id="notificationTabs" role="tablist">
+              <li class="nav-item" role="presentation">
+                <button 
+                  class="nav-link active" 
+                  id="notifications-tab" 
+                  data-bs-toggle="tab" 
+                  data-bs-target="#notifications-panel" 
+                  type="button" 
+                  role="tab">
+                  <i class="bi bi-bell me-2"></i>Notifications
+                </button>
+              </li>
+              <li class="nav-item" role="presentation">
+                <button 
+                  class="nav-link" 
+                  id="deadlines-tab" 
+                  data-bs-toggle="tab" 
+                  data-bs-target="#deadlines-panel" 
+                  type="button" 
+                  role="tab">
+                  <i class="bi bi-calendar-event me-2"></i>Deadlines
+                </button>
+              </li>
+            </ul>
+
+            <div class="tab-content" id="notificationTabContent">
+              <div 
+                class="tab-pane fade show active" 
+                id="notifications-panel" 
+                role="tabpanel">
+                <div id="notificationsList" style="max-height: 500px; overflow-y: auto;">
+                  <div class="text-center py-3">
+                    <div class="spinner-border spinner-border-sm me-2"></div>
+                    Loading notifications...
+                  </div>
+                </div>
+              </div>
+
+              <div 
+                class="tab-pane fade" 
+                id="deadlines-panel" 
+                role="tabpanel">
+                <div id="deadlinesList" style="max-height: 500px; overflow-y: auto;">
+                  <div class="text-center py-3">
+                    <div class="spinner-border spinner-border-sm me-2"></div>
+                    Loading deadlines...
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- SCRIPTS -->
+    <!-- ========================================== -->
+    
+    <!-- Friend's existing scripts -->
+    <script src="assets/js/bootstrap.bundle.min.js"></script>
+
+    <!-- User Display and Logout Script -->
+    <script>
+      document.addEventListener("DOMContentLoaded", () => {
+        const displayEl = document.getElementById("userDisplay");
+        const logoutBtn = document.getElementById("logoutBtn");
+
+        const raw = sessionStorage.getItem("user");
+        let user = null;
+        try {
+          user = raw ? JSON.parse(raw) : null;
+        } catch (e) {
+          console.warn("[SmartSchedule] Could not parse user:", e);
+        }
+
+        const first = user?.First_Name ?? user?.firstName ?? "";
+        const last = user?.Last_Name ?? user?.lastName ?? "";
+        const email = user?.Email ?? user?.email ?? "";
+        const role = user?.role ?? "";
+
+        const displayName =
+          [first, last].filter(Boolean).join(" ").trim() ||
+          email ||
+          role ||
+          "User";
+
+        if (displayEl) {
+          displayEl.textContent = displayName;
+        }
+
+        if (logoutBtn) {
+          logoutBtn.addEventListener("click", (e) => {
+            e.preventDefault();
+            sessionStorage.removeItem("user");
+            sessionStorage.removeItem("token");
+            window.location.href = "LoginReg.html";
+          });
+        }
+      });
+    </script>
+
+    <!-- Friend's existing feature scripts -->
+    <script src="assets/js/main.js"></script>
+    <script src="assets/js/irregulars.js"></script>
+    <script src="assets/js/notifications.js"></script>
+
+    <!-- ========================================== -->
+    <!-- ✨ NEW: EXTERNAL DEPARTMENT SCRIPTS -->
+    <!-- ========================================== -->
+    
+    <!-- PDF.js for file parsing -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <script>
+        if (typeof pdfjsLib !== 'undefined') {
+            pdfjsLib.GlobalWorkerOptions.workerSrc = 
+                'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+            console.log('✅ PDF.js configured');
+        }
+    </script>
+
+    <!-- Load in this exact order -->
+    <!-- 1️⃣ API CLIENT FIRST -->
+    <script src="assets/js/api.js"></script>
+
+    <!-- 2️⃣ UTILITIES -->
+    <script src="assets/js/validation.js"></script>
+    <script src="assets/js/notifications-util.js"></script>
+
+    <!-- 3️⃣ SERVICES -->
+    <script src="assets/js/courseService.js"></script>
+    <script src="assets/js/scheduleService.js"></script>
+
+    <!-- 4️⃣ COMPONENTS -->
+    <script src="assets/js/courseManager.js"></script>
+    <script src="assets/js/sectionManager.js"></script>
+    <script src="assets/js/fileUploadManager.js"></script>
+
+    <!-- 5️⃣ MAIN DASHBOARD -->
+    <script src="assets/js/faculty-dashboard.js"></script>
+
+  </body>
+</html>
