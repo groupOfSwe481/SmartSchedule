@@ -8,15 +8,14 @@
 
   // Page configuration - maps pages to allowed roles
   const PAGE_ROLES = {
-    // Non-student pages
+    // Scheduler/Faculty/LoadCommittee pages
     'index.html':           ['Scheduler', 'Faculty', 'LoadCommittee'],
     'rules.html':           ['Scheduler', 'Faculty', 'LoadCommittee'],
     'version-history.html': ['Scheduler', 'Faculty', 'LoadCommittee'],
-    'students.html':        ['Scheduler', 'Faculty', 'LoadCommittee'],
+    'Students.html':        ['Scheduler', 'Faculty', 'LoadCommittee'],  // Faculty page for managing students
 
     // Student-only pages
-    'StudentHP.html':       ['Student'],
-    'students.html':        ['Student'],          // duplicate key removed below
+    'StudentHP.html':       ['Student'],  // Student homepage
 
     // Role-specific pages
     'FacultyHP.html':           ['Faculty'],
