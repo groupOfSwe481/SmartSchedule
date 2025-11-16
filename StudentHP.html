@@ -703,7 +703,8 @@ Examples:
             }
 
             if (!studentDataStr && window.currentUser) {
-                fetch(`http://localhost:4000/api/student/${window.currentUser.id}`, {
+                const API_URL = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.hostname === '') ? 'http://localhost:4000/api' : '/api';
+                fetch(`${API_URL}/student/${window.currentUser.id}`, {
                     headers: {
                         'Authorization': `Bearer ${sessionStorage.getItem('token') || localStorage.getItem('token')}`
                     }

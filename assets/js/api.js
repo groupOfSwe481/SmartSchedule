@@ -1,8 +1,10 @@
 // frontend/js/utils/api.js - COMPLETE VERSION
 // Auto-detect API URL based on environment
-const API_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
-  ? 'http://localhost:4000/api'  // Local development
-  : '/api';  // Production (Vercel)
+const API_URL = (window.location.hostname === 'localhost' ||
+                 window.location.hostname === '127.0.0.1' ||
+                 window.location.hostname === '')
+  ? 'http://localhost:4000/api'  // Local development (or file:// protocol)
+  : '/api';  // Production (Vercel and other hosted environments)
 
 // ✅ Make API_URL globally available for other files
 window.API_URL = API_URL;
