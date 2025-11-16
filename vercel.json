@@ -1,28 +1,14 @@
 {
   "version": 2,
   "buildCommand": "npm run build",
-  "functions": {
-    "api/index.ts": {
-      "runtime": "@vercel/node@3"
-    }
-  },
   "rewrites": [
     {
-      "source": "/api/:path*",
+      "source": "/api/(.*)",
       "destination": "/api/index.ts"
-    }
-  ],
-  "routes": [
-    {
-      "src": "/api/(.*)",
-      "dest": "/api/index.ts"
     },
     {
-      "handle": "filesystem"
-    },
-    {
-      "src": "/(.*)",
-      "dest": "/index.html"
+      "source": "/(.*)",
+      "destination": "/$1"
     }
   ]
 }
