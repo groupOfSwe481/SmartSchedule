@@ -1,15 +1,9 @@
 {
-  "version": 2,
-  "routes": [
+  "buildCommand": "cd backend && npm install && npm run build",
+  "rewrites": [
     {
-      "src": "/api/(.*)",
-      "dest": "/backend/dist/$1"
-    },
-    {
-      "src": "/(.*)",
-      "dest": "/$1"
+      "source": "/api/:path*",
+      "destination": "/api/[...path]"
     }
-  ],
-  "outputDirectory": ".",
-  "public": true
+  ]
 }
