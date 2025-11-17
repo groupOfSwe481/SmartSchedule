@@ -1,6 +1,7 @@
 {
   "buildCommand": "cd backend && npm install && npm run build",
-  "outputDirectory": ".",
+  "cleanUrls": false,
+  "trailingSlash": false,
   "rewrites": [
     {
       "source": "/api/:path*",
