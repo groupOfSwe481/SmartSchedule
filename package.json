@@ -41,6 +41,7 @@
     "dev:all": "concurrently \"npm run dev\" \"npm run dev:ws\"",
     "start:ws": "tsx websocket-server.ts",
     "build": "tsc -p backend/tsconfig.json",
+    "vercel-build": "npm run build",
     "start": "node backend/dist/app.js",
     "check": "tsc --noEmit"
   }
