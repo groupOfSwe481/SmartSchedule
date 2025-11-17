@@ -4,11 +4,11 @@
 
   // 📜 VERSION HISTORY PAGE LOGIC (version-history.html)
   // ========================================
-  
+
   // Environment-aware API URL
-  const API_BASE = window.API_URL || (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.hostname === '')
-    ? 'http://localhost:4000/api'
-    : '/api';
+  const isLocalhost = window.location.hostname === 'localhost' ||
+                      window.location.hostname === '127.0.0.1';
+  const API_BASE = window.API_URL || (isLocalhost ? 'http://localhost:4000/api' : '/api');
   
   let currentVersionLevel = null;
   let currentScheduleForVersion = null;

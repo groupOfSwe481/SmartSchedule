@@ -1,14 +1,17 @@
 // frontend/js/utils/api.js - COMPLETE VERSION
 // Auto-detect API URL based on environment
-const API_URL = (window.location.hostname === 'localhost' ||
-                 window.location.hostname === '127.0.0.1' ||
-                 window.location.hostname === '')
-  ? 'http://localhost:4000/api'  // Local development (or file:// protocol)
+const isLocalhost = window.location.hostname === 'localhost' ||
+                    window.location.hostname === '127.0.0.1';
+const isProduction = window.location.hostname.includes('vercel.app') ||
+                     window.location.hostname.includes('herokuapp.com');
+
+const API_URL = isLocalhost
+  ? 'http://localhost:4000/api'  // Local development
   : '/api';  // Production (Vercel and other hosted environments)
 
 // ✅ Make API_URL globally available for other files
 window.API_URL = API_URL;
-console.log('🔗 API_URL:', API_URL);
+console.log('🔗 API_URL:', API_URL, '(hostname:', window.location.hostname, ')');
 
 class APIClient {
     static async call(endpoint, options = {}) {
