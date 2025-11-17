@@ -8,7 +8,7 @@ const MONGO_URI = process.env.MONGO_URI;
 
 async function checkData() {
   const client = new MongoClient(MONGO_URI);
-  
+  //h
   try {
     await client.connect();
     console.log('âœ… Connected to MongoDB\n');
