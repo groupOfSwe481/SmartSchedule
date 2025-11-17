@@ -34,7 +34,8 @@
       "Bash(find:*)",
       "Bash(npx http-server -p 3000)",
       "Bash(npx http-server:*)",
-      "Bash(npx vercel:*)"
+      "Bash(npx vercel:*)",
+      "Bash(git pull:*)"
     ],
     "deny": [],
     "ask": []

@@ -749,10 +749,11 @@
         if (logoutBtn) {
           logoutBtn.addEventListener("click", (e) => {
             e.preventDefault();
-            sessionStorage.removeItem("user");
-            sessionStorage.removeItem("token");
-            // Set this to your actual login page
-            window.location.href = "loginReg.html";
+            // Clear all session and local storage
+            sessionStorage.clear();
+            localStorage.clear();
+            // Use replace to prevent back button issues and correct filename
+            window.location.replace("LoginReg.html");
           });
         }
       });

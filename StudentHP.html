@@ -657,10 +657,11 @@ Examples:
     
     <script>
         function logout() {
-            sessionStorage.removeItem("user");
-            sessionStorage.removeItem("token");
-            localStorage.removeItem("studentData");
-            window.location.href = "LoginReg.html";
+            // Clear all session and local storage
+            sessionStorage.clear();
+            localStorage.clear();
+            // Use replace to prevent back button issues
+            window.location.replace("LoginReg.html");
         }
 
         (function() {
