@@ -1,13 +1,15 @@
 {
   "version": 2,
-  "rewrites": [
+  "routes": [
     {
-      "source": "/api/(.*)",
-      "destination": "/backend/dist/$1"
+      "src": "/api/(.*)",
+      "dest": "/backend/dist/$1"
     },
     {
-      "source": "/(.*)",
-      "destination": "/$1"
+      "src": "/(.*)",
+      "dest": "/$1"
     }
-  ]
+  ],
+  "outputDirectory": ".",
+  "public": true
 }
