@@ -2,8 +2,10 @@
 // (Modified from Sschedule.js for Faculty Commenting)
 
 let currentLevel = 3; // ✅ Default level for faculty, matching FacultyHP.html
-let currentCellInfo = null; 
-const API_BASE_URL = 'http://localhost:4000';
+let currentCellInfo = null;
+const API_BASE_URL = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.hostname === '')
+  ? 'http://localhost:4000'
+  : '';
 
 // ================= INITIALIZATION =================
 

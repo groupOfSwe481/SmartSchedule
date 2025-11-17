@@ -1,9 +1,11 @@
 // ====== FIXED VERSION: js/Sschedule.js ======
 
 let currentLevel = 4; // Default fallback
-let comments = {}; 
-let currentCellInfo = null; 
-const API_BASE_URL = 'http://localhost:4000'; 
+let comments = {};
+let currentCellInfo = null;
+const API_BASE_URL = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.hostname === '')
+  ? 'http://localhost:4000'
+  : ''; 
 
 // ================= INITIALIZATION =================
 

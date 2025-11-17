@@ -2,6 +2,11 @@
 // 📜 VERSION HISTORY PAGE LOGIC (version-history.html)
 // ========================================
 
+// Environment-aware API URL
+const API_BASE = window.API_URL || (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.hostname === '')
+  ? 'http://localhost:4000/api'
+  : '/api';
+
 let currentVersionLevel = null;
 let currentScheduleForVersion = null;
 let allVersionHistory = []; // Caches history for reconstruction
@@ -69,7 +74,7 @@ async function fetchSchedulesForLevel(level) {
   try {
     // This route fetches the latest DRAFTS (status: 'Draft')
     const res = await fetch(
-      `http://localhost:4000/api/schedule/level/${level}`
+      `${API_BASE}/schedule/level/${level}`
     );
     const data = await res.json();
 
@@ -176,7 +181,7 @@ async function fetchVersionHistory(scheduleId, section, level) {
   try {
     // Fetch version history
     const historyRes = await fetch(
-      `http://localhost:4000/api/schedule/history/${scheduleId}`
+      `${API_BASE}/schedule/history/${scheduleId}`
     );
     const historyData = await historyRes.json();
 
@@ -186,7 +191,7 @@ async function fetchVersionHistory(scheduleId, section, level) {
     // Fetch current schedule (for reconstruction)
     // We fetch from the 'draft' route, as that's what we are editing
     const scheduleRes = await fetch(
-      `http://localhost:4000/api/schedule/level/${level}`
+      `${API_BASE}/schedule/level/${level}`
     );
     const scheduleData = await scheduleRes.json();
     const currentSchedule = scheduleData.schedules.find(
@@ -352,7 +357,7 @@ async function restoreVersion(
   try {
     // FIX: Call the correct route with historyVersion
     const res = await fetch(
-      `http://localhost:4000/api/schedule/restore/${scheduleId}/${targetHistoryVersion}`,
+      `${API_BASE}/schedule/restore/${scheduleId}/${targetHistoryVersion}`,
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },

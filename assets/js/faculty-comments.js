@@ -7,7 +7,9 @@ class FacultyCommentManager {
         this.currentFilter = 'all';
         this.currentLevel = null;
         this.userData = null;
-        this.apiBase = 'http://localhost:4000/api';
+        this.apiBase = window.API_URL || (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.hostname === '')
+          ? 'http://localhost:4000/api'
+          : '/api';
     }
 
     init() {

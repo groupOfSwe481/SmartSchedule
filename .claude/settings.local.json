@@ -35,7 +35,8 @@
       "Bash(npx http-server -p 3000)",
       "Bash(npx http-server:*)",
       "Bash(npx vercel:*)",
-      "Bash(git pull:*)"
+      "Bash(git pull:*)",
+      "Bash(test:*)"
     ],
     "deny": [],
     "ask": []

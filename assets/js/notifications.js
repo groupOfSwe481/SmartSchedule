@@ -1,5 +1,7 @@
 (function() {
-  const API_BASE = "http://localhost:4000/api";
+  const API_BASE = window.API_URL || (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.hostname === '')
+    ? 'http://localhost:4000/api'
+    : '/api';
 
   let currentUser = null;
 

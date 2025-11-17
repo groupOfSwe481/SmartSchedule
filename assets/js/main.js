@@ -2,6 +2,11 @@
 // 🧩 SMART SCHEDULE FRONTEND LOGIC (v2.0)
 // ========================================
 
+// Environment-aware API URL
+const API_BASE = window.API_URL || (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.hostname === '')
+  ? 'http://localhost:4000/api'
+  : '/api';
+
 let selectedLevel = 3;
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -63,7 +68,7 @@ async function fetchLatestSchedule(level) {
 
   try {
     const res = await fetch(
-      `http://localhost:4000/api/schedule/level/${level}`
+      `${API_BASE}/schedule/level/${level}`
     );
     const data = await res.json();
 
@@ -223,7 +228,7 @@ function attachPublishHandlers() {
 
       try {
         const res = await fetch(
-          `http://localhost:4000/api/schedule/publish/${scheduleId}`,
+          `${API_BASE}/schedule/publish/${scheduleId}`,
           {
             method: "POST",
           }
@@ -312,7 +317,7 @@ function attachEditHandlers() {
         // Save to backend
         try {
           const res = await fetch(
-            `http://localhost:4000/api/update/${scheduleId}`,
+            `${API_BASE}/update/${scheduleId}`,
             {
               method: "PUT",
               headers: { "Content-Type": "application/json" },
@@ -377,7 +382,7 @@ function attachImpactCheckHandlers() {
         '<span class="spinner-border spinner-border-sm me-2" role="status"></span>Checking...';
 
       try {
-        const res = await fetch("http://localhost:4000/api/check-impact", {
+        const res = await fetch(`${API_BASE}/check-impact`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ draftScheduleId: scheduleId }),
@@ -596,7 +601,7 @@ async function handleGenerateSchedule() {
   `;
 
   try {
-    const res = await fetch("http://localhost:4000/api/schedule/generate", {
+    const res = await fetch(`${API_BASE}/schedule/generate`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ level: selectedLevel }),
