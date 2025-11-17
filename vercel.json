@@ -1,10 +1,9 @@
 {
-  "outputDirectory": ".",
-  "public": true,
+  "version": 2,
   "rewrites": [
     {
       "source": "/api/(.*)",
-      "destination": "/api/$1"
+      "destination": "/backend/dist/$1"
     },
     {
       "source": "/(.*)",
