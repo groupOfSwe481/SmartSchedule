@@ -36,7 +36,9 @@
       "Bash(npx http-server:*)",
       "Bash(npx vercel:*)",
       "Bash(git pull:*)",
-      "Bash(test:*)"
+      "Bash(test:*)",
+      "Bash(chmod:*)",
+      "Bash(bash:*)"
     ],
     "deny": [],
     "ask": []
