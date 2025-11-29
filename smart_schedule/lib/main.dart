@@ -29,12 +29,44 @@ class MyApp extends StatelessWidget {
           fontFamily: 'Roboto',
           visualDensity: VisualDensity.adaptivePlatformDensity,
         ),
-        home: const FacultyHomeScreen(),
+        home: const AuthWrapper(),
         routes: {
           '/login': (context) => const LoginScreen(),
           '/faculty-home': (context) => const FacultyHomeScreen(),
         },
       ),
+    );
+  }
+}
+
+class AuthWrapper extends StatefulWidget {
+  const AuthWrapper({Key? key}) : super(key: key);
+
+  @override
+  State<AuthWrapper> createState() => _AuthWrapperState();
+}
+
+class _AuthWrapperState extends State<AuthWrapper> {
+  @override
+  void initState() {
+    super.initState();
+    _loadUser();
+  }
+
+  Future<void> _loadUser() async {
+    await context.read<UserProvider>().loadFromPreferences();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Consumer<UserProvider>(
+      builder: (context, userProvider, _) {
+        if (userProvider.isLoggedIn) {
+          return const FacultyHomeScreen();
+        } else {
+          return const LoginScreen();
+        }
+      },
     );
   }
 }
