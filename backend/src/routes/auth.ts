@@ -160,15 +160,36 @@ router.post("/login", loginLimiter, emailLimiter, async (req: Request, res: Resp
       }
     }
 
-    // Database query with sanitized data
-    const user = await User.findOne({ Email: sanitizedEmail });
-    
+    // Database query with sanitized data (with 5 second timeout)
+    let user;
+    try {
+      const userPromise = User.findOne({ Email: sanitizedEmail });
+      const timeoutPromise = new Promise((_, reject) =>
+        setTimeout(() => reject(new Error('Database query timeout')), 5000)
+      );
+      user = await Promise.race([userPromise, timeoutPromise]);
+    } catch (dbError) {
+      console.error('Database query error:', dbError);
+      return res.status(503).json({ message: "Service temporarily unavailable. Please try again." });
+    }
+
     if (!user) {
       return res.status(401).json({ message: "Invalid credentials" });
     }
 
-    // Use bcrypt to compare password
-    const isPasswordValid = await user.comparePassword(sanitizedPassword);
+    // Use bcrypt to compare password (with 3 second timeout)
+    let isPasswordValid;
+    try {
+      const passwordPromise = user.comparePassword(sanitizedPassword);
+      const timeoutPromise = new Promise<boolean>((_, reject) =>
+        setTimeout(() => reject(new Error('Password comparison timeout')), 3000)
+      );
+      isPasswordValid = await Promise.race([passwordPromise, timeoutPromise]);
+    } catch (pwError) {
+      console.error('Password comparison error:', pwError);
+      return res.status(503).json({ message: "Service temporarily unavailable. Please try again." });
+    }
+
     if (!isPasswordValid) {
       return res.status(401).json({ message: "Invalid credentials" });
     }
