@@ -22,13 +22,20 @@ class ScheduleService {
   static Future<Map<String, dynamic>> login({
     required String email,
     required String password,
+    String? verificationCode,
   }) async {
     try {
+      final body = {
+        'Email': email,
+        'Password': password,
+        if (verificationCode != null) 'verificationCode': verificationCode,
+      };
+
       final response = await http
           .post(
             Uri.parse('${ApiConfig.baseUrl}/api/auth/login'),
             headers: {'Content-Type': 'application/json'},
-            body: jsonEncode({'Email': email, 'Password': password}),
+            body: jsonEncode(body),
           )
           .timeout(const Duration(seconds: 10));
 
@@ -40,6 +47,7 @@ class ScheduleService {
             'success': false,
             'requiresVerification': true,
             'message': data['message'],
+            'rateLimitInfo': data['rateLimitInfo'],
           };
         }
 
@@ -47,6 +55,40 @@ class ScheduleService {
       } else {
         final data = jsonDecode(response.body);
         return {'success': false, 'message': data['message'] ?? 'Login failed'};
+      }
+    } catch (e) {
+      return {'success': false, 'message': _getErrorMessage(e)};
+    }
+  }
+
+  static Future<Map<String, dynamic>> register({
+    required String firstName,
+    required String lastName,
+    required String email,
+    required String password,
+    required String role,
+  }) async {
+    try {
+      final response = await http
+          .post(
+            Uri.parse('${ApiConfig.baseUrl}/api/auth/register'),
+            headers: {'Content-Type': 'application/json'},
+            body: jsonEncode({
+              'First_Name': firstName,
+              'Last_Name': lastName,
+              'Email': email,
+              'Password': password,
+              'role': role,
+            }),
+          )
+          .timeout(const Duration(seconds: 10));
+
+      if (response.statusCode == 201 || response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        return {'success': true, 'message': data['message'], 'user': data['user']};
+      } else {
+        final data = jsonDecode(response.body);
+        return {'success': false, 'message': data['message'] ?? 'Registration failed'};
       }
     } catch (e) {
       return {'success': false, 'message': _getErrorMessage(e)};

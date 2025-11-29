@@ -22,6 +22,7 @@ dependencies:
   # --- START NETWORK & STATE MANAGEMENT PACKAGES ---
   http: ^1.1.0 # Required for making HTTP requests (GET, POST, PUT)
   provider: ^6.1.1 # Required for the CommentProvider state management
+  shared_preferences: ^2.2.2 # Required for session persistence
   # --- END NETWORK & STATE MANAGEMENT PACKAGES ---
 
 dev_dependencies:
