@@ -15,6 +15,37 @@ router.get("/health", (req: Request, res: Response) => {
   res.json({ status: "OK", message: "Backend is running" });
 });
 
+// Database connectivity test endpoint
+router.get("/db-test", async (req: Request, res: Response) => {
+  try {
+    console.log("Testing database connection...");
+    const startTime = Date.now();
+
+    // Test with timeout
+    const testPromise = User.findOne({}).lean().exec();
+    const timeoutPromise = new Promise((_, reject) =>
+      setTimeout(() => reject(new Error('Database query timeout')), 5000)
+    );
+
+    await Promise.race([testPromise, timeoutPromise]);
+    const duration = Date.now() - startTime;
+
+    res.json({
+      status: "OK",
+      message: "Database is accessible",
+      responseTime: `${duration}ms`,
+      timestamp: new Date().toISOString()
+    });
+  } catch (error: any) {
+    res.status(500).json({
+      status: "ERROR",
+      message: error.message || "Database connection failed",
+      error: error.toString(),
+      timestamp: new Date().toISOString()
+    });
+  }
+});
+
 // Email configuration
 const transporter = nodemailer.createTransport({
   service: 'gmail', // or your email provider
