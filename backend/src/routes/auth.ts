@@ -174,12 +174,16 @@ const sendVerificationEmail = async (email: string, code: string) => {
 
 router.post("/login", loginLimiter, emailLimiter, withTimeout(async (req: Request, res: Response) => {
   try {
+    console.log("=== LOGIN REQUEST STARTED ===");
     const { Email, Password, verificationCode } = req.body;
-    
+    console.log(`[1] Received login request for: ${Email}`);
+
     // Input validation
     if (!Email || !Password) {
+      console.log("[2] Missing email or password");
       return res.status(400).json({ message: "Email and password required" });
     }
+    console.log("[3] Input validation passed");
 
     // Type checking
     if (typeof Email !== 'string' || typeof Password !== 'string') {
@@ -228,36 +232,43 @@ router.post("/login", loginLimiter, emailLimiter, withTimeout(async (req: Reques
     // Database query with sanitized data (with 5 second timeout)
     let user;
     try {
+      console.log("[4] Starting database query for email:", sanitizedEmail);
       const userPromise = User.findOne({ Email: sanitizedEmail }).lean().exec();
       const timeoutPromise = new Promise((_, reject) =>
         setTimeout(() => reject(new Error('Database query timeout')), 5000)
       );
       user = await Promise.race([userPromise, timeoutPromise]);
+      console.log("[5] Database query completed. User found:", !!user);
     } catch (dbError) {
-      console.error('Database query error:', dbError);
+      console.error('[ERROR] Database query error:', dbError);
       return res.status(503).json({ message: "Service temporarily unavailable. Please try again." });
     }
 
     if (!user) {
+      console.log("[6] User not found");
       return res.status(401).json({ message: "Invalid credentials" });
     }
 
     // Use bcrypt to compare password (with 3 second timeout)
     let isPasswordValid;
     try {
+      console.log("[7] Starting password comparison");
       const passwordPromise = user.comparePassword(sanitizedPassword);
       const timeoutPromise = new Promise<boolean>((_, reject) =>
         setTimeout(() => reject(new Error('Password comparison timeout')), 3000)
       );
       isPasswordValid = await Promise.race([passwordPromise, timeoutPromise]);
+      console.log("[8] Password comparison completed. Valid:", isPasswordValid);
     } catch (pwError) {
-      console.error('Password comparison error:', pwError);
+      console.error('[ERROR] Password comparison error:', pwError);
       return res.status(503).json({ message: "Service temporarily unavailable. Please try again." });
     }
 
     if (!isPasswordValid) {
+      console.log("[9] Invalid password");
       return res.status(401).json({ message: "Invalid credentials" });
     }
+    console.log("[10] Password valid, proceeding...");
 
     // If verification code is provided, verify it
     if (sanitizedVerificationCode) {
