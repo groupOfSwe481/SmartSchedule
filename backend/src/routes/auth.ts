@@ -229,13 +229,13 @@ router.post("/login", withTimeout(async (req: Request, res: Response) => {
       }
     }
 
-    // Database query with sanitized data (with 5 second timeout)
+    // Database query with sanitized data (with 10 second timeout)
     let user;
     try {
       console.log("[4] Starting database query for email:", sanitizedEmail);
-      const userPromise = User.findOne({ Email: sanitizedEmail }).lean().exec();
+      const userPromise = User.findOne({ Email: sanitizedEmail }).lean().maxTimeMS(8000).exec();
       const timeoutPromise = new Promise((_, reject) =>
-        setTimeout(() => reject(new Error('Database query timeout')), 5000)
+        setTimeout(() => reject(new Error('Database query timeout')), 10000)
       );
       user = await Promise.race([userPromise, timeoutPromise]);
       console.log("[5] Database query completed. User found:", !!user);
