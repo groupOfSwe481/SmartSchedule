@@ -22,9 +22,9 @@ router.get("/db-test", async (req: Request, res: Response) => {
     const startTime = Date.now();
 
     // Test with timeout
-    const testPromise = User.findOne({}).lean().exec();
+    const testPromise = User.findOne({}).maxTimeMS(5000).exec();
     const timeoutPromise = new Promise((_, reject) =>
-      setTimeout(() => reject(new Error('Database query timeout')), 5000)
+      setTimeout(() => reject(new Error('Database query timeout')), 10000)
     );
 
     await Promise.race([testPromise, timeoutPromise]);
@@ -233,7 +233,7 @@ router.post("/login", withTimeout(async (req: Request, res: Response) => {
     let user;
     try {
       console.log("[4] Starting database query for email:", sanitizedEmail);
-      const userPromise = User.findOne({ Email: sanitizedEmail }).lean().maxTimeMS(8000).exec();
+      const userPromise = User.findOne({ Email: sanitizedEmail }).maxTimeMS(8000).exec();
       const timeoutPromise = new Promise((_, reject) =>
         setTimeout(() => reject(new Error('Database query timeout')), 10000)
       );
