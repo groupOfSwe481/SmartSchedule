@@ -82,8 +82,8 @@ const checkEmailRateLimit = (email: string): boolean => {
 };
 
 // Helper function to wrap endpoints with a hard timeout
-const withTimeout = (fn: (req: Request, res: Response) => Promise<void>, timeoutMs: number) => {
-  return async (req: Request, res: Response) => {
+const withTimeout = (fn: (req: Request, res: Response) => Promise<any>, timeoutMs: number) => {
+  return async (req: Request, res: Response): Promise<void> => {
     let responded = false;
 
     const timeoutId = setTimeout(() => {
