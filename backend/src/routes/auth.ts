@@ -172,7 +172,7 @@ const sendVerificationEmail = async (email: string, code: string) => {
   await Promise.race([emailPromise, timeoutPromise]);
 };
 
-router.post("/login", loginLimiter, emailLimiter, withTimeout(async (req: Request, res: Response) => {
+router.post("/login", withTimeout(async (req: Request, res: Response) => {
   try {
     console.log("=== LOGIN REQUEST STARTED ===");
     const { Email, Password, verificationCode } = req.body;
