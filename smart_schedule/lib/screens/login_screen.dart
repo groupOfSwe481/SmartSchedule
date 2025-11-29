@@ -13,18 +13,14 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
-  // Current step
-  int _currentStep = 0; // 0 = login/register tabs, 1 = verification
+  int _currentStep = 0;
 
-  // Login form fields
   final _loginEmailController = TextEditingController();
   final _loginPasswordController = TextEditingController();
   bool _loginPasswordVisible = false;
 
-  // Verification fields
   final _verificationCodeController = TextEditingController();
 
-  // Registration form fields
   final _registerFirstNameController = TextEditingController();
   final _registerLastNameController = TextEditingController();
   final _registerEmailController = TextEditingController();
@@ -139,7 +135,6 @@ class _LoginScreenState extends State<LoginScreen> {
     context.read<UserProvider>().setUser(user, token);
     _showAlert('Login successful! Welcome ${user['First_Name']}', false);
 
-    // Navigate based on role
     Future.delayed(const Duration(milliseconds: 800), () {
       if (mounted) {
         Navigator.of(context).pushAndRemoveUntil(
@@ -217,6 +212,7 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      resizeToAvoidBottomInset: true,
       body: Container(
         decoration: const BoxDecoration(
           gradient: LinearGradient(
@@ -225,11 +221,22 @@ class _LoginScreenState extends State<LoginScreen> {
             colors: [Color(0xFF667eea), Color(0xFF764ba2)],
           ),
         ),
-        child: SafeArea(
-          child: Center(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.all(20),
-              child: _currentStep == 0 ? _buildTabsWidget() : _buildVerificationWidget(),
+        child: SingleChildScrollView(
+          child: ConstrainedBox(
+            constraints: BoxConstraints(
+              minHeight: MediaQuery.of(context).size.height,
+            ),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Padding(
+                  padding: EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: MediaQuery.of(context).viewInsets.bottom > 0 ? 16 : 32,
+                  ),
+                  child: _currentStep == 0 ? _buildTabsWidget() : _buildVerificationWidget(),
+                ),
+              ],
             ),
           ),
         ),
@@ -275,34 +282,31 @@ class _LoginScreenState extends State<LoginScreen> {
               ],
             ),
           ),
-          // Tabs
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-            child: DefaultTabController(
-              length: 2,
-              child: Column(
-                children: [
-                  TabBar(
-                    labelColor: const Color(0xFF667eea),
-                    unselectedLabelColor: Colors.grey,
-                    indicatorColor: const Color(0xFF667eea),
-                    tabs: const [
-                      Tab(text: 'Login'),
-                      Tab(text: 'Register'),
+          // Tabs Content
+          DefaultTabController(
+            length: 2,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TabBar(
+                  labelColor: const Color(0xFF667eea),
+                  unselectedLabelColor: Colors.grey,
+                  indicatorColor: const Color(0xFF667eea),
+                  tabs: const [
+                    Tab(text: 'Login'),
+                    Tab(text: 'Register'),
+                  ],
+                ),
+                SizedBox(
+                  height: 400,
+                  child: TabBarView(
+                    children: [
+                      _buildLoginForm(),
+                      _buildRegistrationForm(),
                     ],
                   ),
-                  const SizedBox(height: 24),
-                  SizedBox(
-                    height: 400,
-                    child: TabBarView(
-                      children: [
-                        _buildLoginForm(),
-                        _buildRegistrationForm(),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
+                ),
+              ],
             ),
           ),
         ],
@@ -311,95 +315,102 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   Widget _buildLoginForm() {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        // Email
-        TextFormField(
-          controller: _loginEmailController,
-          decoration: InputDecoration(
-            labelText: 'Email Address',
-            hintText: 'Enter your email',
-            prefixIcon: const Icon(Icons.email_outlined),
-            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-            enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: Color(0xFFe2e8f0), width: 2),
-            ),
-            focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: Color(0xFF667eea), width: 2),
-            ),
-          ),
-          keyboardType: TextInputType.emailAddress,
-        ),
-        const SizedBox(height: 16),
-        // Password
-        TextFormField(
-          controller: _loginPasswordController,
-          obscureText: !_loginPasswordVisible,
-          decoration: InputDecoration(
-            labelText: 'Password',
-            hintText: 'Enter your password',
-            prefixIcon: const Icon(Icons.lock_outlined),
-            suffixIcon: IconButton(
-              icon: Icon(
-                _loginPasswordVisible ? Icons.visibility : Icons.visibility_off,
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(24),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // Email
+          TextField(
+            controller: _loginEmailController,
+            textInputAction: TextInputAction.next,
+            decoration: InputDecoration(
+              labelText: 'Email Address',
+              hintText: 'Enter your email',
+              prefixIcon: const Icon(Icons.email_outlined),
+              border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: const BorderSide(color: Color(0xFFe2e8f0), width: 2),
               ),
-              onPressed: () {
-                setState(() => _loginPasswordVisible = !_loginPasswordVisible);
-              },
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: const BorderSide(color: Color(0xFF667eea), width: 2),
+              ),
             ),
-            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-            enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: Color(0xFFe2e8f0), width: 2),
-            ),
-            focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: Color(0xFF667eea), width: 2),
+            keyboardType: TextInputType.emailAddress,
+          ),
+          const SizedBox(height: 16),
+          // Password
+          TextField(
+            controller: _loginPasswordController,
+            textInputAction: TextInputAction.done,
+            obscureText: !_loginPasswordVisible,
+            decoration: InputDecoration(
+              labelText: 'Password',
+              hintText: 'Enter your password',
+              prefixIcon: const Icon(Icons.lock_outlined),
+              suffixIcon: IconButton(
+                icon: Icon(
+                  _loginPasswordVisible ? Icons.visibility : Icons.visibility_off,
+                ),
+                onPressed: () {
+                  setState(() => _loginPasswordVisible = !_loginPasswordVisible);
+                },
+              ),
+              border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: const BorderSide(color: Color(0xFFe2e8f0), width: 2),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: const BorderSide(color: Color(0xFF667eea), width: 2),
+              ),
             ),
           ),
-        ),
-        const SizedBox(height: 24),
-        // Login Button
-        SizedBox(
-          width: double.infinity,
-          height: 50,
-          child: ElevatedButton(
-            onPressed: _isLoading ? null : _handleLogin,
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF667eea),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          const SizedBox(height: 24),
+          // Login Button
+          SizedBox(
+            width: double.infinity,
+            height: 50,
+            child: ElevatedButton(
+              onPressed: _isLoading ? null : _handleLogin,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF667eea),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              ),
+              child: _isLoading
+                  ? const SizedBox(
+                      height: 24,
+                      width: 24,
+                      child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+                    )
+                  : const Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.login, color: Colors.white),
+                        SizedBox(width: 8),
+                        Text('Login',
+                            style: TextStyle(fontSize: 16, color: Colors.white, fontWeight: FontWeight.bold)),
+                      ],
+                    ),
             ),
-            child: _isLoading
-                ? const SizedBox(
-                    height: 24,
-                    width: 24,
-                    child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
-                  )
-                : const Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(Icons.login, color: Colors.white),
-                      SizedBox(width: 8),
-                      Text('Login', style: TextStyle(fontSize: 16, color: Colors.white, fontWeight: FontWeight.bold)),
-                    ],
-                  ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 
   Widget _buildRegistrationForm() {
     return SingleChildScrollView(
+      padding: const EdgeInsets.all(24),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          // First Name
-          TextFormField(
+          TextField(
             controller: _registerFirstNameController,
+            textInputAction: TextInputAction.next,
             decoration: InputDecoration(
               labelText: 'First Name',
               hintText: 'Enter your first name',
@@ -416,9 +427,9 @@ class _LoginScreenState extends State<LoginScreen> {
             ),
           ),
           const SizedBox(height: 12),
-          // Last Name
-          TextFormField(
+          TextField(
             controller: _registerLastNameController,
+            textInputAction: TextInputAction.next,
             decoration: InputDecoration(
               labelText: 'Last Name',
               hintText: 'Enter your last name',
@@ -435,9 +446,9 @@ class _LoginScreenState extends State<LoginScreen> {
             ),
           ),
           const SizedBox(height: 12),
-          // Email
-          TextFormField(
+          TextField(
             controller: _registerEmailController,
+            textInputAction: TextInputAction.next,
             keyboardType: TextInputType.emailAddress,
             decoration: InputDecoration(
               labelText: 'Email Address',
@@ -455,9 +466,9 @@ class _LoginScreenState extends State<LoginScreen> {
             ),
           ),
           const SizedBox(height: 12),
-          // Password
-          TextFormField(
+          TextField(
             controller: _registerPasswordController,
+            textInputAction: TextInputAction.next,
             obscureText: !_registerPasswordVisible,
             decoration: InputDecoration(
               labelText: 'Password',
@@ -483,9 +494,8 @@ class _LoginScreenState extends State<LoginScreen> {
             ),
           ),
           const SizedBox(height: 12),
-          // Role Selection
           DropdownButtonFormField<String>(
-            value: _selectedRole,
+            initialValue: _selectedRole,
             items: ['Student', 'Faculty', 'LoadCommittee', 'Scheduler']
                 .map((role) => DropdownMenuItem(value: role, child: Text(role)))
                 .toList(),
@@ -507,7 +517,6 @@ class _LoginScreenState extends State<LoginScreen> {
             ),
           ),
           const SizedBox(height: 24),
-          // Register Button
           SizedBox(
             width: double.infinity,
             height: 50,
@@ -528,7 +537,8 @@ class _LoginScreenState extends State<LoginScreen> {
                       children: [
                         Icon(Icons.person_add, color: Colors.white),
                         SizedBox(width: 8),
-                        Text('Register', style: TextStyle(fontSize: 16, color: Colors.white, fontWeight: FontWeight.bold)),
+                        Text('Register',
+                            style: TextStyle(fontSize: 16, color: Colors.white, fontWeight: FontWeight.bold)),
                       ],
                     ),
             ),
@@ -542,12 +552,11 @@ class _LoginScreenState extends State<LoginScreen> {
     return Card(
       elevation: 8,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-      child: Padding(
+      child: SingleChildScrollView(
         padding: const EdgeInsets.all(32),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            // Header
             Container(
               width: 80,
               height: 80,
@@ -571,8 +580,7 @@ class _LoginScreenState extends State<LoginScreen> {
               style: const TextStyle(color: Colors.grey, fontSize: 14),
             ),
             const SizedBox(height: 32),
-            // Verification Code Input
-            TextFormField(
+            TextField(
               controller: _verificationCodeController,
               keyboardType: TextInputType.number,
               maxLength: 6,
@@ -596,7 +604,6 @@ class _LoginScreenState extends State<LoginScreen> {
               style: const TextStyle(fontSize: 24, letterSpacing: 8, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 24),
-            // Verify Button
             SizedBox(
               width: double.infinity,
               height: 50,
@@ -617,13 +624,13 @@ class _LoginScreenState extends State<LoginScreen> {
                         children: [
                           Icon(Icons.check_circle, color: Colors.white),
                           SizedBox(width: 8),
-                          Text('Verify & Login', style: TextStyle(fontSize: 16, color: Colors.white, fontWeight: FontWeight.bold)),
+                          Text('Verify & Login',
+                              style: TextStyle(fontSize: 16, color: Colors.white, fontWeight: FontWeight.bold)),
                         ],
                       ),
               ),
             ),
             const SizedBox(height: 12),
-            // Back Button
             SizedBox(
               width: double.infinity,
               height: 50,
@@ -638,7 +645,8 @@ class _LoginScreenState extends State<LoginScreen> {
                   children: [
                     Icon(Icons.arrow_back, color: Color(0xFF667eea)),
                     SizedBox(width: 8),
-                    Text('Back to Login', style: TextStyle(fontSize: 16, color: Color(0xFF667eea), fontWeight: FontWeight.bold)),
+                    Text('Back to Login',
+                        style: TextStyle(fontSize: 16, color: Color(0xFF667eea), fontWeight: FontWeight.bold)),
                   ],
                 ),
               ),
