@@ -49,7 +49,7 @@ app.use(express.static(path.join(__dirname, "../../")));
 app.use("/api", scheduleRoutes);
 app.use("/api", router);
 app.use("/api/rules", ruleRoutes);
-app.use("/api", authRoutes);
+app.use("/api/auth", authRoutes);
 app.use("/api/irregulars", irregularRoutes);
 app.use("/api/students", studentRoutes);
 app.use("/api/notifications", notificationRoutes);
