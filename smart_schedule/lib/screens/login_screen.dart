@@ -253,6 +253,7 @@ class _LoginScreenState extends State<LoginScreen> {
         children: [
           // Header
           Container(
+            width: double.infinity,
             decoration: const BoxDecoration(
               gradient: LinearGradient(
                 colors: [Color(0xFF667eea), Color(0xFF764ba2)],
@@ -262,22 +263,29 @@ class _LoginScreenState extends State<LoginScreen> {
                 topRight: Radius.circular(20),
               ),
             ),
-            padding: const EdgeInsets.symmetric(vertical: 24),
-            child: const Column(
+            padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
               children: [
-                Icon(Icons.calendar_month, size: 48, color: Colors.white),
-                SizedBox(height: 12),
-                Text(
+                const Icon(Icons.calendar_month, size: 40, color: Colors.white),
+                const SizedBox(height: 8),
+                const Text(
                   'SmartSchedule',
                   style: TextStyle(
-                    fontSize: 28,
+                    fontSize: 22,
                     fontWeight: FontWeight.bold,
                     color: Colors.white,
                   ),
+                  textAlign: TextAlign.center,
                 ),
-                Text(
-                  'Your intelligent academic scheduling solution',
-                  style: TextStyle(color: Colors.white70, fontSize: 14),
+                const SizedBox(height: 4),
+                const Text(
+                  'Academic scheduling solution',
+                  style: TextStyle(
+                    color: Color(0xFFE8E8FF),
+                    fontSize: 12,
+                  ),
+                  textAlign: TextAlign.center,
                 ),
               ],
             ),
