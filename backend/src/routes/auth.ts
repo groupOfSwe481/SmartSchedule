@@ -10,6 +10,11 @@ import { Student } from "../db/models/Student.js"; // Import Student model
 
 const router = Router();
 
+// Health check endpoint (no database needed)
+router.get("/health", (req: Request, res: Response) => {
+  res.json({ status: "OK", message: "Backend is running" });
+});
+
 // Email configuration
 const transporter = nodemailer.createTransport({
   service: 'gmail', // or your email provider
@@ -76,6 +81,35 @@ const checkEmailRateLimit = (email: string): boolean => {
   return true;
 };
 
+// Helper function to wrap endpoints with a hard timeout
+const withTimeout = (fn: (req: Request, res: Response) => Promise<void>, timeoutMs: number) => {
+  return async (req: Request, res: Response) => {
+    let responded = false;
+
+    const timeoutId = setTimeout(() => {
+      if (!responded) {
+        responded = true;
+        console.error(`Request timeout after ${timeoutMs}ms`);
+        if (!res.headersSent) {
+          res.status(503).json({ message: "Request timeout. Service is slow. Please try again." });
+        }
+      }
+    }, timeoutMs);
+
+    try {
+      await fn(req, res);
+      responded = true;
+      clearTimeout(timeoutId);
+    } catch (error) {
+      responded = true;
+      clearTimeout(timeoutId);
+      if (!res.headersSent) {
+        res.status(500).json({ message: "Server error" });
+      }
+    }
+  };
+};
+
 // Generate random 6-digit code
 const generateCode = () => Math.floor(100000 + Math.random() * 900000).toString();
 
@@ -107,7 +141,7 @@ const sendVerificationEmail = async (email: string, code: string) => {
   await Promise.race([emailPromise, timeoutPromise]);
 };
 
-router.post("/login", loginLimiter, emailLimiter, async (req: Request, res: Response) => {
+router.post("/login", loginLimiter, emailLimiter, withTimeout(async (req: Request, res: Response) => {
   try {
     const { Email, Password, verificationCode } = req.body;
     
@@ -278,7 +312,7 @@ router.post("/login", loginLimiter, emailLimiter, async (req: Request, res: Resp
     console.error('Login error:', e);
     return res.status(500).json({ message: "Server error" });
   }
-});
+}, 8000)); // 8 second timeout for the entire login endpoint
 
 // Register route
 // Register route
