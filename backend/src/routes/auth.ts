@@ -228,7 +228,7 @@ router.post("/login", loginLimiter, emailLimiter, withTimeout(async (req: Reques
     // Database query with sanitized data (with 5 second timeout)
     let user;
     try {
-      const userPromise = User.findOne({ Email: sanitizedEmail });
+      const userPromise = User.findOne({ Email: sanitizedEmail }).lean().exec();
       const timeoutPromise = new Promise((_, reject) =>
         setTimeout(() => reject(new Error('Database query timeout')), 5000)
       );
