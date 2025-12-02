@@ -4,6 +4,7 @@
     <!-- Auth Guard - MUST be first script -->
     <script src="assets/js/auth-guard.js"></script>
 
+
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Schedules - SmartSchedule</title>
@@ -758,28 +759,51 @@
         }
       });
     </script>
+<!-- ✅ Use the bundle -->
+<script src="assets/js/vendor/yjs-bundle.js"></script>
 
-    <script src="assets/js/main.js"></script>
-    <script src="assets/js/irregulars.js"></script>
-    <script src="assets/js/notifications.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
-    <script>
-      if (typeof pdfjsLib !== "undefined") {
-        pdfjsLib.GlobalWorkerOptions.workerSrc =
-          "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
-      }
-    </script>
-    <script src="assets/js/api.js"></script>
-    <script src="assets/js/validation.js"></script>
-    <script src="assets/js/notifications-util.js"></script>
-    <script src="assets/js/courseService.js"></script>
-    <script src="assets/js/scheduleService.js"></script>
-    <script src="assets/js/courseManager.js"></script>
-    <script src="assets/js/sectionManager.js"></script>
-    <script src="assets/js/fileUploadManager.js"></script>
-    <script src="assets/js/faculty-dashboard.js"></script>
-    <script src="assets/js/version-history.js"></script>
-    <script src="assets/js/faculty-comments.js"></script>
+<script>
+  console.log('🔍 Y available?', typeof window.Y !== 'undefined');
+  console.log('🔍 WebsocketProvider available?', typeof window.WebsocketProvider !== 'undefined');
+</script>
+
+<!-- Then your other scripts -->
+<!-- 5. Load collaboration.js -->
+<script src="assets/js/collaboration.js"></script>
+
+<!-- 6. Rest of your scripts -->
+<script src="assets/js/irregulars.js"></script>
+<script src="assets/js/notifications.js"></script>
+
+
+<!-- 5. PDF.js -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script>
+  if (typeof pdfjsLib !== "undefined") {
+    pdfjsLib.GlobalWorkerOptions.workerSrc =
+      "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
+  }
+</script>
+
+<!-- 6. API and services -->
+<script src="assets/js/api.js"></script>
+<script src="assets/js/validation.js"></script>
+<script src="assets/js/notifications-util.js"></script>
+<script src="assets/js/courseService.js"></script>
+<script src="assets/js/scheduleService.js"></script>
+
+<!-- 7. Managers -->
+<script src="assets/js/courseManager.js"></script>
+<script src="assets/js/sectionManager.js"></script>
+<script src="assets/js/fileUploadManager.js"></script>
+
+<!-- 8. Dashboard and features -->
+<script src="assets/js/faculty-dashboard.js"></script>
+<script src="assets/js/version-history.js"></script>
+<script src="assets/js/faculty-comments.js"></script>
+
+<!-- 9. MAIN.JS MUST BE LAST! -->
+<script src="assets/js/main.js"></script>
 
     <div
       class="modal fade"
@@ -909,61 +933,6 @@
             >
               Close Report
             </button>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Notifications Modal -->
-    <div class="modal fade" id="notificationsModal" tabindex="-1" aria-labelledby="notificationsModalLabel" aria-hidden="true">
-      <div class="modal-dialog modal-dialog-scrollable modal-lg">
-        <div class="modal-content">
-          <div class="modal-header bg-primary text-white">
-            <h5 class="modal-title" id="notificationsModalLabel">
-              <i class="bi bi-bell-fill me-2"></i>Notifications & Deadlines
-            </h5>
-            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-          </div>
-          <div class="modal-body p-0">
-            <!-- Tabs -->
-            <ul class="nav nav-tabs" id="notificationTabs" role="tablist">
-              <li class="nav-item" role="presentation">
-                <button class="nav-link active" id="notifications-tab" data-bs-toggle="tab" data-bs-target="#notifications" type="button" role="tab">
-                  <i class="bi bi-bell me-2"></i>Notifications
-                </button>
-              </li>
-              <li class="nav-item" role="presentation">
-                <button class="nav-link" id="deadlines-tab" data-bs-toggle="tab" data-bs-target="#deadlines" type="button" role="tab">
-                  <i class="bi bi-calendar-event me-2"></i>Deadlines
-                </button>
-              </li>
-            </ul>
-
-            <!-- Tab Content -->
-            <div class="tab-content" id="notificationTabsContent">
-              <!-- Notifications Tab -->
-              <div class="tab-pane fade show active" id="notifications" role="tabpanel">
-                <div id="notificationsList">
-                  <div class="text-center py-5">
-                    <div class="spinner-border spinner-border-sm me-2"></div>
-                    <span>Loading notifications...</span>
-                  </div>
-                </div>
-              </div>
-
-              <!-- Deadlines Tab -->
-              <div class="tab-pane fade" id="deadlines" role="tabpanel">
-                <div id="deadlinesList">
-                  <div class="text-center py-5">
-                    <div class="spinner-border spinner-border-sm me-2"></div>
-                    <span>Loading deadlines...</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-          <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
           </div>
         </div>
       </div>
