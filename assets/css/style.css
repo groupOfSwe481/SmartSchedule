@@ -353,3 +353,129 @@ body {
   0%, 100% { opacity: 1; }
   50% { opacity: 0.7; }
 }
+/* Real-time Collaboration Styles */
+
+/* Active users container */
+#active-users-container {
+  background: white;
+  border-radius: 12px;
+  padding: 1rem;
+  margin-bottom: 1rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.user-badge {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  border-radius: 20px;
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.user-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-weight: 700;
+  font-size: 0.75rem;
+}
+
+/* Connection status */
+#connection-status {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  background: white;
+  border-radius: 8px;
+  font-size: 0.9rem;
+}
+
+/* Cell editing indicators */
+.editing-indicator {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 0.7rem;
+  color: white;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  z-index: 10;
+  animation: fadeIn 0.3s ease;
+}
+
+.editing-indicator i {
+  font-size: 0.7rem;
+}
+
+/* Cell being edited by someone else */
+
+
+@keyframes pulse {
+  0%, 100% {
+    outline-opacity: 1;
+  }
+  50% {
+    outline-opacity: 0.5;
+  }
+}
+
+/* Remote update flash animation */
+.remote-update-flash {
+  animation: flash 0.5s ease;
+}
+
+@keyframes flash {
+  0%, 100% {
+    background-color: transparent;
+  }
+  50% {
+    background-color: rgba(99, 102, 241, 0.2);
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-5px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Conflict warning */
+.conflict-warning {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  background: #FFA500;
+  color: white;
+  padding: 1rem 1.5rem;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  z-index: 9999;
+  animation: slideInRight 0.3s ease;
+}
+
+@keyframes slideInRight {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
