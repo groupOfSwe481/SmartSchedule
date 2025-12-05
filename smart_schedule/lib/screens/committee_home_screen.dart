@@ -1,20 +1,19 @@
-// lib/screens/faculty_home_screen.dart
-
+// lib/screens/committee_home_screen.dart
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/user_provider.dart';
 import '../providers/schedule_provider.dart';
-import '../widgets/comment_modal.dart'; // Retained for widget use
+// Removed unused import: comment_provider.dart
+import '../widgets/comment_modal.dart'; // Make sure this file contains the Enum definition
 
-class FacultyHomeScreen extends StatefulWidget {
-  // FIX: Using super.key
-  const FacultyHomeScreen({super.key});
+class CommitteeHomeScreen extends StatefulWidget {
+  const CommitteeHomeScreen({Key? key}) : super(key: key);
 
   @override
-  State<FacultyHomeScreen> createState() => _FacultyHomeScreenState();
+  State<CommitteeHomeScreen> createState() => _CommitteeHomeScreenState();
 }
 
-class _FacultyHomeScreenState extends State<FacultyHomeScreen> {
+class _CommitteeHomeScreenState extends State<CommitteeHomeScreen> {
   @override
   void initState() {
     super.initState();
@@ -28,7 +27,11 @@ class _FacultyHomeScreenState extends State<FacultyHomeScreen> {
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (context) => CommentModal(cellInfo: cellInfo),
+      builder: (context) => CommentModal(
+        cellInfo: cellInfo,
+        // ✅ FIXED: Use the enum instead of isCommittee boolean
+        userType: CommentUserType.committee,
+      ),
     );
   }
 
@@ -67,7 +70,7 @@ class _FacultyHomeScreenState extends State<FacultyHomeScreen> {
       ),
       title: Row(
         children: const [
-          Icon(Icons.calendar_month, size: 28),
+          Icon(Icons.calendar_today, size: 28),
           SizedBox(width: 12),
           Text(
             'SmartSchedule',
@@ -79,20 +82,18 @@ class _FacultyHomeScreenState extends State<FacultyHomeScreen> {
         Consumer<UserProvider>(
           builder: (context, userProvider, child) {
             final userName = userProvider.displayName;
-
-            // FIX: Explicitly setting the type parameter to Object?
-            return PopupMenuButton<Object?>(
+            return PopupMenuButton(
               icon: CircleAvatar(
                 backgroundColor: Colors.white24,
                 child: Text(
-                  userName.isNotEmpty ? userName[0].toUpperCase() : 'F',
+                  userName.isNotEmpty ? userName[0].toUpperCase() : 'C',
                   style: const TextStyle(
                     color: Colors.white,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
               ),
-              itemBuilder: (BuildContext context) => [
+              itemBuilder: (context) => <PopupMenuEntry<dynamic>>[
                 PopupMenuItem(
                   child: Row(
                     children: const [
@@ -104,13 +105,11 @@ class _FacultyHomeScreenState extends State<FacultyHomeScreen> {
                 ),
                 const PopupMenuDivider(),
                 PopupMenuItem(
-                  // FIX: Using async and mounted check for safe navigation
-                  onTap: () async {
-                    userProvider.logout();
-
-                    // Check if widget is still in the tree before using context
-                    if (!mounted) return;
-                    Navigator.pushReplacementNamed(context, '/login');
+                  onTap: () {
+                    Future.delayed(Duration.zero, () {
+                      userProvider.logout();
+                      Navigator.pushReplacementNamed(context, '/login');
+                    });
                   },
                   child: Row(
                     children: const [
@@ -337,26 +336,30 @@ class _FacultyHomeScreenState extends State<FacultyHomeScreen> {
                 ],
               ),
               const SizedBox(height: 16),
+
+              // Committee-specific info banner
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFe3f2fd),
+                  color: const Color(0xFFd1ecf1),
                   borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: const Color(0xFF0c5460), width: 1),
                 ),
                 child: Row(
                   children: const [
                     Icon(
                       Icons.info_outline,
-                      color: Color(0xFF1976d2),
+                      color: Color(0xFF0c5460),
                       size: 20,
                     ),
                     SizedBox(width: 12),
                     Expanded(
                       child: Text(
-                        'Tip: Click on any course to add your comments as a faculty member.',
+                        'Committee Note: You are viewing all schedule versions including drafts (v1+). Click on any course to add your comments for review.',
                         style: TextStyle(
-                          color: Color(0xFF1976d2),
+                          color: Color(0xFF0c5460),
                           fontSize: 13,
+                          fontWeight: FontWeight.w500,
                         ),
                       ),
                     ),
@@ -364,6 +367,7 @@ class _FacultyHomeScreenState extends State<FacultyHomeScreen> {
                 ),
               ),
               const SizedBox(height: 20),
+
               if (scheduleProvider.isLoading)
                 const Center(
                   child: Padding(
@@ -419,7 +423,7 @@ class _FacultyHomeScreenState extends State<FacultyHomeScreen> {
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
       child: DataTable(
-        headingRowColor: WidgetStateProperty.all(const Color(0xFFe3f2fd)),
+        headingRowColor: MaterialStateProperty.all(const Color(0xFFe3f2fd)),
         border: TableBorder.all(color: const Color(0xFFe2e8f0), width: 1),
         columnSpacing: 8,
         dataRowMinHeight: 60,
@@ -491,7 +495,7 @@ class _FacultyHomeScreenState extends State<FacultyHomeScreen> {
     if (cellData is String) {
       courseName = cellData;
       final match = RegExp(r'^([A-Z]{2,4}\d{3})').firstMatch(cellData);
-      courseCode = match?.group(1) ?? courseName.split(' ')[0];
+      courseCode = match?.group(1) ?? cellData.split(' ')[0];
     } else if (cellData is Map) {
       courseName = cellData['course'] ?? '';
       courseCode = cellData['code'] ?? courseName.split(' ')[0];

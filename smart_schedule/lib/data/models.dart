@@ -1,5 +1,3 @@
-import 'dart:convert';
-
 // DTO for Schedule Grid Course
 class ScheduleCourse {
   final String code;
