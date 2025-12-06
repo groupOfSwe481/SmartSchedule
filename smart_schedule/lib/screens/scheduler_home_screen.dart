@@ -1211,19 +1211,17 @@ class _SchedulerHomeScreenState extends State<SchedulerHomeScreen> {
                         foregroundColor: Colors.white,
                       ),
                     ),
-                    // Publish button - only show for Draft schedules
-                    if (schedule.isDraft) ...[
-                      const SizedBox(width: 8),
-                      ElevatedButton.icon(
-                        onPressed: () => _publishSchedule(schedule),
-                        icon: const Icon(Icons.publish, size: 18),
-                        label: const Text('Publish'),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF10b981),
-                          foregroundColor: Colors.white,
-                        ),
+                    // Publish button - show for all schedules
+                    const SizedBox(width: 8),
+                    ElevatedButton.icon(
+                      onPressed: () => _publishSchedule(schedule),
+                      icon: const Icon(Icons.publish, size: 18),
+                      label: Text(schedule.isDraft ? 'Publish' : 'Re-publish'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF10b981),
+                        foregroundColor: Colors.white,
                       ),
-                    ],
+                    ),
                     // Check Impact button - show for all schedules
                     const SizedBox(width: 8),
                     ElevatedButton.icon(
