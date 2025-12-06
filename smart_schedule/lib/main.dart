@@ -3,15 +3,19 @@ import 'package:provider/provider.dart';
 import 'providers/user_provider.dart';
 import 'providers/schedule_provider.dart';
 import 'providers/comment_provider.dart';
+import 'providers/irregular_provider.dart';
+import 'services/collaboration_manager.dart';
 import 'screens/login_screen.dart';
 import 'screens/faculty_home_screen.dart';
+import 'screens/scheduler_home_screen.dart';
+import 'screens/irregular_students_screen.dart';
 
 void main() {
   runApp(const MyApp());
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({Key? key}) : super(key: key);
+  const MyApp({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -20,6 +24,8 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => UserProvider()),
         ChangeNotifierProvider(create: (_) => ScheduleProvider()),
         ChangeNotifierProvider(create: (_) => CommentProvider()),
+        ChangeNotifierProvider(create: (_) => IrregularProvider()),
+        ChangeNotifierProvider(create: (_) => CollaborationManager()),
       ],
       child: MaterialApp(
         title: 'SmartSchedule',
@@ -33,6 +39,8 @@ class MyApp extends StatelessWidget {
         routes: {
           '/login': (context) => const LoginScreen(),
           '/faculty-home': (context) => const FacultyHomeScreen(),
+          '/scheduler-home': (context) => const SchedulerHomeScreen(),
+          '/irregular-students': (context) => const IrregularStudentsScreen(),
         },
       ),
     );
@@ -40,7 +48,7 @@ class MyApp extends StatelessWidget {
 }
 
 class AuthWrapper extends StatefulWidget {
-  const AuthWrapper({Key? key}) : super(key: key);
+  const AuthWrapper({super.key});
 
   @override
   State<AuthWrapper> createState() => _AuthWrapperState();
@@ -62,7 +70,18 @@ class _AuthWrapperState extends State<AuthWrapper> {
     return Consumer<UserProvider>(
       builder: (context, userProvider, _) {
         if (userProvider.isLoggedIn) {
-          return const FacultyHomeScreen();
+          // Route based on user role
+          final userRole = userProvider.userRole;
+
+          switch (userRole) {
+            case 'Scheduler':
+              return const SchedulerHomeScreen();
+            case 'Faculty':
+            case 'LoadCommittee':
+            case 'Student':
+            default:
+              return const FacultyHomeScreen();
+          }
         } else {
           return const LoginScreen();
         }

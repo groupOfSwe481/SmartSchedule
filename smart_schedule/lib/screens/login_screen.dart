@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../api/schedule_service.dart';
 import '../providers/user_provider.dart';
 import 'faculty_home_screen.dart';
+import 'scheduler_home_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({Key? key}) : super(key: key);
@@ -137,8 +138,24 @@ class _LoginScreenState extends State<LoginScreen> {
 
     Future.delayed(const Duration(milliseconds: 800), () {
       if (mounted) {
+        // Navigate based on user role
+        final userRole = user['role'] as String?;
+        Widget homeScreen;
+
+        switch (userRole) {
+          case 'Scheduler':
+            homeScreen = const SchedulerHomeScreen();
+            break;
+          case 'Faculty':
+          case 'LoadCommittee':
+          case 'Student':
+          default:
+            homeScreen = const FacultyHomeScreen();
+            break;
+        }
+
         Navigator.of(context).pushAndRemoveUntil(
-          MaterialPageRoute(builder: (_) => const FacultyHomeScreen()),
+          MaterialPageRoute(builder: (_) => homeScreen),
           (route) => false,
         );
       }

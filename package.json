@@ -42,7 +42,8 @@
   "scripts": {
     "dev": "nodemon --watch backend/src --exec tsx backend/src/app.ts",
     "dev:ws": "tsx backend/src/websocket-server.ts",
-    "dev:all": "concurrently \"npm run dev\" \"npm run dev:ws\"",
+    "dev:collab": "tsx backend/src/collaboration-server.ts",
+    "dev:all": "concurrently \"npm run dev\" \"npm run dev:collab\"",
     "build": "tsc -p backend/tsconfig.json",
     "vercel-build": "npm run build",
     "start": "node backend/dist/app.js",

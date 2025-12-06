@@ -25,6 +25,10 @@ dependencies:
   shared_preferences: ^2.2.2 # Required for session persistence
   # --- END NETWORK & STATE MANAGEMENT PACKAGES ---
 
+  # --- START REAL-TIME COLLABORATION PACKAGES ---
+  web_socket_channel: ^3.0.1 # WebSocket support for real-time sync
+  # --- END REAL-TIME COLLABORATION PACKAGES ---
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
