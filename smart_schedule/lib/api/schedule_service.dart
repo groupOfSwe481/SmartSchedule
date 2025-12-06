@@ -100,7 +100,7 @@ class ScheduleService {
     try {
       final response = await http.get(
         Uri.parse('${ApiConfig.baseUrl}/api/student-schedules/$level'),
-      ).timeout(const Duration(seconds: 10));
+      ).timeout(const Duration(seconds: 30));
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
@@ -127,7 +127,7 @@ class ScheduleService {
       final response = await http.get(
         Uri.parse('${ApiConfig.baseUrl}/api/committee-schedules/$level'),
         headers: headers,
-      ).timeout(const Duration(seconds: 10));
+      ).timeout(const Duration(seconds: 30));
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
@@ -160,7 +160,7 @@ class ScheduleService {
       final response = await http.get(
         Uri.parse('${ApiConfig.baseUrl}/api/schedule/level/$level'),
         headers: headers,
-      ).timeout(const Duration(seconds: 10));
+      ).timeout(const Duration(seconds: 30));
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
@@ -328,6 +328,32 @@ class ScheduleService {
     try {
       final response = await http.post(
         Uri.parse('${ApiConfig.baseUrl}/api/comments/faculty'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+        body: jsonEncode(commentData),
+      );
+
+      if (response.statusCode == 201 || response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        return {'success': true, 'comment': data['comment']};
+      } else {
+        final data = jsonDecode(response.body);
+        return {'success': false, 'message': data['error'] ?? 'Failed'};
+      }
+    } catch (e) {
+      return {'success': false, 'message': _getErrorMessage(e)};
+    }
+  }
+
+  static Future<Map<String, dynamic>> submitStudentComment({
+    required String token,
+    required Map<String, dynamic> commentData,
+  }) async {
+    try {
+      final response = await http.post(
+        Uri.parse('${ApiConfig.baseUrl}/api/comments'),
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer $token',

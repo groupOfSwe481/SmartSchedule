@@ -4,11 +4,18 @@ import 'providers/user_provider.dart';
 import 'providers/schedule_provider.dart';
 import 'providers/comment_provider.dart';
 import 'providers/irregular_provider.dart';
+import 'providers/course_provider.dart';
+import 'providers/section_provider.dart';
+import 'providers/student_provider.dart';
 import 'services/collaboration_manager.dart';
 import 'screens/login_screen.dart';
 import 'screens/faculty_home_screen.dart';
 import 'screens/scheduler_home_screen.dart';
+import 'screens/student_home_screen.dart';
 import 'screens/irregular_students_screen.dart';
+import 'screens/section_management_screen.dart';
+import 'screens/student_management_screen.dart';
+import 'screens/comments_management_screen.dart';
 
 void main() {
   runApp(const MyApp());
@@ -25,6 +32,9 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => ScheduleProvider()),
         ChangeNotifierProvider(create: (_) => CommentProvider()),
         ChangeNotifierProvider(create: (_) => IrregularProvider()),
+        ChangeNotifierProvider(create: (_) => CourseProvider()),
+        ChangeNotifierProvider(create: (_) => SectionProvider()),
+        ChangeNotifierProvider(create: (_) => StudentProvider()),
         ChangeNotifierProvider(create: (_) => CollaborationManager()),
       ],
       child: MaterialApp(
@@ -41,6 +51,9 @@ class MyApp extends StatelessWidget {
           '/faculty-home': (context) => const FacultyHomeScreen(),
           '/scheduler-home': (context) => const SchedulerHomeScreen(),
           '/irregular-students': (context) => const IrregularStudentsScreen(),
+          '/section-management': (context) => const SectionManagementScreen(),
+          '/student-management': (context) => const StudentManagementScreen(),
+          '/comments-management': (context) => const CommentsManagementScreen(),
         },
       ),
     );
@@ -76,9 +89,10 @@ class _AuthWrapperState extends State<AuthWrapper> {
           switch (userRole) {
             case 'Scheduler':
               return const SchedulerHomeScreen();
+            case 'Student':
+              return const StudentHomeScreen();
             case 'Faculty':
             case 'LoadCommittee':
-            case 'Student':
             default:
               return const FacultyHomeScreen();
           }

@@ -5,6 +5,7 @@ import '../api/schedule_service.dart';
 import '../providers/user_provider.dart';
 import 'faculty_home_screen.dart';
 import 'scheduler_home_screen.dart';
+import 'student_home_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({Key? key}) : super(key: key);
@@ -146,9 +147,11 @@ class _LoginScreenState extends State<LoginScreen> {
           case 'Scheduler':
             homeScreen = const SchedulerHomeScreen();
             break;
+          case 'Student':
+            homeScreen = const StudentHomeScreen();
+            break;
           case 'Faculty':
           case 'LoadCommittee':
-          case 'Student':
           default:
             homeScreen = const FacultyHomeScreen();
             break;

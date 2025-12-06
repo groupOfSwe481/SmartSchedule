@@ -44,7 +44,8 @@
       "Bash(cmd /c \"flutter pub get\")",
       "Bash(flutter.bat pub get:*)",
       "Bash(npm run dev:ws:*)",
-      "Bash(npm run dev:collab:*)"
+      "Bash(npm run dev:collab:*)",
+      "Bash(ls:*)"
     ],
     "deny": [],
     "ask": []

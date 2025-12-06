@@ -76,9 +76,10 @@ class _IrregularStudentsScreenState extends State<IrregularStudentsScreen> {
                 Text('Add Irregular Student'),
               ],
             ),
-            content: Form(
-              key: _formKey,
-              child: SingleChildScrollView(
+            content: SizedBox(
+              width: 400,
+              child: Form(
+                key: _formKey,
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -130,18 +131,27 @@ class _IrregularStudentsScreenState extends State<IrregularStudentsScreen> {
                     Consumer<IrregularProvider>(
                       builder: (context, provider, child) {
                         if (provider.isLoading) {
-                          return const Center(child: CircularProgressIndicator());
+                          return const Center(
+                            child: Padding(
+                              padding: EdgeInsets.all(16.0),
+                              child: CircularProgressIndicator(),
+                            ),
+                          );
                         }
 
                         if (provider.coursesForLevel.isEmpty) {
-                          return const Text(
-                            'No courses available for this level',
-                            style: TextStyle(color: Colors.grey),
+                          return const Padding(
+                            padding: EdgeInsets.all(16.0),
+                            child: Text(
+                              'No courses available for this level',
+                              style: TextStyle(color: Colors.grey),
+                            ),
                           );
                         }
 
                         return Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisSize: MainAxisSize.min,
                           children: [
                             const Text(
                               'Remaining Courses from Past Levels',
@@ -152,7 +162,7 @@ class _IrregularStudentsScreenState extends State<IrregularStudentsScreen> {
                             ),
                             const SizedBox(height: 8),
                             Container(
-                              constraints: const BoxConstraints(maxHeight: 200),
+                              height: 200,
                               decoration: BoxDecoration(
                                 border: Border.all(color: Colors.grey),
                                 borderRadius: BorderRadius.circular(4),
@@ -189,6 +199,11 @@ class _IrregularStudentsScreenState extends State<IrregularStudentsScreen> {
                                   );
                                 },
                               ),
+                            ),
+                            const SizedBox(height: 4),
+                            const Text(
+                              'Tap courses to select multiple',
+                              style: TextStyle(color: Colors.grey, fontSize: 11),
                             ),
                             if (_selectedCourses.isEmpty)
                               const Padding(
@@ -234,7 +249,7 @@ class _IrregularStudentsScreenState extends State<IrregularStudentsScreen> {
                   }
                 },
                 icon: const Icon(Icons.save),
-                label: const Text('Save'),
+                label: const Text('Save Student'),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFF6366f1),
                 ),

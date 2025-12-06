@@ -302,3 +302,217 @@ class ImpactReport {
     );
   }
 }
+
+// Course Pattern Model
+class CoursePattern {
+  final String type;
+  final int lectureHours;
+  final int labHours;
+  final int tutorialHours;
+  final int totalHours;
+
+  CoursePattern({
+    required this.type,
+    required this.lectureHours,
+    required this.labHours,
+    required this.tutorialHours,
+    required this.totalHours,
+  });
+
+  factory CoursePattern.fromJson(Map<String, dynamic> json) {
+    return CoursePattern(
+      type: json['type'] as String? ?? 'custom',
+      lectureHours: json['lecture_hours'] as int? ?? 0,
+      labHours: json['lab_hours'] as int? ?? 0,
+      tutorialHours: json['tutorial_hours'] as int? ?? 0,
+      totalHours: json['total_hours'] as int? ?? 0,
+    );
+  }
+
+  Map<String, dynamic> toJson() => {
+    'type': type,
+    'lecture_hours': lectureHours,
+    'lab_hours': labHours,
+    'tutorial_hours': tutorialHours,
+    'total_hours': totalHours,
+  };
+}
+
+// Course Model
+class Course {
+  final String code;
+  final String name;
+  final int creditHours;
+  final int duration;
+  final bool isElective;
+  final String department;
+  final String college;
+  final int? level;
+  final String? examDate;
+  final String? examTime;
+  final List<String> prerequisites;
+  final CoursePattern pattern;
+  final DateTime createdAt;
+  final DateTime updatedAt;
+
+  Course({
+    required this.code,
+    required this.name,
+    required this.creditHours,
+    required this.duration,
+    this.isElective = false,
+    required this.department,
+    required this.college,
+    this.level,
+    this.examDate,
+    this.examTime,
+    this.prerequisites = const [],
+    required this.pattern,
+    required this.createdAt,
+    required this.updatedAt,
+  });
+
+  factory Course.fromJson(Map<String, dynamic> json) {
+    return Course(
+      code: json['code'] as String,
+      name: json['name'] as String,
+      creditHours: json['credit_hours'] as int,
+      duration: json['Duration'] as int,
+      isElective: json['is_elective'] as bool? ?? false,
+      department: json['department'] as String,
+      college: json['college'] as String,
+      level: json['level'] as int?,
+      examDate: json['exam_date'] as String?,
+      examTime: json['exam_time'] as String?,
+      prerequisites: (json['prerequisites'] as List<dynamic>?)
+          ?.where((e) => e != null)
+          .map((e) => e as String)
+          .toList() ?? [],
+      pattern: CoursePattern.fromJson(json['pattern'] as Map<String, dynamic>),
+      createdAt: json['created_at'] != null
+          ? DateTime.parse(json['created_at'] as String)
+          : DateTime.now(),
+      updatedAt: json['updated_at'] != null
+          ? DateTime.parse(json['updated_at'] as String)
+          : DateTime.now(),
+    );
+  }
+
+  Map<String, dynamic> toJson() => {
+    'code': code,
+    'name': name,
+    'credit_hours': creditHours,
+    'Duration': duration,
+    'is_elective': isElective,
+    'department': department,
+    'college': college,
+    if (level != null) 'level': level,
+    if (examDate != null) 'exam_date': examDate,
+    if (examTime != null) 'exam_time': examTime,
+    'prerequisites': prerequisites.isEmpty ? [null] : prerequisites,
+    'pattern': pattern.toJson(),
+    'created_at': createdAt.toIso8601String(),
+    'updated_at': updatedAt.toIso8601String(),
+  };
+}
+
+// Section Time Model
+class SectionTime {
+  final String day;
+  final String time;
+
+  SectionTime({required this.day, required this.time});
+
+  factory SectionTime.fromJson(Map<String, dynamic> json) {
+    return SectionTime(
+      day: json['day'] as String,
+      time: json['time'] as String,
+    );
+  }
+
+  Map<String, dynamic> toJson() => {
+    'day': day,
+    'time': time,
+  };
+}
+
+// Section Model
+class Section {
+  final String secNum;
+  final String courseCode;
+  final String type;
+  final List<SectionTime> times;
+  final int? level;
+
+  Section({
+    required this.secNum,
+    required this.courseCode,
+    required this.type,
+    required this.times,
+    this.level,
+  });
+
+  factory Section.fromJson(Map<String, dynamic> json) {
+    return Section(
+      secNum: json['sec_num'] as String,
+      courseCode: json['course_code'] as String,
+      type: json['type'] as String,
+      times: (json['times'] as List<dynamic>?)
+          ?.map((e) => SectionTime.fromJson(e as Map<String, dynamic>))
+          .toList() ?? [],
+      level: json['level'] as int?,
+    );
+  }
+
+  Map<String, dynamic> toJson() => {
+    'sec_num': secNum,
+    'course_code': courseCode,
+    'type': type,
+    'times': times.map((t) => t.toJson()).toList(),
+    if (level != null) 'level': level,
+  };
+}
+
+// Student Level Data Model
+class StudentLevelData {
+  final int levelNum;
+  final int studentCount;
+  final int courseCount;
+  final Map<String, int> courseEnrollments;
+  final List<Course> courses;
+  final DateTime? updatedAt;
+
+  StudentLevelData({
+    required this.levelNum,
+    required this.studentCount,
+    required this.courseCount,
+    required this.courseEnrollments,
+    required this.courses,
+    this.updatedAt,
+  });
+
+  factory StudentLevelData.fromJson(Map<String, dynamic> json) {
+    return StudentLevelData(
+      levelNum: json['level_num'] as int,
+      studentCount: json['student_count'] as int? ?? 0,
+      courseCount: json['course_count'] as int? ?? 0,
+      courseEnrollments: (json['course_enrollments'] as Map<String, dynamic>?)
+          ?.map((key, value) => MapEntry(key, value as int)) ?? {},
+      courses: (json['courses'] as List<dynamic>?)
+          ?.map((e) => Course.fromJson(e as Map<String, dynamic>))
+          .toList() ?? [],
+      updatedAt: json['updated_at'] != null
+          ? DateTime.parse(json['updated_at'] as String)
+          : null,
+    );
+  }
+
+  Map<String, dynamic> toJson() => {
+    'level_num': levelNum,
+    'student_count': studentCount,
+    'course_count': courseCount,
+    'course_enrollments': courseEnrollments,
+    'courses': courses.map((c) => c.toJson()).toList(),
+    if (updatedAt != null) 'updated_at': updatedAt!.toIso8601String(),
+  };
+}

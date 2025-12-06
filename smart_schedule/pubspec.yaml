@@ -29,6 +29,10 @@ dependencies:
   web_socket_channel: ^3.0.1 # WebSocket support for real-time sync
   # --- END REAL-TIME COLLABORATION PACKAGES ---
 
+  # --- START FILE & IMAGE PACKAGES ---
+  image_picker: ^1.0.4 # Required for student management OCR image upload
+  # --- END FILE & IMAGE PACKAGES ---
+
 dev_dependencies:
   flutter_test:
     sdk: flutter

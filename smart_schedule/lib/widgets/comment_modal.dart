@@ -84,6 +84,21 @@ class _CommentModalState extends State<CommentModal> {
     }
   }
 
+  String _getModalTitle(BuildContext context) {
+    final userProvider = context.read<UserProvider>();
+    final userRole = userProvider.userData?['role'] as String?;
+
+    switch (userRole) {
+      case 'Student':
+        return 'Add Student Comment';
+      case 'LoadCommittee':
+        return 'Add Committee Comment';
+      case 'Faculty':
+      default:
+        return 'Add Faculty Comment';
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -117,10 +132,10 @@ class _CommentModalState extends State<CommentModal> {
                 children: [
                   const Icon(Icons.chat_bubble, color: Colors.white),
                   const SizedBox(width: 12),
-                  const Expanded(
+                  Expanded(
                     child: Text(
-                      'Add Faculty Comment',
-                      style: TextStyle(
+                      _getModalTitle(context),
+                      style: const TextStyle(
                         color: Colors.white,
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
@@ -141,11 +156,11 @@ class _CommentModalState extends State<CommentModal> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _buildInfoRow('Course', widget.cellInfo['courseName']),
+                  _buildInfoRow('Course', widget.cellInfo['courseName'] ?? widget.cellInfo['course'] ?? 'N/A'),
                   const SizedBox(height: 12),
                   _buildInfoRow(
                     'Time',
-                    '${widget.cellInfo['day']}, ${widget.cellInfo['timeSlot']}',
+                    '${widget.cellInfo['day'] ?? ''}, ${widget.cellInfo['timeSlot'] ?? widget.cellInfo['time'] ?? ''}',
                   ),
                   const SizedBox(height: 20),
                   const Text(
@@ -153,27 +168,39 @@ class _CommentModalState extends State<CommentModal> {
                     style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
                   ),
                   const SizedBox(height: 12),
-                  TextField(
-                    controller: _commentController,
-                    maxLines: 5,
-                    decoration: InputDecoration(
-                      hintText:
-                          'Share your thoughts about this course...\n\nExamples:\n- This course conflicts with a faculty meeting\n- Suggest moving to another time\n- The assigned room is not suitable',
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        borderSide: const BorderSide(
-                          color: Color(0xFFe2e8f0),
-                          width: 2,
+                  Consumer<UserProvider>(
+                    builder: (context, userProvider, child) {
+                      final userRole = userProvider.userData?['role'] as String?;
+                      String hintText;
+
+                      if (userRole == 'Student') {
+                        hintText = 'Share your concerns about this course schedule...\n\nExamples:\n- This course conflicts with another course\n- Time slot doesn\'t work for me\n- Request for alternative section';
+                      } else {
+                        hintText = 'Share your thoughts about this course...\n\nExamples:\n- This course conflicts with a faculty meeting\n- Suggest moving to another time\n- The assigned room is not suitable';
+                      }
+
+                      return TextField(
+                        controller: _commentController,
+                        maxLines: 5,
+                        decoration: InputDecoration(
+                          hintText: hintText,
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: const BorderSide(
+                              color: Color(0xFFe2e8f0),
+                              width: 2,
+                            ),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: const BorderSide(
+                              color: Color(0xFF6366f1),
+                              width: 2,
+                            ),
+                          ),
                         ),
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        borderSide: const BorderSide(
-                          color: Color(0xFF6366f1),
-                          width: 2,
-                        ),
-                      ),
-                    ),
+                      );
+                    },
                   ),
                   const SizedBox(height: 8),
                   const Text(

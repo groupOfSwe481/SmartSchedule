@@ -664,6 +664,45 @@ class _SchedulerHomeScreenState extends State<SchedulerHomeScreen> {
                 ),
                 const PopupMenuDivider(),
                 PopupMenuItem(
+                  onTap: () {
+                    Navigator.pushNamed(context, '/section-management');
+                  },
+                  child: const Row(
+                    children: [
+                      Icon(Icons.folder_outlined, size: 20),
+                      SizedBox(width: 12),
+                      Text('Section Management'),
+                    ],
+                  ),
+                ),
+                const PopupMenuDivider(),
+                PopupMenuItem(
+                  onTap: () {
+                    Navigator.pushNamed(context, '/student-management');
+                  },
+                  child: const Row(
+                    children: [
+                      Icon(Icons.groups_outlined, size: 20),
+                      SizedBox(width: 12),
+                      Text('Student Management'),
+                    ],
+                  ),
+                ),
+                const PopupMenuDivider(),
+                PopupMenuItem(
+                  onTap: () {
+                    Navigator.pushNamed(context, '/comments-management');
+                  },
+                  child: const Row(
+                    children: [
+                      Icon(Icons.chat_bubble_outline, size: 20),
+                      SizedBox(width: 12),
+                      Text('Comments Management'),
+                    ],
+                  ),
+                ),
+                const PopupMenuDivider(),
+                PopupMenuItem(
                   onTap: () async {
                     userProvider.logout();
                     if (!mounted) return;
