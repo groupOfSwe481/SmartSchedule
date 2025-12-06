@@ -1,24 +1,35 @@
-// notifications.js
+// notifications.js - FINAL FIX
 (function() {
   'use strict';
 
-    // Environment-aware API URL
-    const isLocalhost = window.location.hostname === 'localhost' ||
-                        window.location.hostname === '127.0.0.1';
-    const API_BASE = window.API_URL || (isLocalhost ? 'http://localhost:4000/api' : '/api');
+    const API_BASE = window.API_URL || (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.hostname === '')
+      ? 'http://localhost:4000/api'
+      : '/api';
   
     let currentUser = null;
   
-    // Initialize when page loads
-    document.addEventListener("DOMContentLoaded", () => {
-      console.log("[NOTIFICATIONS] Script loaded");
-      loadCurrentUser();
-      setupNotificationButton();
-      loadUnreadCount();
+    // Wait for complete DOM load
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', init);
+    } else {
+      // DOM already loaded
+      init();
+    }
+    
+    function init() {
+      console.log("[NOTIFICATIONS] Initializing...");
       
-      // Refresh count every 30 seconds
-      setInterval(loadUnreadCount, 30000);
-    });
+      // Wait for everything to be fully rendered
+      setTimeout(() => {
+        console.log("[NOTIFICATIONS] Starting setup");
+        loadCurrentUser();
+        setupNotificationButton();
+        loadUnreadCount();
+        
+        // Refresh count every 30 seconds
+        setInterval(loadUnreadCount, 30000);
+      }, 250); // Increased delay
+    }
   
     /**
      * Load current user from session storage
@@ -39,22 +50,34 @@
      * Setup notification bell button
      */
     function setupNotificationButton() {
-      // Listen for when modal is shown (Bootstrap event)
       const modalEl = document.getElementById("notificationsModal");
       
-      if (modalEl) {
-        // When modal opens, load data
-        modalEl.addEventListener('shown.bs.modal', async function () {
-          console.log("[NOTIFICATIONS] Modal opened via Bootstrap");
+      if (!modalEl) {
+        console.error("[NOTIFICATIONS] ❌ Modal not found!");
+        // Retry after a delay
+        setTimeout(() => {
+          console.log("[NOTIFICATIONS] Retrying modal setup...");
+          setupNotificationButton();
+        }, 500);
+        return;
+      }
+      
+      console.log("[NOTIFICATIONS] ✅ Modal found!");
+      
+      // When modal opens, load data
+      modalEl.addEventListener('shown.bs.modal', async function () {
+        console.log("[NOTIFICATIONS] Modal opened");
+        
+        // CRITICAL: Wait for tab content to render
+        setTimeout(async () => {
           await loadNotificationsAndDeadlines();
           await markAllAsRead();
-        });
-        
-        // When modal closes
-        modalEl.addEventListener('hidden.bs.modal', function () {
-          console.log("[NOTIFICATIONS] Modal closed");
-        });
-      }
+        }, 100);
+      });
+      
+      modalEl.addEventListener('hidden.bs.modal', function () {
+        console.log("[NOTIFICATIONS] Modal closed");
+      });
     }
   
     /**
@@ -66,7 +89,6 @@
         return;
       }
   
-      // Get user's ObjectId
       const userObjectId = currentUser._id || currentUser.id;
       if (!userObjectId) {
         console.log("[NOTIFICATIONS] No user ObjectId found");
@@ -102,52 +124,53 @@
     }
   
     /**
-     * Open notifications modal and load data
-     * NOTE: This is now handled by Bootstrap's shown.bs.modal event
-     * Keeping this function for backwards compatibility but it's not used
-     */
-    async function openNotificationsModal() {
-      console.log("[NOTIFICATIONS] openNotificationsModal called (deprecated)");
-      
-      if (!currentUser) {
-        alert("Please log in to view notifications");
-        return;
-      }
-  
-      const userObjectId = currentUser._id || currentUser.id;
-      if (!userObjectId) {
-        alert("User ID not found");
-        return;
-      }
-  
-      await loadNotificationsAndDeadlines();
-      await markAllAsRead();
-    }
-  
-    /**
      * Load notifications and deadlines
      */
     async function loadNotificationsAndDeadlines() {
-      const notifList = document.getElementById("notificationsList");
-      const deadlinesList = document.getElementById("deadlinesList");
+      console.log("[NOTIFICATIONS] Loading data...");
       
-      if (!notifList || !deadlinesList) {
-        console.error("[NOTIFICATIONS] Lists not found!");
-        return;
+      // Try multiple times to find elements
+      let retries = 0;
+      const maxRetries = 5;
+      
+      while (retries < maxRetries) {
+        const notifList = document.getElementById("notificationsList");
+        const deadlinesList = document.getElementById("deadlinesList");
+        
+        if (notifList && deadlinesList) {
+          console.log("[NOTIFICATIONS] ✅ Both lists found!");
+          await fetchAndDisplayData(notifList, deadlinesList);
+          return;
+        }
+        
+        console.log(`[NOTIFICATIONS] ⏳ Retry ${retries + 1}/${maxRetries}...`);
+        console.log("[NOTIFICATIONS] notifList:", notifList);
+        console.log("[NOTIFICATIONS] deadlinesList:", deadlinesList);
+        
+        await new Promise(resolve => setTimeout(resolve, 100));
+        retries++;
       }
-  
+      
+      console.error("[NOTIFICATIONS] ❌ Failed to find lists after", maxRetries, "retries");
+      console.log("[NOTIFICATIONS] All elements with IDs:", 
+        Array.from(document.querySelectorAll('[id]')).map(el => el.id)
+      );
+    }
+    
+    /**
+     * Fetch and display data
+     */
+    async function fetchAndDisplayData(notifList, deadlinesList) {
       // Show loading
       notifList.innerHTML = '<div class="text-center py-3"><div class="spinner-border spinner-border-sm me-2"></div>Loading...</div>';
       deadlinesList.innerHTML = '<div class="text-center py-3"><div class="spinner-border spinner-border-sm me-2"></div>Loading...</div>';
   
       try {
         const userRole = currentUser.role === "Scheduler" ? "Scheduling committee" : currentUser.role;
-        
-        // Get user's ObjectId (_id) from sessionStorage
         const userObjectId = currentUser._id || currentUser.id;
         
-        // Fetch notifications by user's ObjectId
-        console.log("[NOTIFICATIONS] Fetching notifications for ObjectId:", userObjectId);
+        // Fetch notifications
+        console.log("[NOTIFICATIONS] Fetching notifications for:", userObjectId);
         const notifResponse = await fetch(
           `${API_BASE}/notifications/user/${userObjectId}`,
           {
@@ -162,9 +185,9 @@
         }
         
         const notifData = await notifResponse.json();
-        console.log("[NOTIFICATIONS] Notifications data:", notifData);
+        console.log("[NOTIFICATIONS] Notifications:", notifData);
         
-        // Fetch deadlines by role
+        // Fetch deadlines
         console.log("[NOTIFICATIONS] Fetching deadlines for role:", userRole);
         const deadlinesResponse = await fetch(
           `${API_BASE}/deadlines/role/${encodeURIComponent(userRole)}`,
@@ -180,18 +203,17 @@
         }
         
         const deadlinesData = await deadlinesResponse.json();
-        console.log("[NOTIFICATIONS] Deadlines data:", deadlinesData);
+        console.log("[NOTIFICATIONS] Deadlines:", deadlinesData);
   
-        // Display notifications
+        // Display data
         const notifications = notifData.data || notifData.notifications || notifData;
         displayNotifications(Array.isArray(notifications) ? notifications : []);
         
-        // Display deadlines
         const deadlines = deadlinesData.data || deadlinesData.deadlines || deadlinesData;
         displayDeadlines(Array.isArray(deadlines) ? deadlines : []);
         
       } catch (error) {
-        console.error("[NOTIFICATIONS] Error loading:", error);
+        console.error("[NOTIFICATIONS] Error:", error);
         notifList.innerHTML = `<div class="text-danger text-center py-3">${error.message}</div>`;
         deadlinesList.innerHTML = `<div class="text-danger text-center py-3">${error.message}</div>`;
       }
@@ -202,6 +224,7 @@
      */
     function displayNotifications(notifications) {
       const notifList = document.getElementById("notificationsList");
+      if (!notifList) return;
       
       console.log("[NOTIFICATIONS] Displaying", notifications.length, "notifications");
       
@@ -215,7 +238,6 @@
         return;
       }
   
-      // Add count header
       const countHeader = `
         <div class="p-3 bg-light border-bottom">
           <small class="text-muted">
@@ -255,6 +277,7 @@
      */
     function displayDeadlines(deadlines) {
       const deadlinesList = document.getElementById("deadlinesList");
+      if (!deadlinesList) return;
       
       if (deadlines.length === 0) {
         deadlinesList.innerHTML = `
@@ -343,11 +366,10 @@
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            userId: userObjectId,  // Send ObjectId
+            userId: userObjectId,
           }),
         });
   
-        // Update badge to 0
         updateNotificationBadge(0);
       } catch (error) {
         console.error("[NOTIFICATIONS] Error marking as read:", error);
@@ -378,5 +400,5 @@
       return "Just now";
     }
   
-    console.log("[NOTIFICATIONS] Script initialization complete");
-  })();})();
+    console.log("[NOTIFICATIONS] Script loaded and ready");
+  })();
