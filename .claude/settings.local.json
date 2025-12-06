@@ -38,7 +38,13 @@
       "Bash(git pull:*)",
       "Bash(test:*)",
       "Bash(chmod:*)",
-      "Bash(bash:*)"
+      "Bash(bash:*)",
+      "Bash(flutter run:*)",
+      "Bash(flutter pub get:*)",
+      "Bash(cmd /c \"flutter pub get\")",
+      "Bash(flutter.bat pub get:*)",
+      "Bash(npm run dev:ws:*)",
+      "Bash(npm run dev:collab:*)"
     ],
     "deny": [],
     "ask": []

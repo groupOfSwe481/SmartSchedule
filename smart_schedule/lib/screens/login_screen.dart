@@ -4,8 +4,7 @@ import 'package:provider/provider.dart';
 import '../api/schedule_service.dart';
 import '../providers/user_provider.dart';
 import 'faculty_home_screen.dart';
-import 'student_home_screen.dart'; // ✅ Added import
-import 'committee_home_screen.dart'; // ✅ Added import
+import 'scheduler_home_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -137,19 +136,27 @@ class _LoginScreenState extends State<LoginScreen> {
     _showAlert('Welcome back, ${user['First_Name']}', false);
 
     Future.delayed(const Duration(milliseconds: 800), () {
-      if (!mounted) return;
+      if (mounted) {
+        // Navigate based on user role
+        final userRole = user['role'] as String?;
+        Widget homeScreen;
 
-      // ✅ FIXED: Role-based routing
-      final String role = user['role'] ?? 'Student';
-      Widget targetScreen;
+        switch (userRole) {
+          case 'Scheduler':
+            homeScreen = const SchedulerHomeScreen();
+            break;
+          case 'Faculty':
+          case 'LoadCommittee':
+          case 'Student':
+          default:
+            homeScreen = const FacultyHomeScreen();
+            break;
+        }
 
-      if (role == 'Student') {
-        targetScreen = const StudentHomeScreen();
-      } else if (role == 'Committee' || role == 'LoadCommittee') {
-        targetScreen = const CommitteeHomeScreen();
-      } else {
-        // Default to Faculty for 'Faculty', 'Scheduler', or unknown roles
-        targetScreen = const FacultyHomeScreen();
+        Navigator.of(context).pushAndRemoveUntil(
+          MaterialPageRoute(builder: (_) => homeScreen),
+          (route) => false,
+        );
       }
 
       Navigator.of(context).pushAndRemoveUntil(

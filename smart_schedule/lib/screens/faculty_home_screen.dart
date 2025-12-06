@@ -19,7 +19,12 @@ class _FacultyHomeScreenState extends State<FacultyHomeScreen> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<ScheduleProvider>().fetchSchedule();
+      final userProvider = context.read<UserProvider>();
+      final scheduleProvider = context.read<ScheduleProvider>();
+      final token = userProvider.token;
+
+      // Faculty users should use fetchCommitteeSchedule
+      scheduleProvider.fetchCommitteeSchedule(3, token: token);
     });
   }
 
@@ -38,7 +43,15 @@ class _FacultyHomeScreenState extends State<FacultyHomeScreen> {
       backgroundColor: const Color(0xFF1e293b),
       appBar: _buildAppBar(),
       body: RefreshIndicator(
-        onRefresh: () => context.read<ScheduleProvider>().fetchSchedule(),
+        onRefresh: () async {
+          final userProvider = context.read<UserProvider>();
+          final scheduleProvider = context.read<ScheduleProvider>();
+          final token = userProvider.token;
+          await scheduleProvider.fetchCommitteeSchedule(
+            scheduleProvider.currentLevel,
+            token: token,
+          );
+        },
         child: SingleChildScrollView(
           physics: const AlwaysScrollableScrollPhysics(),
           child: Column(
@@ -238,8 +251,8 @@ class _FacultyHomeScreenState extends State<FacultyHomeScreen> {
             ],
           ),
           const SizedBox(height: 16),
-          Consumer<ScheduleProvider>(
-            builder: (context, scheduleProvider, child) {
+          Consumer2<ScheduleProvider, UserProvider>(
+            builder: (context, scheduleProvider, userProvider, child) {
               return Wrap(
                 spacing: 8,
                 runSpacing: 8,
@@ -249,7 +262,13 @@ class _FacultyHomeScreenState extends State<FacultyHomeScreen> {
                   return _buildLevelButton(
                     level,
                     isSelected,
-                    () => scheduleProvider.switchLevel(level),
+                    () {
+                      scheduleProvider.setLevel(level);
+                      scheduleProvider.fetchCommitteeSchedule(
+                        level,
+                        token: userProvider.token,
+                      );
+                    },
                   );
                 }),
               );
@@ -371,7 +390,7 @@ class _FacultyHomeScreenState extends State<FacultyHomeScreen> {
                     child: CircularProgressIndicator(),
                   ),
                 )
-              else if (scheduleProvider.errorMessage != null)
+              else if (scheduleProvider.error != null)
                 Center(
                   child: Padding(
                     padding: const EdgeInsets.all(40),
@@ -384,7 +403,7 @@ class _FacultyHomeScreenState extends State<FacultyHomeScreen> {
                         ),
                         const SizedBox(height: 16),
                         Text(
-                          scheduleProvider.errorMessage!,
+                          scheduleProvider.error!,
                           textAlign: TextAlign.center,
                           style: const TextStyle(color: Colors.grey),
                         ),
@@ -392,7 +411,7 @@ class _FacultyHomeScreenState extends State<FacultyHomeScreen> {
                     ),
                   ),
                 )
-              else if (scheduleProvider.scheduleData != null)
+              else if (scheduleProvider.currentSchedule != null)
                 _buildScheduleTable(scheduleProvider),
             ],
           );
@@ -414,7 +433,7 @@ class _FacultyHomeScreenState extends State<FacultyHomeScreen> {
       '3:00-3:50',
     ];
 
-    final grid = scheduleProvider.scheduleData?['grid'] ?? {};
+    final grid = scheduleProvider.currentSchedule?.grid ?? {};
 
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
@@ -456,11 +475,11 @@ class _FacultyHomeScreenState extends State<FacultyHomeScreen> {
                 ),
               ),
               ...timeSlots.map((timeSlot) {
-                final cellData = grid[day]?[timeSlot];
+                final course = grid[day]?[timeSlot];
                 return _buildScheduleCell(
                   day,
                   timeSlot,
-                  cellData,
+                  course,
                   scheduleProvider.currentLevel,
                 );
               }),
@@ -474,10 +493,10 @@ class _FacultyHomeScreenState extends State<FacultyHomeScreen> {
   DataCell _buildScheduleCell(
     String day,
     String timeSlot,
-    dynamic cellData,
+    dynamic course,
     int level,
   ) {
-    if (cellData == null) {
+    if (course == null || (course.isEmpty)) {
       return const DataCell(
         Center(
           child: Text('-', style: TextStyle(color: Colors.grey)),
@@ -485,17 +504,8 @@ class _FacultyHomeScreenState extends State<FacultyHomeScreen> {
       );
     }
 
-    String courseName = '';
-    String courseCode = '';
-
-    if (cellData is String) {
-      courseName = cellData;
-      final match = RegExp(r'^([A-Z]{2,4}\d{3})').firstMatch(cellData);
-      courseCode = match?.group(1) ?? courseName.split(' ')[0];
-    } else if (cellData is Map) {
-      courseName = cellData['course'] ?? '';
-      courseCode = cellData['code'] ?? courseName.split(' ')[0];
-    }
+    final courseName = course.course;
+    final courseCode = course.code ?? '';
 
     if (courseName.trim().isEmpty) {
       return const DataCell(
