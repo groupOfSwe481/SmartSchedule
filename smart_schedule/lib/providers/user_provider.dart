@@ -10,19 +10,23 @@ class UserProvider extends ChangeNotifier {
   String? get token => _token;
   bool get isLoggedIn => _userData != null && _token != null;
 
+  // --- ACTIONS ---
+
   void setUser(Map<String, dynamic> user, String token) {
     _userData = user;
     _token = token;
-    _saveToPreferences();
+    _saveToPreferences(); // Save to storage so login persists on restart
     notifyListeners();
   }
 
   void logout() {
     _userData = null;
     _token = null;
-    _clearPreferences();
+    _clearPreferences(); // Remove from storage
     notifyListeners();
   }
+
+  // --- PERSISTENCE (Fixes the main.dart error) ---
 
   Future<void> _saveToPreferences() async {
     try {
@@ -32,7 +36,7 @@ class UserProvider extends ChangeNotifier {
         await prefs.setString('token', _token!);
       }
     } catch (e) {
-      print('Error saving preferences: $e');
+      debugPrint('Error saving preferences: $e');
     }
   }
 
@@ -42,10 +46,11 @@ class UserProvider extends ChangeNotifier {
       await prefs.remove('user');
       await prefs.remove('token');
     } catch (e) {
-      print('Error clearing preferences: $e');
+      debugPrint('Error clearing preferences: $e');
     }
   }
 
+  // This method is called in main.dart to check if user is already logged in
   Future<void> loadFromPreferences() async {
     try {
       final prefs = await SharedPreferences.getInstance();
@@ -58,18 +63,22 @@ class UserProvider extends ChangeNotifier {
         notifyListeners();
       }
     } catch (e) {
-      print('Error loading preferences: $e');
+      debugPrint('Error loading preferences: $e');
     }
   }
+
+  // --- GETTERS ---
 
   String get displayName {
     if (_userData == null) return 'User';
 
+    // Combine First and Last name
     final fullName =
         '${_userData!['First_Name'] ?? ''} ${_userData!['Last_Name'] ?? ''}'
             .trim();
 
     if (fullName.isEmpty) {
+      // Fallback to email if names are missing
       return _userData!['Email'] ?? _userData!['email'] ?? 'User';
     }
 
@@ -77,5 +86,7 @@ class UserProvider extends ChangeNotifier {
   }
 
   String get userId => _userData?['_id'] ?? _userData?['id'] ?? '';
+
+  // Default to 'Student' if role is missing, or change to 'Faculty' depending on your preference
   String get userRole => _userData?['role'] ?? 'Student';
 }
