@@ -1,19 +1,21 @@
-// main.js (WITH REAL-TIME COLLABORATION)
-(function() {
-  'use strict';
+// main.js
+(function () {
+  "use strict";
 
-  // 🧩 SMART SCHEDULE FRONTEND LOGIC (v2.0 + COLLABORATION)
+  // 🧩 SMART SCHEDULE FRONTEND LOGIC (v2.0)
   // ========================================
-  
+
   // Environment-aware API URL
-  const API_BASE = window.API_URL || (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.hostname === '')
-    ? 'http://localhost:4000/api'
-    : '/api';
-  
+  const API_BASE =
+    window.API_URL ||
+    window.location.hostname === "localhost" ||
+    window.location.hostname === "127.0.0.1" ||
+    window.location.hostname === ""
+      ? "http://localhost:4000/api"
+      : "/api";
+
   let selectedLevel = 3;
-  let isEditMode = false;
-  let currentEditingScheduleId = null;
-  
+
   document.addEventListener("DOMContentLoaded", () => {
     setupLevelButtonListeners();
     setupGenerateButtonListener();
@@ -22,92 +24,91 @@
       fetchLatestSchedule(selectedLevel);
     }
   });
-  
+
   function setupLevelButtonListeners() {
-    const levelButtons = document.querySelectorAll(".level-btn-group .btn");
+    const levelButtons = document.querySelectorAll(".level-btn-group .btn"); // Changed selector for specificity
     if (!levelButtons.length) return console.warn("⚠️ No level buttons found.");
-  
+
     levelButtons.forEach((btn) => {
       btn.addEventListener("click", (e) => {
-        const clicked = e.currentTarget;
-  
+        const clicked = e.currentTarget; // Use currentTarget for safety // 1. Deactivate all buttons
+
         levelButtons.forEach((b) => {
           b.classList.remove("btn-dark");
-          b.classList.remove("active");
+          b.classList.remove("active"); // <-- FIX 1: Remove active class
           b.classList.add("btn-outline-dark");
-        });
-  
+        }); // 2. Activate only the clicked button
+
         clicked.classList.remove("btn-outline-dark");
         clicked.classList.add("btn-dark");
-        clicked.classList.add("active");
-  
-        selectedLevel = parseInt(clicked.dataset.level);
+        clicked.classList.add("active"); // <-- FIX 2: Add active class // 3. Update level and fetch
+
+        selectedLevel = parseInt(clicked.dataset.level); // Use data-level for robustness
         fetchLatestSchedule(selectedLevel);
       });
     });
   }
-  
+
+  // -------------------------------
+  // ⚙️ Generate Schedule Button Logic
+  // -------------------------------
+  // -------------------------------
+  // ⚙️ Generate Schedule Button Logic
+  // -------------------------------
   function setupGenerateButtonListener() {
     const generateBtn = document.getElementById("generateBtn");
-    if (!generateBtn) return;
+    if (!generateBtn) return; // Silently return if button doesn't exist // Call the new refactored function
+
     generateBtn.addEventListener("click", handleGenerateSchedule);
   }
-  
+
+  // -------------------------------
+  // 📡 Fetch Latest Schedule by Level
+  // -------------------------------
   // ========================================
   // 📡 FETCH LATEST SCHEDULE (Updated)
   // ========================================
   async function fetchLatestSchedule(level) {
     const container = document.getElementById("schedule-container");
-    if (!container) return;
+    if (!container) return; // Exit if element doesn't exist
     container.innerHTML = `<p class="text-center text-secondary mt-5">Fetching latest schedule for Level ${level}...</p>`;
-  
+
     try {
       const res = await fetch(`${API_BASE}/schedule/level/${level}`);
       const data = await res.json();
-  
+
       if (!res.ok) throw new Error(data.error || "Failed to load schedule.");
-  
+
       if (!data.schedules?.length) {
-        displayEmptyState(level, `No schedules are available for Level ${level}.`);
+        // ✅ UPDATED: Call the new function
+        displayEmptyState(
+          level,
+          `No schedules are available for Level ${level}.`
+        );
         return;
       }
-  
+
       displaySchedules(data.schedules);
     } catch (err) {
       console.error("❌ Failed to fetch schedule:", err);
+      // ✅ UPDATED: Call the new function on error
       displayEmptyState(level, `Error loading schedule: ${err.message}`);
     }
   }
-  
+
   // -------------------------------
   // 🧱 Display Schedules as Cards
   // -------------------------------
   function displaySchedules(schedules) {
     const container = document.getElementById("schedule-container");
-    if (!container) return;
+    if (!container) return; // Exit if element doesn't exist
     container.innerHTML = "";
-  
+
     schedules.forEach((schedule) => {
       const card = document.createElement("div");
       card.className = "card shadow-sm border-0 rounded-3 p-3 mb-4";
-      card.id = `schedule-card-${schedule._id}`;
-  
-      card.innerHTML = `
-        <!-- Collaboration Status (Hidden by default) -->
-        <div id="collab-status-${schedule._id}" class="collaboration-section" style="display: none;">
-          <div class="mb-3">
-            <div class="d-flex justify-content-between align-items-center mb-2">
-              <div>
-                <i class="bi bi-people-fill text-primary"></i>
-                <span class="fw-semibold">Real-time Collaboration</span>
-              </div>
-              <div id="connection-status-${schedule._id}"></div>
-            </div>
-            <div id="active-users-${schedule._id}"></div>
-          </div>
-          <hr>
-        </div>
 
+      card.innerHTML = `
         <div class="d-flex justify-content-between align-items-center mb-3">
           <h5 class="fw-semibold mb-0">${schedule.section} - Level ${schedule.level}</h5>
           <div>
@@ -138,29 +139,28 @@
         </div>
         <hr class="mt-0">
       `;
-  
-      const table = generateTable(schedule.grid, schedule._id);
+
+      const table = generateTable(schedule.grid);
       card.appendChild(table);
       container.appendChild(card);
     });
-  
+
     attachPublishHandlers();
     attachEditHandlers();
     attachRegenerateHandlers();
     attachImpactCheckHandlers();
   }
-  
+
   // -------------------------------
-  // 📅 Generate Table for Schedule Grid (WITH COLLABORATION SUPPORT)
+  // 📅 Generate Table for Schedule Grid
   // -------------------------------
-  function generateTable(grid, scheduleId) {
+  function generateTable(grid) {
     const table = document.createElement("table");
     table.className = "table table-bordered text-center align-middle";
-    table.id = `schedule-table-${scheduleId}`;
-  
+
     const thead = document.createElement("thead");
     thead.className = "table-light";
-  
+
     const headerRow = document.createElement("tr");
     headerRow.innerHTML = `
       <th>Day / Time</th>
@@ -173,7 +173,7 @@
       <th>2:00-2:50</th>
     `;
     thead.appendChild(headerRow);
-  
+
     const tbody = document.createElement("tbody");
     const days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday"];
     const slots = [
@@ -185,36 +185,26 @@
       "1:00-1:50",
       "2:00-2:50",
     ];
-  
+
     for (const day of days) {
       const row = document.createElement("tr");
       row.innerHTML = `<th>${day}</th>`;
       for (const time of slots) {
         const course = grid[day]?.[time] || "";
-        // ✅ ADD data-cell-id for collaboration
-        const cellId = `${day}-${time}-L${selectedLevel}`.replace(/:/g, '').replace(/\s+/g, '');
-        
-        const cell = document.createElement("td");
-        cell.setAttribute("data-cell-id", cellId);
-        cell.setAttribute("data-day", day);
-        cell.setAttribute("data-time", time);
-        cell.className = "schedule-cell";
-        
-        if (course.toLowerCase() === "break") {
-          cell.className += " bg-light-subtle fw-bold";
-        }
-        cell.textContent = course;
-        
-        row.appendChild(cell);
+        const cell =
+          course.toLowerCase() === "break"
+            ? `<td class="bg-light-subtle fw-bold">${course}</td>`
+            : `<td>${course}</td>`;
+        row.innerHTML += cell;
       }
       tbody.appendChild(row);
     }
-  
+
     table.appendChild(thead);
     table.appendChild(tbody);
     return table;
   }
-  
+
   // -------------------------------
   // 🚀 Attach Publish Handlers
   // -------------------------------
@@ -224,33 +214,42 @@
         const scheduleId = btn.dataset.id;
         const section = btn.dataset.section || "Section ?";
         const level = btn.dataset.level || "?";
-  
+
         if (!scheduleId || scheduleId === "null") {
           alert("❌ Invalid schedule ID.");
           console.warn("Invalid Schedule ID:", scheduleId);
           return;
         }
-  
-        if (!confirm(`Are you sure you want to publish schedule for ${section} - Level ${level}?`)) {
+
+        if (
+          !confirm(
+            `Are you sure you want to publish schedule for ${section} - Level ${level}?`
+          )
+        )
           return;
-        }
-  
+
         btn.disabled = true;
-        btn.innerHTML = '<i class="bi bi-hourglass-split me-1"></i>Publishing...';
-  
+        btn.innerHTML =
+          '<i class="bi bi-hourglass-split me-1"></i>Publishing...';
+
         try {
-          const res = await fetch(`${API_BASE}/schedule/publish/${scheduleId}`, {
-            method: "POST",
-          });
-  
+          const res = await fetch(
+            `${API_BASE}/schedule/publish/${scheduleId}`,
+            {
+              method: "POST",
+            }
+          );
+
           const data = await res.json();
-          if (!res.ok) throw new Error(data.error || "Failed to publish schedule.");
-  
+          if (!res.ok)
+            throw new Error(data.error || "Failed to publish schedule.");
+
+          // ✅ Success Feedback
           btn.classList.remove("btn-success");
           btn.classList.add("btn-secondary");
           btn.innerHTML = `<i class="bi bi-check-circle me-1"></i>Published v${data.version}`;
           btn.disabled = true;
-  
+
           alert(`✅ ${data.message}`);
         } catch (err) {
           console.error("❌ Publish error:", err);
@@ -262,133 +261,39 @@
       });
     });
   }
-  
+
   // ========================================
-  // ✏️ EDIT + SAVE HANDLERS (WITH COLLABORATION)
+  // ✏️ EDIT + SAVE HANDLERS
   // ========================================
   function attachEditHandlers() {
     document.querySelectorAll(".edit-btn").forEach((btn) => {
-      btn.addEventListener("click", async () => {
+      btn.addEventListener("click", () => {
         const scheduleId = btn.dataset.id;
-        const section = btn.dataset.section;
-        const level = btn.dataset.level;
         const card = btn.closest(".card");
         const table = card.querySelector("table");
-        const collabSection = document.getElementById(`collab-status-${scheduleId}`);
-  
-        // ✅ INITIALIZE COLLABORATION
-        if (window.collaborationManager) {
-          try {
-            const user = JSON.parse(sessionStorage.getItem('user'));
-            if (user) {
-              console.log('🔗 Initializing collaboration for schedule:', scheduleId);
-              
-              // Show collaboration section
-              if (collabSection) {
-                collabSection.style.display = 'block';
-              }
-              
-              // Initialize collaboration with custom containers
-              await window.collaborationManager.init(scheduleId, user);
-              
-              // Override the default container IDs
-              window.collaborationManager.activeUsersContainerId = `active-users-${scheduleId}`;
-              window.collaborationManager.connectionStatusId = `connection-status-${scheduleId}`;
-              
-              // Update UI elements manually
-              updateCollaborationUI(scheduleId);
-              
-              isEditMode = true;
-              currentEditingScheduleId = scheduleId;
-            }
-          } catch (error) {
-            console.error('❌ Failed to initialize collaboration:', error);
-            alert('⚠️ Real-time collaboration unavailable. You can still edit, but changes won\'t sync live.');
-          }
-        } else {
-          console.warn('⚠️ Collaboration manager not loaded');
-        }
-  
+
         // Disable other edit buttons
-        document.querySelectorAll(".edit-btn").forEach((b) => (b.disabled = true));
-  
-        // Create Cancel and Save buttons
-        const cancelBtn = document.createElement("button");
-        cancelBtn.className = "btn btn-secondary btn-sm ms-2";
-        cancelBtn.innerHTML = '<i class="bi bi-x-circle me-1"></i>Cancel';
-        
+        document
+          .querySelectorAll(".edit-btn")
+          .forEach((b) => (b.disabled = true));
+
+        // Create a Save button dynamically
         const saveBtn = document.createElement("button");
         saveBtn.className = "btn btn-success btn-sm ms-2";
         saveBtn.innerHTML = '<i class="bi bi-save me-1"></i>Save';
-        
         btn.after(saveBtn);
-        btn.after(cancelBtn);
-  
+
         // Convert cells to editable inputs
         table.querySelectorAll("tbody tr").forEach((row) => {
           row.querySelectorAll("td").forEach((cell) => {
             const val = cell.innerText.trim();
-            const cellId = cell.getAttribute('data-cell-id');
-            
-            const input = document.createElement('input');
-            input.type = 'text';
-            input.className = 'form-control form-control-sm text-center';
-            input.value = val;
-            input.setAttribute('data-cell-id', cellId);
-            
-            // ✅ COLLABORATION: Track when user starts editing a cell
-            input.addEventListener('focus', function() {
-              if (window.collaborationManager && cellId) {
-                window.collaborationManager.setActiveCell(cellId);
-              }
-            });
-            
-            // ✅ COLLABORATION: Update cell value in real-time
-            input.addEventListener('input', function() {
-              if (window.collaborationManager && cellId) {
-                const courseData = {
-                  course: this.value.trim(),
-                  day: cell.getAttribute('data-day'),
-                  time: cell.getAttribute('data-time')
-                };
-                window.collaborationManager.updateCell(cellId, courseData);
-              }
-            });
-            
-            // ✅ COLLABORATION: Clear active cell when done
-            input.addEventListener('blur', function() {
-              if (window.collaborationManager) {
-                window.collaborationManager.clearActiveCell();
-              }
-            });
-            
-            cell.innerHTML = '';
-            cell.appendChild(input);
+            cell.innerHTML = `<input type="text" class="form-control form-control-sm text-center" value="${val}">`;
           });
         });
-  
+
         btn.classList.add("btn-secondary");
         btn.innerHTML = '<i class="bi bi-pencil me-1"></i>Editing...';
-  
-        // Cancel button handler
-        cancelBtn.addEventListener("click", () => {
-          // Disconnect collaboration
-          if (window.collaborationManager) {
-            window.collaborationManager.disconnect();
-          }
-          
-          // Hide collaboration section
-          if (collabSection) {
-            collabSection.style.display = 'none';
-          }
-          
-          isEditMode = false;
-          currentEditingScheduleId = null;
-          
-          // Refresh the schedule
-          fetchLatestSchedule(selectedLevel);
-        });
-  
+
         // Save button handler
         saveBtn.addEventListener("click", async () => {
           const updatedGrid = {};
@@ -402,7 +307,7 @@
             "1:00-1:50",
             "2:00-2:50",
           ];
-  
+
           table.querySelectorAll("tbody tr").forEach((row, rIdx) => {
             const day = days[rIdx];
             updatedGrid[day] = {};
@@ -412,9 +317,9 @@
               if (val) updatedGrid[day][times[cIdx]] = val;
             });
           });
-  
+
           console.log("🧱 Updated Grid:", updatedGrid);
-  
+
           // Save to backend
           try {
             const res = await fetch(`${API_BASE}/update/${scheduleId}`, {
@@ -422,28 +327,13 @@
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify({ grid: updatedGrid }),
             });
-  
+
             const data = await res.json();
-            if (!data.success) {
+            if (!data.success)
               throw new Error(data.error || "Failed to save schedule.");
-            }
-  
+
             alert("✅ Schedule saved successfully!");
-            
-            // Disconnect collaboration
-            if (window.collaborationManager) {
-              window.collaborationManager.disconnect();
-            }
-            
-            // Hide collaboration section
-            if (collabSection) {
-              collabSection.style.display = 'none';
-            }
-            
-            isEditMode = false;
-            currentEditingScheduleId = null;
-            
-            fetchLatestSchedule(selectedLevel);
+            fetchLatestSchedule(selectedLevel); // Refresh display
           } catch (err) {
             alert("❌ Error saving schedule: " + err.message);
             console.error("Save failed:", err);
@@ -452,85 +342,31 @@
       });
     });
   }
-  
-  // ========================================
-  // ✨ UPDATE COLLABORATION UI
-  // ========================================
-  function updateCollaborationUI(scheduleId) {
-    // This function will be called by collaboration manager's awareness changes
-    // We need to update the UI in the specific containers for this schedule
-    if (!window.collaborationManager || !window.collaborationManager.awareness) {
-      return;
-    }
-    
-    const users = Array.from(window.collaborationManager.awareness.getStates().entries())
-      .filter(([clientId, state]) => state.user)
-      .map(([clientId, state]) => ({
-        clientId,
-        ...state.user,
-        activeCell: state.activeCell
-      }));
-    
-    const currentUser = window.collaborationManager.currentUser;
-    const otherUsers = users.filter(u => u.id !== currentUser.id);
-    
-    // Update active users container
-    const activeUsersContainer = document.getElementById(`active-users-${scheduleId}`);
-    if (activeUsersContainer) {
-      if (otherUsers.length === 0) {
-        activeUsersContainer.innerHTML = `
-          <div class="alert alert-info alert-sm mb-0">
-            <i class="bi bi-person"></i> You're the only one editing
-          </div>
-        `;
-      } else {
-        activeUsersContainer.innerHTML = `
-          <div class="d-flex flex-wrap gap-2">
-            ${otherUsers.map(user => `
-              <div class="user-badge" style="background-color: ${user.color}20; border-left: 3px solid ${user.color};">
-                <div class="user-avatar" style="background-color: ${user.color};">
-                  ${window.collaborationManager.getInitials(user.name)}
-                </div>
-                <span class="small">${user.name}</span>
-              </div>
-            `).join('')}
-          </div>
-        `;
-      }
-    }
-    
-    // Update connection status
-    const statusContainer = document.getElementById(`connection-status-${scheduleId}`);
-    if (statusContainer && window.collaborationManager.provider) {
-      const connected = window.collaborationManager.provider.wsconnected;
-      statusContainer.innerHTML = `
-        <span class="badge ${connected ? 'bg-success' : 'bg-danger'}">
-          <i class="bi bi-${connected ? 'wifi' : 'wifi-off'}"></i>
-          ${connected ? 'Connected' : 'Disconnected'}
-        </span>
-      `;
-    }
-  }
-  
+
   // ========================================
   // 🔄 REGENERATE HANDLERS
   // ========================================
   function attachRegenerateHandlers() {
     document.querySelectorAll(".regenerate-btn").forEach((btn) => {
       btn.addEventListener("click", () => {
-        const level = btn.dataset.level;
-        if (confirm(`Are you sure you want to regenerate all schedules for Level ${level}? This will delete all current drafts for this level.`)) {
-          const mainGenerateBtn = document.getElementById("generateBtn");
-          if (mainGenerateBtn) {
-            mainGenerateBtn.click();
-          } else {
-            console.error("Could not find main generate button");
-          }
+        // 1. Get the level from the button
+        const levelToRegenerate = btn.dataset.level;
+
+        if (
+          confirm(
+            `Are you sure you want to regenerate all schedules for Level ${levelToRegenerate}? This will delete all current drafts for this level.`
+          )
+        ) {
+          // 2. Set the global level variable
+          selectedLevel = parseInt(levelToRegenerate);
+
+          // 3. CALL THE FUNCTION DIRECTLY (Do not use .click())
+          handleGenerateSchedule();
         }
       });
     });
   }
-  
+
   // ========================================
   // ✨ IMPACT CHECK WITH MODAL DISPLAY
   // ========================================
@@ -539,73 +375,260 @@
       btn.addEventListener("click", async () => {
         const scheduleId = btn.dataset.id;
         const section = btn.dataset.section;
-  
+
         if (!scheduleId) {
           return alert("Error: No schedule ID found on this button.");
         }
-  
+
+        // Show loading state
         btn.disabled = true;
-        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status"></span>Checking...';
-  
+        btn.innerHTML =
+          '<span class="spinner-border spinner-border-sm me-2" role="status"></span>Checking...';
+
         try {
           const res = await fetch(`${API_BASE}/check-impact`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ draftScheduleId: scheduleId }),
           });
-  
+
           const data = await res.json();
           if (!res.ok) {
             throw new Error(data.error || "Failed to check impact.");
           }
-  
+
+          // Display the report in modal
           displayImpactReport(data, section);
         } catch (err) {
           console.error("❌ Impact check error:", err);
           alert(`Error checking impact: ${err.message}`);
         } finally {
+          // Restore button
           btn.disabled = false;
           btn.innerHTML = '<i class="bi bi-people-fill me-1"></i>Check Impact';
         }
       });
     });
   }
-  
+
   // ========================================
-  // 🎨 DISPLAY FUNCTIONS (Keep your existing ones)
+  // ✨ DISPLAY IMPACT REPORT IN MODAL
+  // ========================================
+  function displayImpactReport(data, section) {
+    const hasConflicts =
+      data.impactedStudents && data.impactedStudents.length > 0;
+    const totalIrregulars = data.totalIrregulars || 0;
+    const affectedCount =
+      data.affectedCount || data.impactedStudents?.length || 0;
+    const impactRate =
+      totalIrregulars > 0
+        ? ((affectedCount / totalIrregulars) * 100).toFixed(1)
+        : 0;
+
+    // Update header
+    const header = document.getElementById("impactModalHeader");
+    const icon = document.getElementById("impactModalIcon");
+    const subtitle = document.getElementById("impactModalSubtitle");
+
+    if (hasConflicts) {
+      header.className = "modal-header text-white bg-danger";
+      icon.className = "bi bi-exclamation-triangle-fill fs-2";
+    } else {
+      header.className = "modal-header text-white bg-success";
+      icon.className = "bi bi-check-circle-fill fs-2";
+    }
+
+    subtitle.textContent = `${section} - Level ${data.level || "?"}`;
+
+    // Update summary cards
+    document.getElementById("totalIrregulars").textContent = totalIrregulars;
+    document.getElementById("affectedCount").textContent = affectedCount;
+    document.getElementById("impactRate").textContent = `${impactRate}%`;
+
+    // Update affected card color
+    const affectedCard = document.getElementById("affectedCard");
+    const affectedLabel = document.getElementById("affectedLabel");
+    if (hasConflicts) {
+      affectedCard.className =
+        "card border-2 border-danger bg-danger bg-opacity-10 h-100";
+      affectedLabel.className = "text-danger fw-semibold mb-2";
+      document.getElementById("affectedCount").className =
+        "display-4 fw-bold text-danger";
+    } else {
+      affectedCard.className =
+        "card border-2 border-success bg-success bg-opacity-10 h-100";
+      affectedLabel.className = "text-success fw-semibold mb-2";
+      document.getElementById("affectedCount").className =
+        "display-4 fw-bold text-success";
+    }
+
+    // Update status alert
+    const statusAlert = document.getElementById("statusAlert");
+    const statusIcon = document.getElementById("statusIcon");
+    const statusTitle = document.getElementById("statusTitle");
+    const statusMessage = document.getElementById("statusMessage");
+
+    if (hasConflicts) {
+      statusAlert.className =
+        "alert alert-danger d-flex align-items-start gap-3";
+      statusIcon.className = "bi bi-exclamation-triangle-fill fs-3";
+      statusTitle.textContent = "Schedule Conflicts Detected";
+    } else {
+      statusAlert.className =
+        "alert alert-success d-flex align-items-start gap-3";
+      statusIcon.className = "bi bi-check-circle-fill fs-3";
+      statusTitle.textContent = "All Clear!";
+    }
+
+    statusMessage.textContent = data.message;
+
+    // Show/hide sections
+    const affectedSection = document.getElementById("affectedStudentsSection");
+    const noConflictsSection = document.getElementById("noConflictsSection");
+
+    if (hasConflicts) {
+      affectedSection.style.display = "block";
+      noConflictsSection.style.display = "none";
+
+      // Build students list
+      const studentsList = document.getElementById("studentsList");
+      studentsList.innerHTML = data.impactedStudents
+        .map(
+          (student, idx) => `
+        <div class="card mb-3 border-2 border-danger">
+          <div class="card-body">
+            <div class="d-flex justify-content-between align-items-start mb-3">
+              <div>
+                <small class="text-muted d-block mb-1">Student ID</small>
+                <h5 class="fw-bold mb-0">${student.student_id}</h5>
+              </div>
+              <span class="badge bg-danger fs-6 px-3 py-2">
+                ${student.conflicts.length} Conflict${
+            student.conflicts.length > 1 ? "s" : ""
+          }
+              </span>
+            </div>
+  
+            <div class="border-top pt-3">
+              <h6 class="fw-semibold text-muted mb-3">
+                <i class="bi bi-book me-2"></i>Conflicting Courses
+              </h6>
+              <div class="row g-2">
+                ${student.conflicts
+                  .map(
+                    (conflict) => `
+                  <div class="col-12">
+                    <div class="d-flex justify-content-between align-items-center bg-danger bg-opacity-10 border border-danger rounded p-3">
+                      <div class="d-flex align-items-center gap-3">
+                        <span class="badge bg-danger fs-6 px-3 py-2">${
+                          conflict.code
+                        }</span>
+                        <span class="fw-medium">${
+                          conflict.type || "Course"
+                        }</span>
+                      </div>
+                      <div class="text-muted">
+                        <i class="bi bi-calendar me-1"></i>
+                        <small>From Level ${conflict.level}</small>
+                      </div>
+                    </div>
+                  </div>
+                `
+                  )
+                  .join("")}
+              </div>
+            </div>
+          </div>
+        </div>
+      `
+        )
+        .join("");
+    } else {
+      affectedSection.style.display = "none";
+      noConflictsSection.style.display = "block";
+    }
+
+    // Update timestamp
+    document.getElementById(
+      "reportTimestamp"
+    ).textContent = `Generated: ${new Date().toLocaleString()}`;
+
+    // Show the modal
+    const modal = new bootstrap.Modal(
+      document.getElementById("impactReportModal")
+    );
+    modal.show();
+  }
+
+  // ========================================
+  // 📭 DISPLAY EMPTY STATE (New Function)
+  // ========================================
+  // ========================================
+  // 📭 DISPLAY EMPTY STATE (Updated)
   // ========================================
   function displayEmptyState(level, message) {
     const container = document.getElementById("schedule-container");
     if (!container) return;
-    
+
     container.innerHTML = `
-      <div class="text-center py-5">
-        <i class="bi bi-calendar-x" style="font-size: 4rem; color: #6c757d;"></i>
-        <h4 class="mt-3 text-muted">${message}</h4>
-        <p class="text-muted">Generate a schedule to get started.</p>
-      </div>
-    `;
-  }
-  
-  function displayImpactReport(data, section) {
-    // Your existing impact report code here
-    console.log("Impact report:", data);
-  }
-  
-  // ========================================
-  // 🧹 CLEANUP ON PAGE UNLOAD
-  // ========================================
-  window.addEventListener('beforeunload', () => {
-    if (window.collaborationManager && isEditMode) {
-      window.collaborationManager.disconnect();
+      <div class="text-center py-5" style="border-radius: 20px; background: #f8f9fa;">
+        <i class="bi bi-journal-x" style="font-size: 3.5rem; color: #6c757d;"></i>
+        <h4 class="mt-3 text-muted fw-bold">No Schedules Found</h4>
+        <p class="text-muted mb-4">${message}</p>
+        
+        <button class="btn btn-warning btn-lg" id="generate-from-empty">
+          <i class="bi bi-arrow-repeat me-1"></i> Generate for Level ${level}
+        </button>
+      </div>
+    `; // Find the new button we just created
+
+    const newBtn = document.getElementById("generate-from-empty");
+
+    if (newBtn) {
+      // ✅ FIX: Attach the generation logic directly to this button's click event
+      newBtn.addEventListener("click", handleGenerateSchedule);
     }
-  });
-  
-  // Make functions available globally if needed
-  window.scheduleUI = {
-    fetchLatestSchedule,
-    displaySchedules,
-    updateCollaborationUI
-  };
-  
+  }
+  // ========================================
+  async function handleGenerateSchedule() {
+    if (!selectedLevel) {
+      alert("Please select an academic level first.");
+      return;
+    }
+
+    const container = document.getElementById("schedule-container");
+    if (!container) return; // Exit if container doesn't exist
+    container.innerHTML = `
+      <div class="text-center py-5">
+        <div class="spinner-border text-warning" role="status"></div>
+        <p class="mt-3 fw-bold text-secondary">Generating schedule for Level ${selectedLevel}...</p>
+      </div>
+    `;
+
+    try {
+      const res = await fetch(`${API_BASE}/schedule/generate`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ level: selectedLevel }),
+      });
+
+      const data = await res.json();
+      if (!res.ok)
+        throw new Error(data.error || "Failed to generate schedule.");
+
+      if (!data.schedules?.length) {
+        // If generation succeeds but creates no schedules, show empty state
+        displayEmptyState(
+          selectedLevel,
+          "Generation complete, but no schedules were created."
+        );
+        return;
+      }
+
+      displaySchedules(data.schedules);
+    } catch (err) {
+      console.error("❌ Schedule generation failed:", err); // Show a clear error message in the empty state box
+      displayEmptyState(selectedLevel, `Generation Failed: ${err.message}`);
+    }
+  }
 })();
