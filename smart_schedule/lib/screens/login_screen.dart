@@ -7,24 +7,21 @@ import 'faculty_home_screen.dart';
 import 'scheduler_home_screen.dart';
 
 class LoginScreen extends StatefulWidget {
-  const LoginScreen({super.key});
+  const LoginScreen({Key? key}) : super(key: key);
 
   @override
   State<LoginScreen> createState() => _LoginScreenState();
 }
 
 class _LoginScreenState extends State<LoginScreen> {
-  int _currentStep = 0; // 0: Login/Register Tabs, 1: Verification
+  int _currentStep = 0;
 
-  // --- Login Controllers ---
   final _loginEmailController = TextEditingController();
   final _loginPasswordController = TextEditingController();
   bool _loginPasswordVisible = false;
 
-  // --- Verification Controller ---
   final _verificationCodeController = TextEditingController();
 
-  // --- Register Controllers ---
   final _registerFirstNameController = TextEditingController();
   final _registerLastNameController = TextEditingController();
   final _registerEmailController = TextEditingController();
@@ -32,7 +29,6 @@ class _LoginScreenState extends State<LoginScreen> {
   bool _registerPasswordVisible = false;
   String _selectedRole = 'Student';
 
-  // --- State Variables ---
   bool _isLoading = false;
   String? _currentEmail;
   String? _currentPassword;
@@ -49,21 +45,18 @@ class _LoginScreenState extends State<LoginScreen> {
     super.dispose();
   }
 
-  // --- Helpers ---
   void _showAlert(String message, bool isError) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(message),
         backgroundColor: isError ? Colors.red : Colors.green,
-        duration: const Duration(seconds: 4),
+        duration: const Duration(seconds: 5),
       ),
     );
   }
 
-  // --- Action: Login ---
   Future<void> _handleLogin() async {
-    if (_loginEmailController.text.isEmpty ||
-        _loginPasswordController.text.isEmpty) {
+    if (_loginEmailController.text.isEmpty || _loginPasswordController.text.isEmpty) {
       _showAlert('Please fill in all fields', true);
       return;
     }
@@ -82,7 +75,6 @@ class _LoginScreenState extends State<LoginScreen> {
           _currentPassword = _loginPasswordController.text;
           _handleSuccessfulLogin(result['user'], result['token']);
         } else if (result['requiresVerification'] == true) {
-          // If 2FA is needed, move to verification step
           _currentEmail = _loginEmailController.text.trim();
           _currentPassword = _loginPasswordController.text;
           _showAlert(result['message'] ?? 'Verification code sent', false);
@@ -92,24 +84,30 @@ class _LoginScreenState extends State<LoginScreen> {
         }
       }
     } catch (e) {
-      if (mounted) _showAlert('Error: ${e.toString()}', true);
+      if (mounted) {
+        _showAlert('Error: ${e.toString()}', true);
+      }
     } finally {
-      if (mounted) setState(() => _isLoading = false);
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
     }
   }
 
-  // --- Action: Verify OTP ---
   Future<void> _handleVerification() async {
-    if (_verificationCodeController.text.isEmpty ||
-        _verificationCodeController.text.length != 6) {
-      _showAlert('Enter a valid 6-digit code', true);
+    if (_verificationCodeController.text.isEmpty) {
+      _showAlert('Please enter verification code', true);
+      return;
+    }
+
+    if (_verificationCodeController.text.length != 6) {
+      _showAlert('Verification code must be 6 digits', true);
       return;
     }
 
     setState(() => _isLoading = true);
 
     try {
-      // Call login again, but this time with the code
       final result = await ScheduleService.login(
         email: _currentEmail!,
         password: _currentPassword!,
@@ -120,20 +118,23 @@ class _LoginScreenState extends State<LoginScreen> {
         if (result['success']) {
           _handleSuccessfulLogin(result['user'], result['token']);
         } else {
-          _showAlert(result['message'] ?? 'Invalid code', true);
+          _showAlert(result['message'] ?? 'Invalid verification code', true);
         }
       }
     } catch (e) {
-      if (mounted) _showAlert('Error: ${e.toString()}', true);
+      if (mounted) {
+        _showAlert('Error: ${e.toString()}', true);
+      }
     } finally {
-      if (mounted) setState(() => _isLoading = false);
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
     }
   }
 
-  // --- Action: Successful Login & Routing ---
   void _handleSuccessfulLogin(Map<String, dynamic> user, String token) {
     context.read<UserProvider>().setUser(user, token);
-    _showAlert('Welcome back, ${user['First_Name']}', false);
+    _showAlert('Login successful! Welcome ${user['First_Name']}', false);
 
     Future.delayed(const Duration(milliseconds: 800), () {
       if (mounted) {
@@ -158,15 +159,9 @@ class _LoginScreenState extends State<LoginScreen> {
           (route) => false,
         );
       }
-
-      Navigator.of(context).pushAndRemoveUntil(
-        MaterialPageRoute(builder: (_) => targetScreen),
-        (route) => false,
-      );
     });
   }
 
-  // --- Action: Register ---
   Future<void> _handleRegister() async {
     if (_registerFirstNameController.text.isEmpty ||
         _registerLastNameController.text.isEmpty ||
@@ -194,13 +189,11 @@ class _LoginScreenState extends State<LoginScreen> {
 
       if (mounted) {
         if (result['success']) {
-          _showAlert('Registration successful! Please login.', false);
+          _showAlert('Registration successful! Please login with your credentials', false);
           Future.delayed(const Duration(milliseconds: 1500), () {
             if (mounted) {
               _clearRegistrationForm();
-              // Switch back to Login tab (handled by TabController usually,
-              // but here we just reset state if needed or user manually switches)
-              _showAlert('Please switch to Login tab', false);
+              setState(() => _currentStep = 0);
             }
           });
         } else {
@@ -208,9 +201,13 @@ class _LoginScreenState extends State<LoginScreen> {
         }
       }
     } catch (e) {
-      if (mounted) _showAlert('Error: ${e.toString()}', true);
+      if (mounted) {
+        _showAlert('Error: ${e.toString()}', true);
+      }
     } finally {
-      if (mounted) setState(() => _isLoading = false);
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
     }
   }
 
@@ -219,7 +216,7 @@ class _LoginScreenState extends State<LoginScreen> {
     _registerLastNameController.clear();
     _registerEmailController.clear();
     _registerPasswordController.clear();
-    setState(() => _selectedRole = 'Student');
+    _selectedRole = 'Student';
   }
 
   void _backToLogin() {
@@ -229,7 +226,6 @@ class _LoginScreenState extends State<LoginScreen> {
     });
   }
 
-  // --- UI Building ---
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -242,15 +238,23 @@ class _LoginScreenState extends State<LoginScreen> {
             colors: [Color(0xFF667eea), Color(0xFF764ba2)],
           ),
         ),
-        child: Center(
-          child: SingleChildScrollView(
-            padding: EdgeInsets.symmetric(
-              horizontal: 16,
-              vertical: MediaQuery.of(context).viewInsets.bottom > 0 ? 16 : 32,
+        child: SingleChildScrollView(
+          child: ConstrainedBox(
+            constraints: BoxConstraints(
+              minHeight: MediaQuery.of(context).size.height,
             ),
-            child: _currentStep == 0
-                ? _buildTabsWidget()
-                : _buildVerificationWidget(),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Padding(
+                  padding: EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: MediaQuery.of(context).viewInsets.bottom > 0 ? 16 : 32,
+                  ),
+                  child: _currentStep == 0 ? _buildTabsWidget() : _buildVerificationWidget(),
+                ),
+              ],
+            ),
           ),
         ),
       ),
@@ -264,7 +268,7 @@ class _LoginScreenState extends State<LoginScreen> {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          // Header Area
+          // Header
           Container(
             width: double.infinity,
             decoration: const BoxDecoration(
@@ -276,45 +280,55 @@ class _LoginScreenState extends State<LoginScreen> {
                 topRight: Radius.circular(20),
               ),
             ),
-            padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 16),
+            padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
             child: Column(
-              children: const [
-                Icon(Icons.calendar_month, size: 40, color: Colors.white),
-                SizedBox(height: 8),
-                Text(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(Icons.calendar_month, size: 40, color: Colors.white),
+                const SizedBox(height: 8),
+                const Text(
                   'SmartSchedule',
                   style: TextStyle(
                     fontSize: 22,
                     fontWeight: FontWeight.bold,
                     color: Colors.white,
                   ),
+                  textAlign: TextAlign.center,
                 ),
-                Text(
+                const SizedBox(height: 4),
+                const Text(
                   'Academic scheduling solution',
-                  style: TextStyle(color: Color(0xFFE8E8FF), fontSize: 12),
+                  style: TextStyle(
+                    color: Color(0xFFE8E8FF),
+                    fontSize: 12,
+                  ),
+                  textAlign: TextAlign.center,
                 ),
               ],
             ),
           ),
-          // Tabs
+          // Tabs Content
           DefaultTabController(
             length: 2,
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                const TabBar(
-                  labelColor: Color(0xFF667eea),
+                TabBar(
+                  labelColor: const Color(0xFF667eea),
                   unselectedLabelColor: Colors.grey,
-                  indicatorColor: Color(0xFF667eea),
-                  tabs: [
+                  indicatorColor: const Color(0xFF667eea),
+                  tabs: const [
                     Tab(text: 'Login'),
                     Tab(text: 'Register'),
                   ],
                 ),
                 SizedBox(
-                  height: 420, // Fixed height for tab content
+                  height: 400,
                   child: TabBarView(
-                    children: [_buildLoginForm(), _buildRegistrationForm()],
+                    children: [
+                      _buildLoginForm(),
+                      _buildRegistrationForm(),
+                    ],
                   ),
                 ),
               ],
@@ -331,42 +345,57 @@ class _LoginScreenState extends State<LoginScreen> {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
+          // Email
           TextField(
             controller: _loginEmailController,
             textInputAction: TextInputAction.next,
-            keyboardType: TextInputType.emailAddress,
             decoration: InputDecoration(
               labelText: 'Email Address',
+              hintText: 'Enter your email',
               prefixIcon: const Icon(Icons.email_outlined),
-              border: OutlineInputBorder(
+              border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+              enabledBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
+                borderSide: const BorderSide(color: Color(0xFFe2e8f0), width: 2),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: const BorderSide(color: Color(0xFF667eea), width: 2),
               ),
             ),
+            keyboardType: TextInputType.emailAddress,
           ),
           const SizedBox(height: 16),
+          // Password
           TextField(
             controller: _loginPasswordController,
             textInputAction: TextInputAction.done,
             obscureText: !_loginPasswordVisible,
             decoration: InputDecoration(
               labelText: 'Password',
+              hintText: 'Enter your password',
               prefixIcon: const Icon(Icons.lock_outlined),
               suffixIcon: IconButton(
                 icon: Icon(
-                  _loginPasswordVisible
-                      ? Icons.visibility
-                      : Icons.visibility_off,
+                  _loginPasswordVisible ? Icons.visibility : Icons.visibility_off,
                 ),
-                onPressed: () => setState(
-                  () => _loginPasswordVisible = !_loginPasswordVisible,
-                ),
+                onPressed: () {
+                  setState(() => _loginPasswordVisible = !_loginPasswordVisible);
+                },
               ),
-              border: OutlineInputBorder(
+              border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+              enabledBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
+                borderSide: const BorderSide(color: Color(0xFFe2e8f0), width: 2),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: const BorderSide(color: Color(0xFF667eea), width: 2),
               ),
             ),
           ),
           const SizedBox(height: 24),
+          // Login Button
           SizedBox(
             width: double.infinity,
             height: 50,
@@ -374,19 +403,22 @@ class _LoginScreenState extends State<LoginScreen> {
               onPressed: _isLoading ? null : _handleLogin,
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFF667eea),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
               ),
               child: _isLoading
                   ? const SizedBox(
                       height: 24,
                       width: 24,
-                      child: CircularProgressIndicator(color: Colors.white),
+                      child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
                     )
-                  : const Text(
-                      'Login',
-                      style: TextStyle(fontSize: 16, color: Colors.white),
+                  : const Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.login, color: Colors.white),
+                        SizedBox(width: 8),
+                        Text('Login',
+                            style: TextStyle(fontSize: 16, color: Colors.white, fontWeight: FontWeight.bold)),
+                      ],
                     ),
             ),
           ),
@@ -403,71 +435,109 @@ class _LoginScreenState extends State<LoginScreen> {
         children: [
           TextField(
             controller: _registerFirstNameController,
+            textInputAction: TextInputAction.next,
             decoration: InputDecoration(
               labelText: 'First Name',
+              hintText: 'Enter your first name',
               prefixIcon: const Icon(Icons.person_outlined),
-              border: OutlineInputBorder(
+              border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+              enabledBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
+                borderSide: const BorderSide(color: Color(0xFFe2e8f0), width: 2),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: const BorderSide(color: Color(0xFF667eea), width: 2),
               ),
             ),
           ),
           const SizedBox(height: 12),
           TextField(
             controller: _registerLastNameController,
+            textInputAction: TextInputAction.next,
             decoration: InputDecoration(
               labelText: 'Last Name',
+              hintText: 'Enter your last name',
               prefixIcon: const Icon(Icons.person_outlined),
-              border: OutlineInputBorder(
+              border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+              enabledBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
+                borderSide: const BorderSide(color: Color(0xFFe2e8f0), width: 2),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: const BorderSide(color: Color(0xFF667eea), width: 2),
               ),
             ),
           ),
           const SizedBox(height: 12),
           TextField(
             controller: _registerEmailController,
+            textInputAction: TextInputAction.next,
             keyboardType: TextInputType.emailAddress,
             decoration: InputDecoration(
               labelText: 'Email Address',
+              hintText: 'Enter your email',
               prefixIcon: const Icon(Icons.email_outlined),
-              border: OutlineInputBorder(
+              border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+              enabledBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
+                borderSide: const BorderSide(color: Color(0xFFe2e8f0), width: 2),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: const BorderSide(color: Color(0xFF667eea), width: 2),
               ),
             ),
           ),
           const SizedBox(height: 12),
           TextField(
             controller: _registerPasswordController,
+            textInputAction: TextInputAction.next,
             obscureText: !_registerPasswordVisible,
             decoration: InputDecoration(
               labelText: 'Password',
+              hintText: 'Create a password (min 6 characters)',
               prefixIcon: const Icon(Icons.lock_outlined),
               suffixIcon: IconButton(
                 icon: Icon(
-                  _registerPasswordVisible
-                      ? Icons.visibility
-                      : Icons.visibility_off,
+                  _registerPasswordVisible ? Icons.visibility : Icons.visibility_off,
                 ),
-                onPressed: () => setState(
-                  () => _registerPasswordVisible = !_registerPasswordVisible,
-                ),
+                onPressed: () {
+                  setState(() => _registerPasswordVisible = !_registerPasswordVisible);
+                },
               ),
-              border: OutlineInputBorder(
+              border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+              enabledBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
+                borderSide: const BorderSide(color: Color(0xFFe2e8f0), width: 2),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: const BorderSide(color: Color(0xFF667eea), width: 2),
               ),
             ),
           ),
           const SizedBox(height: 12),
           DropdownButtonFormField<String>(
-            value: _selectedRole,
-            items: ['Student', 'Faculty', 'Committee', 'Scheduler']
+            initialValue: _selectedRole,
+            items: ['Student', 'Faculty', 'LoadCommittee', 'Scheduler']
                 .map((role) => DropdownMenuItem(value: role, child: Text(role)))
                 .toList(),
-            onChanged: (val) => setState(() => _selectedRole = val!),
+            onChanged: (value) {
+              setState(() => _selectedRole = value ?? 'Student');
+            },
             decoration: InputDecoration(
               labelText: 'Role',
               prefixIcon: const Icon(Icons.badge_outlined),
-              border: OutlineInputBorder(
+              border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+              enabledBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
+                borderSide: const BorderSide(color: Color(0xFFe2e8f0), width: 2),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: const BorderSide(color: Color(0xFF667eea), width: 2),
               ),
             ),
           ),
@@ -479,15 +549,22 @@ class _LoginScreenState extends State<LoginScreen> {
               onPressed: _isLoading ? null : _handleRegister,
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFF667eea),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
               ),
               child: _isLoading
-                  ? const CircularProgressIndicator(color: Colors.white)
-                  : const Text(
-                      'Register',
-                      style: TextStyle(fontSize: 16, color: Colors.white),
+                  ? const SizedBox(
+                      height: 24,
+                      width: 24,
+                      child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+                    )
+                  : const Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.person_add, color: Colors.white),
+                        SizedBox(width: 8),
+                        Text('Register',
+                            style: TextStyle(fontSize: 16, color: Colors.white, fontWeight: FontWeight.bold)),
+                      ],
                     ),
             ),
           ),
@@ -500,41 +577,56 @@ class _LoginScreenState extends State<LoginScreen> {
     return Card(
       elevation: 8,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-      child: Padding(
+      child: SingleChildScrollView(
         padding: const EdgeInsets.all(32),
         child: Column(
+          mainAxisSize: MainAxisSize.min,
           children: [
-            const Icon(
-              Icons.shield_outlined,
-              size: 60,
-              color: Color(0xFF667eea),
-            ),
-            const SizedBox(height: 20),
-            const Text(
-              'Verify Your Email',
-              style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 10),
-            Text(
-              'Enter the code sent to $_currentEmail',
-              textAlign: TextAlign.center,
-              style: const TextStyle(color: Colors.grey),
+            Container(
+              width: 80,
+              height: 80,
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(
+                  colors: [Color(0xFF667eea), Color(0xFF764ba2)],
+                ),
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: const Icon(Icons.shield_outlined, size: 48, color: Colors.white),
             ),
             const SizedBox(height: 24),
+            const Text(
+              'Verify Your Email',
+              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 12),
+            Text(
+              'We sent a 6-digit code to $_currentEmail',
+              textAlign: TextAlign.center,
+              style: const TextStyle(color: Colors.grey, fontSize: 14),
+            ),
+            const SizedBox(height: 32),
             TextField(
               controller: _verificationCodeController,
               keyboardType: TextInputType.number,
               maxLength: 6,
               textAlign: TextAlign.center,
-              inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-              style: const TextStyle(fontSize: 24, letterSpacing: 8),
+              inputFormatters: [
+                FilteringTextInputFormatter.allow(RegExp(r'[0-9]')),
+              ],
               decoration: InputDecoration(
                 hintText: '000000',
-                counterText: '',
-                border: OutlineInputBorder(
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                enabledBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
+                  borderSide: const BorderSide(color: Color(0xFFe2e8f0), width: 2),
                 ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: const BorderSide(color: Color(0xFF667eea), width: 2),
+                ),
+                counterText: '',
               ),
+              style: const TextStyle(fontSize: 24, letterSpacing: 8, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 24),
             SizedBox(
@@ -544,23 +636,45 @@ class _LoginScreenState extends State<LoginScreen> {
                 onPressed: _isLoading ? null : _handleVerification,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFF667eea),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                 ),
                 child: _isLoading
-                    ? const CircularProgressIndicator(color: Colors.white)
-                    : const Text(
-                        'Verify & Login',
-                        style: TextStyle(color: Colors.white),
+                    ? const SizedBox(
+                        height: 24,
+                        width: 24,
+                        child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+                      )
+                    : const Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(Icons.check_circle, color: Colors.white),
+                          SizedBox(width: 8),
+                          Text('Verify & Login',
+                              style: TextStyle(fontSize: 16, color: Colors.white, fontWeight: FontWeight.bold)),
+                        ],
                       ),
               ),
             ),
             const SizedBox(height: 12),
-            TextButton.icon(
-              onPressed: _backToLogin,
-              icon: const Icon(Icons.arrow_back),
-              label: const Text('Back to Login'),
+            SizedBox(
+              width: double.infinity,
+              height: 50,
+              child: OutlinedButton(
+                onPressed: _isLoading ? null : _backToLogin,
+                style: OutlinedButton.styleFrom(
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  side: const BorderSide(color: Color(0xFF667eea), width: 2),
+                ),
+                child: const Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(Icons.arrow_back, color: Color(0xFF667eea)),
+                    SizedBox(width: 8),
+                    Text('Back to Login',
+                        style: TextStyle(fontSize: 16, color: Color(0xFF667eea), fontWeight: FontWeight.bold)),
+                  ],
+                ),
+              ),
             ),
           ],
         ),
