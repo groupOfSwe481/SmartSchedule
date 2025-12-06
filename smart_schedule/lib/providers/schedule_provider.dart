@@ -274,32 +274,4 @@ class ScheduleProvider with ChangeNotifier {
     _error = null;
     notifyListeners();
   }
-
-  // --- NEW: Student Method ---
-  Future<void> fetchStudentSchedule(int level) async {
-    _currentStudentLevel = level;
-    _isLoading = true;
-    _errorMessage = null;
-    notifyListeners();
-
-    // We reuse getScheduleByLevel because the endpoint /api/student-schedules/
-    // returns the grid structure used by both views.
-    final result = await ScheduleService.getScheduleByLevel(level);
-
-    if (result['success']) {
-      if (result['schedules'] != null && result['schedules'].isNotEmpty) {
-        _studentScheduleData = result['schedules'][0];
-        _errorMessage = null;
-      } else {
-        _studentScheduleData = null;
-        _errorMessage = 'No schedules available for Level $level';
-      }
-    } else {
-      _studentScheduleData = null;
-      _errorMessage = result['message'];
-    }
-
-    _isLoading = false;
-    notifyListeners();
-  }
 }
