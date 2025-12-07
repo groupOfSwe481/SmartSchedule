@@ -63,11 +63,9 @@
       "versionSchedulesContainer"
     );
     const loadingState = document.getElementById("versionLoadingState");
-    const timelineContainer = document.getElementById("versionTimelineContainer");
     const selectedLevelDisplay = document.getElementById("selectedLevelDisplay");
-  
+
     loadingState.style.display = "none";
-    timelineContainer.style.display = "none";
     schedulesContainer.style.display = "block";
   
     selectedLevelDisplay.textContent = level;
