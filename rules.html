@@ -262,6 +262,37 @@
         background: #f8f9ff;
       }
 
+      /* NOTIFICATION BUTTON */
+      .notification-btn {
+        position: relative;
+        background: rgba(255, 255, 255, 0.15);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        border-radius: 12px;
+        padding: 0.75rem 1rem;
+        color: white;
+        cursor: pointer;
+        transition: all 0.3s ease;
+      }
+
+      .notification-btn:hover {
+        background: rgba(255, 255, 255, 0.25);
+        transform: translateY(-2px);
+      }
+
+      .notification-badge {
+        position: absolute;
+        top: -5px;
+        right: -5px;
+        background: #ef4444;
+        color: white;
+        border-radius: 10px;
+        padding: 0.25rem 0.5rem;
+        font-size: 0.7rem;
+        font-weight: 700;
+        min-width: 20px;
+        text-align: center;
+      }
+
       /* RESPONSIVE */
       .sidebar-toggle {
         display: none;
@@ -384,7 +415,7 @@
          data-bs-target="#notificationsModal"
        >
          <i class="bi bi-bell-fill"></i>
-         <span class="notification-badge">3</span>
+         <span class="notification-badge" id="notificationBadge">0</span>
        </button>
      </div>
    </header>
