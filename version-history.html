@@ -263,19 +263,35 @@
         margin-bottom: 1rem;
       }
       #versionSchedulesList .list-group-item {
-        border: none;
-        border-radius: 12px;
-        margin-bottom: 0.5rem;
-        padding: 1rem 1.5rem;
-        transition: all 0.3s ease;
+        border: 2px solid #e2e8f0;
+        border-radius: 16px;
+        margin-bottom: 1rem;
+        padding: 1.5rem;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         cursor: pointer;
-        border-left: 4px solid transparent;
+        background: linear-gradient(135deg, #ffffff 0%, #f8f9ff 100%);
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
       }
       #versionSchedulesList .list-group-item:hover {
-        background: #f8f9ff;
-        border-left-color: #6366f1;
-        transform: translateX(4px);
-        box-shadow: 0 4px 12px rgba(99, 102, 241, 0.1);
+        background: linear-gradient(135deg, #f8f9ff 0%, #ede9fe 100%);
+        border-color: #6366f1;
+        transform: translateY(-4px) scale(1.02);
+        box-shadow: 0 12px 24px rgba(99, 102, 241, 0.2), 0 4px 8px rgba(99, 102, 241, 0.1);
+      }
+      #versionSchedulesList .list-group-item h6 {
+        font-size: 1.125rem;
+        font-weight: 700;
+        color: #1e293b;
+      }
+      #versionSchedulesList .list-group-item small {
+        font-size: 0.875rem;
+      }
+      #versionSchedulesList .list-group-item .bi-chevron-right {
+        transition: transform 0.3s ease;
+        color: #6366f1;
+      }
+      #versionSchedulesList .list-group-item:hover .bi-chevron-right {
+        transform: translateX(6px);
       }
       #versionTimeline .card {
         background: white;
@@ -679,61 +695,17 @@
 
             <div id="versionSchedulesContainer" style="display: none">
               <div class="content-card">
-                <h5>
-                  <i class="bi bi-journal-text me-2"></i>
-                  Schedules for Level <span id="selectedLevelDisplay"></span>
-                </h5>
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                  <h5 class="mb-0">
+                    <i class="bi bi-journal-text me-2"></i>
+                    Schedules for Level <span id="selectedLevelDisplay"></span>
+                  </h5>
+                </div>
                 <div
                   id="versionSchedulesList"
                   class="list-group list-group-flush"
                 ></div>
               </div>
-            </div>
-
-            <div id="versionTimelineContainer" style="display: none">
-              <nav aria-label="breadcrumb" class="mb-3">
-                <ol class="breadcrumb">
-                  <li class="breadcrumb-item">
-                    <a href="#" id="breadcrumbLevel">Level</a>
-                  </li>
-                  <li class="breadcrumb-item active" id="breadcrumbSchedule">
-                    Schedule
-                  </li>
-                </ol>
-              </nav>
-
-              <div class="content-card" style="border-left: 4px solid #6366f1">
-                <div class="d-flex justify-content-between align-items-center">
-                  <div>
-                    <h5 id="timelineScheduleTitle" class="mb-1"></h5>
-                    <p
-                      class="text-muted mb-0"
-                      id="timelineScheduleSubtitle"
-                    ></p>
-                  </div>
-                  <button
-                    class="btn btn-outline-secondary"
-                    id="backToSchedules"
-                  >
-                    <i class="bi bi-arrow-left me-2"></i>Back
-                  </button>
-                </div>
-              </div>
-
-              <h5 class="fw-bold mb-3 mt-4" style="color: white">
-                <i class="bi bi-git me-2"></i>Version Timeline
-              </h5>
-              <div id="versionTimeline"></div>
-            </div>
-
-            <div
-              id="versionEmptyState"
-              class="content-card"
-              style="display: none"
-            >
-              <i class="bi bi-inbox" style="font-size: 5rem"></i>
-              <h4 class="mt-4">No Version History</h4>
-              <p>This schedule has no recorded changes yet</p>
             </div>
           </div>
         </div>
@@ -763,6 +735,36 @@
                 Loading notifications...
               </div>
             </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Version Timeline Modal -->
+    <div class="modal fade" id="versionTimelineModal" tabindex="-1">
+      <div class="modal-dialog modal-xl modal-dialog-scrollable">
+        <div class="modal-content" style="background: #1e293b;">
+          <div class="modal-header" style="background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%); border-bottom: none;">
+            <div>
+              <h5 class="modal-title fw-bold text-white mb-1">
+                <i class="bi bi-git me-2"></i>
+                <span id="timelineScheduleTitle">Version History</span>
+              </h5>
+              <p class="mb-0 text-white-50 small" id="timelineScheduleSubtitle"></p>
+            </div>
+            <button
+              type="button"
+              class="btn-close btn-close-white"
+              data-bs-dismiss="modal"
+            ></button>
+          </div>
+          <div class="modal-body p-4" style="background: #1e293b;">
+            <div id="versionEmptyState" class="text-center py-5" style="display: none; color: white;">
+              <i class="bi bi-inbox" style="font-size: 5rem; opacity: 0.5;"></i>
+              <h4 class="mt-4">No Version History</h4>
+              <p class="text-muted">This schedule has no recorded changes yet</p>
+            </div>
+            <div id="versionTimeline"></div>
           </div>
         </div>
       </div>

@@ -155,26 +155,17 @@
   // ========================================
   async function fetchVersionHistory(scheduleId, section, level) {
     currentScheduleForVersion = { id: scheduleId, section, level };
-  
-    const timelineContainer = document.getElementById("versionTimelineContainer");
-    const schedulesContainer = document.getElementById(
-      "versionSchedulesContainer"
-    );
+
     const timeline = document.getElementById("versionTimeline");
     const emptyState = document.getElementById("versionEmptyState");
-  
     const timelineTitle = document.getElementById("timelineScheduleTitle");
     const timelineSubtitle = document.getElementById("timelineScheduleSubtitle");
-    const breadcrumbLevel = document.getElementById("breadcrumbLevel");
-    const breadcrumbSchedule = document.getElementById("breadcrumbSchedule");
-  
-    breadcrumbLevel.textContent = `Level ${level}`;
-    breadcrumbSchedule.textContent = section;
-  
-    schedulesContainer.style.display = "none";
-    timelineContainer.style.display = "block";
+
+    // Open the modal
+    const modal = new bootstrap.Modal(document.getElementById('versionTimelineModal'));
+    modal.show();
+
     emptyState.style.display = "none";
-  
     timelineTitle.textContent = section;
     timelineSubtitle.textContent = `Level ${level} • Version History`;
   
@@ -202,10 +193,12 @@
       );
   
       if (!historyData.history || historyData.history.length === 0) {
-        timelineContainer.style.display = "none";
+        timeline.style.display = "none";
         emptyState.style.display = "block";
         return;
       }
+
+      timeline.style.display = "block";
   
       // Store for reconstruction
       allVersionHistory = historyData.history;
@@ -285,22 +278,23 @@
               </div>
   
               <div class="d-flex gap-2 flex-wrap">
-                <button class="btn btn-sm btn-primary" 
-                  onclick='viewFullSchedule(${JSON.stringify(
-                    currentSchedule?.grid || {}
-                  )}, ${version.history_version}, "${section}", ${level})'>
+                <button class="btn btn-sm btn-primary view-schedule-btn"
+                  data-version="${version.history_version}"
+                  data-section="${section}"
+                  data-level="${level}">
                   <i class="bi bi-calendar-week me-1"></i>View Full Schedule
                 </button>
                 
                 ${
                   !isLatest
                     ? `
-                <button class="btn btn-sm btn-success restore-version-btn" 
+                <button class="btn btn-sm btn-success restore-version-btn"
                   onclick="restoreVersion('${scheduleId}', ${version.history_version}, '${section}', ${level})">
                   <i class="bi bi-arrow-counterclockwise me-1"></i>Restore This Version
                 </button>
-                <button class="btn btn-sm btn-outline-secondary" 
-                  onclick="compareVersions(${version.history_version}, ${currentHistoryVersion})">
+                <button class="btn btn-sm btn-outline-secondary compare-version-btn"
+                  data-old-version="${version.history_version}"
+                  data-current-version="${currentHistoryVersion}">
                   <i class="bi bi-arrow-left-right me-1"></i>Compare with Current
                 </button>
                 `
@@ -316,6 +310,29 @@
         `;
         })
         .join("");
+
+      // Add event listeners for dynamically created buttons
+      setTimeout(() => {
+        // View Full Schedule buttons
+        document.querySelectorAll('.view-schedule-btn').forEach(btn => {
+          btn.addEventListener('click', function() {
+            const version = parseInt(this.dataset.version);
+            const section = this.dataset.section;
+            const level = parseInt(this.dataset.level);
+            viewFullSchedule(currentSchedule?.grid || {}, version, section, level);
+          });
+        });
+
+        // Compare with Current buttons
+        document.querySelectorAll('.compare-version-btn').forEach(btn => {
+          btn.addEventListener('click', function() {
+            const oldVersion = parseInt(this.dataset.oldVersion);
+            const currentVersion = parseInt(this.dataset.currentVersion);
+            compareVersions(oldVersion, currentVersion);
+          });
+        });
+      }, 100);
+
     } catch (err) {
       console.error("❌ Failed to fetch version history:", err);
       timeline.innerHTML = `
@@ -672,15 +689,6 @@
     alert(
       `Comparing Version ${oldVersion} with Version ${newVersion}\n\nThis feature will show a side-by-side comparison.`
     );
-  }
-  
-  // ========================================
-  // Show Schedules List
-  // ========================================
-  function showSchedulesList() {
-    document.getElementById("versionTimelineContainer").style.display = "none";
-    document.getElementById("versionSchedulesContainer").style.display = "block";
-    document.getElementById("versionEmptyState").style.display = "none";
   }
 
   // ========================================

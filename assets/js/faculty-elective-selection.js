@@ -584,4 +584,14 @@
   function showInfo(message) {
     console.log('ℹ️', message);
     alert('ℹ️ Info: ' + message);
-  }})();
+  }
+
+  // ========================================
+  // Expose functions to global scope for onclick handlers
+  // ========================================
+  window.selectLevel = selectLevel;
+  window.saveElectiveSelection = saveElectiveSelection;
+  window.resetSelection = resetSelection;
+  window.setSelectionMode = setSelectionMode;
+  window.toggleCourseSelection = toggleCourseSelection;
+})();
