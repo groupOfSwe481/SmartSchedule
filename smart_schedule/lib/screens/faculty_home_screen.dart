@@ -1,13 +1,12 @@
-// lib/screens/faculty_home_screen.dart
-
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/user_provider.dart';
 import '../providers/schedule_provider.dart';
-import '../widgets/comment_modal.dart'; // Retained for widget use
+import '../providers/notification_provider.dart';
+import '../widgets/comment_modal.dart';
+import 'notifications_screen.dart';
 
 class FacultyHomeScreen extends StatefulWidget {
-  // FIX: Using super.key
   const FacultyHomeScreen({super.key});
 
   @override
@@ -21,11 +20,24 @@ class _FacultyHomeScreenState extends State<FacultyHomeScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final userProvider = context.read<UserProvider>();
       final scheduleProvider = context.read<ScheduleProvider>();
+      final notificationProvider = context.read<NotificationProvider>();
       final token = userProvider.token;
 
-      // Faculty users should use fetchCommitteeSchedule
-      scheduleProvider.fetchCommitteeSchedule(3, token: token);
+      // Faculty/LoadCommittee users should use fetchCommitteeSchedule
+      scheduleProvider.fetchCommitteeSchedule(4, token: token);
+
+      // Start auto-refresh for notifications
+      if (userProvider.isLoggedIn && userProvider.userId.isNotEmpty) {
+        notificationProvider.startAutoRefresh(userProvider.userId, userProvider.token!);
+        notificationProvider.loadNotificationCount(userProvider.userId, userProvider.token!);
+      }
     });
+  }
+
+  @override
+  void dispose() {
+    context.read<NotificationProvider>().stopAutoRefresh();
+    super.dispose();
   }
 
   void _openCommentModal(Map<String, dynamic> cellInfo) {
@@ -40,7 +52,7 @@ class _FacultyHomeScreenState extends State<FacultyHomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF1e293b),
+      backgroundColor: const Color(0xFFF8FAFC),
       appBar: _buildAppBar(),
       body: RefreshIndicator(
         onRefresh: () async {
@@ -54,12 +66,19 @@ class _FacultyHomeScreenState extends State<FacultyHomeScreen> {
         },
         child: SingleChildScrollView(
           physics: const AlwaysScrollableScrollPhysics(),
-          child: Column(
-            children: [
-              _buildWelcomeHeader(),
-              _buildLevelSelector(),
-              _buildScheduleSection(),
-            ],
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              children: [
+                _buildWelcomeHeader(),
+                const SizedBox(height: 16),
+                _buildLevelSelector(),
+                const SizedBox(height: 16),
+                _buildInfoCard(),
+                const SizedBox(height: 16),
+                _buildScheduleSection(),
+              ],
+            ),
           ),
         ),
       ),
@@ -78,8 +97,8 @@ class _FacultyHomeScreenState extends State<FacultyHomeScreen> {
           ),
         ),
       ),
-      title: Row(
-        children: const [
+      title: const Row(
+        children: [
           Icon(Icons.calendar_month, size: 28),
           SizedBox(width: 12),
           Text(
@@ -89,11 +108,56 @@ class _FacultyHomeScreenState extends State<FacultyHomeScreen> {
         ],
       ),
       actions: [
+        Consumer<NotificationProvider>(
+          builder: (context, notificationProvider, child) {
+            return Stack(
+              children: [
+                IconButton(
+                  icon: const Icon(Icons.notifications_outlined),
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const NotificationsScreen(),
+                      ),
+                    );
+                  },
+                ),
+                if (notificationProvider.unreadCount > 0)
+                  Positioned(
+                    right: 8,
+                    top: 8,
+                    child: Container(
+                      padding: const EdgeInsets.all(4),
+                      decoration: const BoxDecoration(
+                        color: Colors.red,
+                        shape: BoxShape.circle,
+                      ),
+                      constraints: const BoxConstraints(
+                        minWidth: 16,
+                        minHeight: 16,
+                      ),
+                      child: Text(
+                        notificationProvider.unreadCount > 9
+                            ? '9+'
+                            : notificationProvider.unreadCount.toString(),
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 10,
+                          fontWeight: FontWeight.bold,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                  ),
+              ],
+            );
+          },
+        ),
         Consumer<UserProvider>(
           builder: (context, userProvider, child) {
             final userName = userProvider.displayName;
 
-            // FIX: Explicitly setting the type parameter to Object?
             return PopupMenuButton<Object?>(
               icon: CircleAvatar(
                 backgroundColor: Colors.white24,
@@ -106,9 +170,9 @@ class _FacultyHomeScreenState extends State<FacultyHomeScreen> {
                 ),
               ),
               itemBuilder: (BuildContext context) => [
-                PopupMenuItem(
+                const PopupMenuItem(
                   child: Row(
-                    children: const [
+                    children: [
                       Icon(Icons.person, size: 20),
                       SizedBox(width: 12),
                       Text('Profile'),
@@ -117,16 +181,13 @@ class _FacultyHomeScreenState extends State<FacultyHomeScreen> {
                 ),
                 const PopupMenuDivider(),
                 PopupMenuItem(
-                  // FIX: Using async and mounted check for safe navigation
                   onTap: () async {
                     userProvider.logout();
-
-                    // Check if widget is still in the tree before using context
                     if (!mounted) return;
                     Navigator.pushReplacementNamed(context, '/login');
                   },
-                  child: Row(
-                    children: const [
+                  child: const Row(
+                    children: [
                       Icon(Icons.logout, size: 20),
                       SizedBox(width: 12),
                       Text('Logout'),
@@ -145,7 +206,6 @@ class _FacultyHomeScreenState extends State<FacultyHomeScreen> {
     return Consumer<UserProvider>(
       builder: (context, userProvider, child) {
         return Container(
-          margin: const EdgeInsets.all(16),
           padding: const EdgeInsets.all(20),
           decoration: BoxDecoration(
             gradient: const LinearGradient(
@@ -165,48 +225,67 @@ class _FacultyHomeScreenState extends State<FacultyHomeScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                'Welcome back, ${userProvider.displayName}!',
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 24,
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                'Role: ${userProvider.userRole}',
-                style: TextStyle(
-                  color: Colors.white.withOpacity(0.95),
-                  fontSize: 16,
-                ),
+              Row(
+                children: [
+                  const Icon(Icons.school, color: Colors.white, size: 32),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Welcome, ${userProvider.displayName}!',
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 22,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        Text(
+                          'Role: ${userProvider.userRole}',
+                          style: TextStyle(
+                            color: Colors.white.withOpacity(0.9),
+                            fontSize: 14,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
               ),
               const SizedBox(height: 16),
               Container(
-                padding: const EdgeInsets.all(16),
+                padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
                   color: Colors.white.withOpacity(0.15),
                   borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: Colors.white.withOpacity(0.2)),
+                  border: Border.all(
+                    color: Colors.white.withOpacity(0.2),
+                    width: 1,
+                  ),
                 ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: const [
-                    Text(
-                      'Current Semester',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                    Text(
-                      'Fall 2025',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 16,
-                        fontWeight: FontWeight.w700,
-                      ),
+                child: const Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceAround,
+                  children: [
+                    Column(
+                      children: [
+                        Text(
+                          'Current Semester',
+                          style: TextStyle(
+                            color: Colors.white70,
+                            fontSize: 12,
+                          ),
+                        ),
+                        SizedBox(height: 4),
+                        Text(
+                          'Fall 2025',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
                     ),
                   ],
                 ),
@@ -219,210 +298,262 @@ class _FacultyHomeScreenState extends State<FacultyHomeScreen> {
   }
 
   Widget _buildLevelSelector() {
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16),
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.1),
-            blurRadius: 20,
-            offset: const Offset(0, 10),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: const [
-              Icon(Icons.layers, color: Color(0xFF1e293b)),
-              SizedBox(width: 12),
-              Text(
-                'Select Academic Level',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w700,
-                  color: Color(0xFF1e293b),
-                ),
+    return Consumer<ScheduleProvider>(
+      builder: (context, scheduleProvider, child) {
+        return Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(16),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.2),
+                blurRadius: 10,
+                offset: const Offset(0, 4),
               ),
             ],
           ),
-          const SizedBox(height: 16),
-          Consumer2<ScheduleProvider, UserProvider>(
-            builder: (context, scheduleProvider, userProvider, child) {
-              return Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                children: List.generate(6, (index) {
-                  final level = index + 3;
-                  final isSelected = scheduleProvider.currentLevel == level;
-                  return _buildLevelButton(
-                    level,
-                    isSelected,
-                    () {
-                      scheduleProvider.setLevel(level);
-                      scheduleProvider.fetchCommitteeSchedule(
-                        level,
-                        token: userProvider.token,
-                      );
-                    },
-                  );
-                }),
-              );
-            },
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildLevelButton(int level, bool isSelected, VoidCallback onTap) {
-    return InkWell(
-      onTap: onTap,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 300),
-        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
-        decoration: BoxDecoration(
-          gradient: isSelected
-              ? const LinearGradient(
-                  colors: [Color(0xFF6366f1), Color(0xFF8b5cf6)],
-                )
-              : null,
-          color: isSelected ? null : Colors.white,
-          border: Border.all(
-            color: isSelected ? Colors.transparent : const Color(0xFFe2e8f0),
-            width: 2,
-          ),
-          borderRadius: BorderRadius.circular(16),
-          boxShadow: isSelected
-              ? [
-                  BoxShadow(
-                    color: const Color(0xFF6366f1).withOpacity(0.3),
-                    blurRadius: 12,
-                    offset: const Offset(0, 4),
-                  ),
-                ]
-              : null,
-        ),
-        child: Text(
-          'Level $level',
-          style: TextStyle(
-            color: isSelected ? Colors.white : const Color(0xFF1e293b),
-            fontWeight: FontWeight.w600,
-            fontSize: 14,
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildScheduleSection() {
-    return Container(
-      margin: const EdgeInsets.all(16),
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.1),
-            blurRadius: 20,
-            offset: const Offset(0, 10),
-          ),
-        ],
-      ),
-      child: Consumer<ScheduleProvider>(
-        builder: (context, scheduleProvider, child) {
-          return Column(
+          child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Row(
+              const Row(
                 children: [
-                  const Icon(Icons.calendar_today, color: Color(0xFF1e293b)),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Text(
-                      'Academic Schedule - Level ${scheduleProvider.currentLevel}',
-                      style: const TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w700,
-                        color: Color(0xFF1e293b),
-                      ),
+                  Icon(Icons.layers, color: Color(0xFF6366f1), size: 24),
+                  SizedBox(width: 8),
+                  Text(
+                    'Select Academic Level',
+                    style: TextStyle(
+                      color: Color(0xFF1e293b),
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
                     ),
                   ),
                 ],
               ),
               const SizedBox(height: 16),
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFe3f2fd),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Row(
-                  children: const [
-                    Icon(
-                      Icons.info_outline,
-                      color: Color(0xFF1976d2),
-                      size: 20,
-                    ),
-                    SizedBox(width: 12),
-                    Expanded(
-                      child: Text(
-                        'Tip: Click on any course to add your comments as a faculty member.',
-                        style: TextStyle(
-                          color: Color(0xFF1976d2),
-                          fontSize: 13,
+              Consumer<UserProvider>(
+                builder: (context, userProvider, child) {
+                  return Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    children: List.generate(6, (index) {
+                      final level = index + 3;
+                      final isSelected = scheduleProvider.currentLevel == level;
+
+                      return Material(
+                        color: Colors.transparent,
+                        child: InkWell(
+                          onTap: () {
+                            scheduleProvider.fetchCommitteeSchedule(
+                              level,
+                              token: userProvider.token,
+                            );
+                          },
+                          borderRadius: BorderRadius.circular(12),
+                          child: Container(
+                            width: 100,
+                            padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+                            decoration: BoxDecoration(
+                              gradient: isSelected
+                                  ? const LinearGradient(
+                                      colors: [Color(0xFF6366f1), Color(0xFF8b5cf6)],
+                                    )
+                                  : null,
+                              color: isSelected ? null : const Color(0xFFF1F5F9),
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(
+                                color: isSelected ? Colors.transparent : const Color(0xFFE2E8F0),
+                                width: 2,
+                              ),
+                            ),
+                            child: Text(
+                              'Level $level',
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                color: isSelected ? Colors.white : const Color(0xFF64748b),
+                                fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+                                fontSize: 15,
+                              ),
+                            ),
+                          ),
                         ),
-                      ),
-                    ),
-                  ],
-                ),
+                      );
+                    }),
+                  );
+                },
               ),
-              const SizedBox(height: 20),
-              if (scheduleProvider.isLoading)
-                const Center(
-                  child: Padding(
-                    padding: EdgeInsets.all(40),
-                    child: CircularProgressIndicator(),
-                  ),
-                )
-              else if (scheduleProvider.error != null)
-                Center(
-                  child: Padding(
-                    padding: const EdgeInsets.all(40),
-                    child: Column(
-                      children: [
-                        const Icon(
-                          Icons.warning_amber_rounded,
-                          size: 48,
-                          color: Colors.orange,
-                        ),
-                        const SizedBox(height: 16),
-                        Text(
-                          scheduleProvider.error!,
-                          textAlign: TextAlign.center,
-                          style: const TextStyle(color: Colors.grey),
-                        ),
-                      ],
-                    ),
-                  ),
-                )
-              else if (scheduleProvider.currentSchedule != null)
-                _buildScheduleTable(scheduleProvider),
             ],
-          );
-        },
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildInfoCard() {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: const Color(0xFFEEF2FF),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: const Color(0xFFE2E8F0),
+          width: 1,
+        ),
+      ),
+      child: const Row(
+        children: [
+          Icon(Icons.info_outline, color: Color(0xFF6366F1), size: 24),
+          SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              'Tip: Click on any course to add your comments and feedback!',
+              style: TextStyle(
+                color: Color(0xFF4F46E5),
+                fontSize: 14,
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
 
-  Widget _buildScheduleTable(ScheduleProvider scheduleProvider) {
+  Widget _buildScheduleSection() {
+    return Consumer<ScheduleProvider>(
+      builder: (context, scheduleProvider, child) {
+        if (scheduleProvider.isLoading) {
+          return Container(
+            padding: const EdgeInsets.all(40),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: const Center(
+              child: Column(
+                children: [
+                  CircularProgressIndicator(
+                    valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF6366f1)),
+                  ),
+                  SizedBox(height: 16),
+                  Text(
+                    'Loading schedule...',
+                    style: TextStyle(color: Color(0xFF475569)),
+                  ),
+                ],
+              ),
+            ),
+          );
+        }
+
+        if (scheduleProvider.error != null) {
+          return Container(
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: Center(
+              child: Column(
+                children: [
+                  const Icon(Icons.error_outline, color: Colors.red, size: 48),
+                  const SizedBox(height: 12),
+                  Text(
+                    scheduleProvider.error!,
+                    style: const TextStyle(color: Color(0xFF475569)),
+                    textAlign: TextAlign.center,
+                  ),
+                ],
+              ),
+            ),
+          );
+        }
+
+        final schedules = scheduleProvider.schedules;
+        if (schedules.isEmpty) {
+          return Container(
+            padding: const EdgeInsets.all(40),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: const Center(
+              child: Column(
+                children: [
+                  Icon(Icons.calendar_today_outlined, color: Color(0xFF94a3b8), size: 64),
+                  SizedBox(height: 16),
+                  Text(
+                    'No schedule available for this level',
+                    style: TextStyle(color: Color(0xFF475569), fontSize: 16),
+                  ),
+                ],
+              ),
+            ),
+          );
+        }
+
+        return Column(
+          children: schedules.asMap().entries.map((entry) {
+            final index = entry.key;
+            final schedule = entry.value;
+            return Container(
+              margin: EdgeInsets.only(bottom: index < schedules.length - 1 ? 16 : 0),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Row(
+                      children: [
+                        const Icon(Icons.calendar_month, color: Color(0xFF6366f1)),
+                        const SizedBox(width: 8),
+                        Text(
+                          'Level ${scheduleProvider.currentLevel} - ${schedule.section}',
+                          style: const TextStyle(
+                            color: Color(0xFF1e293b),
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const Spacer(),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF10b981),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Text(
+                            'v${schedule.version}',
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const Divider(color: Color(0xFFE2E8F0), height: 1),
+                  SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    child: _buildScheduleTable(schedule),
+                  ),
+                ],
+              ),
+            );
+          }).toList(),
+        );
+      },
+    );
+  }
+
+  Widget _buildScheduleTable(schedule) {
     final days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday'];
-    final timeSlots = [
+    final times = [
       '8:00-8:50',
       '9:00-9:50',
       '10:00-10:50',
@@ -430,142 +561,142 @@ class _FacultyHomeScreenState extends State<FacultyHomeScreen> {
       '12:00-12:50',
       '1:00-1:50',
       '2:00-2:50',
-      '3:00-3:50',
     ];
 
-    final grid = scheduleProvider.currentSchedule?.grid ?? {};
-
-    return SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
-      child: DataTable(
-        headingRowColor: WidgetStateProperty.all(const Color(0xFFe3f2fd)),
-        border: TableBorder.all(color: const Color(0xFFe2e8f0), width: 1),
-        columnSpacing: 8,
-        dataRowMinHeight: 60,
-        dataRowMaxHeight: 80,
-        columns: [
-          const DataColumn(
-            label: Text(
-              'Day/Time',
-              style: TextStyle(fontWeight: FontWeight.bold),
-            ),
-          ),
-          ...timeSlots.map(
-            (slot) => DataColumn(
-              label: Text(
-                slot,
-                style: const TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 11,
-                ),
+    return Padding(
+      padding: const EdgeInsets.all(16),
+      child: Table(
+        border: TableBorder.all(
+          color: const Color(0xFFE2E8F0),
+          width: 1,
+          borderRadius: BorderRadius.circular(8),
+        ),
+        defaultColumnWidth: const FixedColumnWidth(140),
+        children: [
+          TableRow(
+            decoration: const BoxDecoration(
+              gradient: LinearGradient(
+                colors: [Color(0xFF6366f1), Color(0xFF8b5cf6)],
               ),
             ),
-          ),
-        ],
-        rows: days.map((day) {
-          return DataRow(
-            cells: [
-              DataCell(
-                Container(
-                  padding: const EdgeInsets.symmetric(vertical: 8),
-                  child: Text(
-                    day,
-                    style: const TextStyle(fontWeight: FontWeight.bold),
-                  ),
-                ),
-              ),
-              ...timeSlots.map((timeSlot) {
-                final course = grid[day]?[timeSlot];
-                return _buildScheduleCell(
-                  day,
-                  timeSlot,
-                  course,
-                  scheduleProvider.currentLevel,
-                );
-              }),
+            children: [
+              _buildTableHeader('Time'),
+              ...days.map((day) => _buildTableHeader(day)),
             ],
-          );
-        }).toList(),
+          ),
+          ...times.map((time) {
+            return TableRow(
+              children: [
+                _buildTimeCell(time),
+                ...days.map((day) {
+                  final cell = schedule.grid[day]?[time];
+                  return _buildScheduleCell(cell, day, time);
+                }),
+              ],
+            );
+          }),
+        ],
       ),
     );
   }
 
-  DataCell _buildScheduleCell(
-    String day,
-    String timeSlot,
-    dynamic course,
-    int level,
-  ) {
-    if (course == null || (course.isEmpty)) {
-      return const DataCell(
-        Center(
-          child: Text('-', style: TextStyle(color: Colors.grey)),
+  Widget _buildTableHeader(String text) {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      child: Text(
+        text,
+        textAlign: TextAlign.center,
+        style: const TextStyle(
+          color: Colors.white,
+          fontWeight: FontWeight.bold,
+          fontSize: 13,
         ),
-      );
-    }
+      ),
+    );
+  }
 
-    final courseName = course.course;
-    final courseCode = course.code ?? '';
-
-    if (courseName.trim().isEmpty) {
-      return const DataCell(
-        Center(
-          child: Text('-', style: TextStyle(color: Colors.grey)),
+  Widget _buildTimeCell(String time) {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      color: const Color(0xFFF1F5F9),
+      child: Text(
+        time,
+        textAlign: TextAlign.center,
+        style: const TextStyle(
+          color: Color(0xFF1e293b),
+          fontWeight: FontWeight.w600,
+          fontSize: 12,
         ),
-      );
-    }
+      ),
+    );
+  }
 
-    return DataCell(
-      InkWell(
-        onTap: () {
-          _openCommentModal({
-            'courseCode': courseCode,
-            'courseName': courseName,
-            'day': day,
-            'timeSlot': timeSlot,
-            'level': level,
-          });
-        },
-        child: Container(
-          width: 100,
-          padding: const EdgeInsets.all(8),
-          decoration: BoxDecoration(
-            color: const Color(0xFFe3f2fd),
-            borderRadius: BorderRadius.circular(8),
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                courseName,
-                style: const TextStyle(
-                  color: Color(0xFF1976d2),
-                  fontWeight: FontWeight.bold,
-                  fontSize: 11,
-                ),
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-              ),
-              const SizedBox(height: 4),
-              Row(
+  Widget _buildScheduleCell(cell, String day, String time) {
+    final isEmpty = cell == null || cell.isEmpty;
+    final scheduleProvider = context.read<ScheduleProvider>();
+
+    return InkWell(
+      onTap: isEmpty
+          ? null
+          : () {
+              _openCommentModal({
+                'courseCode': cell.code ?? '',
+                'courseName': cell.course ?? '',
+                'day': day,
+                'timeSlot': time,
+                'level': scheduleProvider.currentLevel,
+              });
+            },
+      child: Container(
+        padding: const EdgeInsets.all(8),
+        color: Colors.white,
+        child: isEmpty
+            ? const SizedBox(height: 50)
+            : Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisSize: MainAxisSize.min,
-                children: const [
-                  Icon(
-                    Icons.chat_bubble_outline,
-                    size: 12,
-                    color: Color(0xFF1976d2),
-                  ),
-                  SizedBox(width: 4),
+                children: [
+                  if (cell.code != null)
+                    Text(
+                      cell.code!,
+                      style: const TextStyle(
+                        color: Color(0xFF6366f1),
+                        fontWeight: FontWeight.bold,
+                        fontSize: 12,
+                      ),
+                    ),
+                  const SizedBox(height: 4),
                   Text(
-                    'Comment',
-                    style: TextStyle(color: Color(0xFF1976d2), fontSize: 10),
+                    cell.course,
+                    style: const TextStyle(
+                      color: Color(0xFF1e293b),
+                      fontSize: 11,
+                    ),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
                   ),
+                  if (cell.location != null) ...[
+                    const SizedBox(height: 4),
+                    Row(
+                      children: [
+                        const Icon(Icons.location_on, size: 10, color: Color(0xFF64748b)),
+                        const SizedBox(width: 2),
+                        Expanded(
+                          child: Text(
+                            cell.location!,
+                            style: const TextStyle(
+                              color: Color(0xFF64748b),
+                              fontSize: 10,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
                 ],
               ),
-            ],
-          ),
-        ),
       ),
     );
   }

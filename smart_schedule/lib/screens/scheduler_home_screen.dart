@@ -584,17 +584,11 @@ class _SchedulerHomeScreenState extends State<SchedulerHomeScreen> {
     );
   }
 
-@override
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFF1e293b),
-      appBar: AppBar(
-        title: const Text('Scheduler Dashboard'),
-        backgroundColor: const Color(0xFF1e293b),
-        actions: [
-          _buildMenuButton(context),
-        ],
-      ),
+      appBar: _buildAppBar(),
       body: SingleChildScrollView(
         child: Column(
           children: [
@@ -607,105 +601,150 @@ class _SchedulerHomeScreenState extends State<SchedulerHomeScreen> {
     );
   }
 
-  Widget _buildMenuButton(BuildContext context) {
-    final userProvider = context.read<UserProvider>();
-    final userName = userProvider.displayName;
-
-    return PopupMenuButton<String>(
-      icon: CircleAvatar(
-        backgroundColor: Colors.white24,
-        child: Text(
-          userName.isNotEmpty ? userName[0].toUpperCase() : 'S',
-          style: const TextStyle(
-            color: Colors.white,
-            fontWeight: FontWeight.bold,
+  PreferredSizeWidget _buildAppBar() {
+    return AppBar(
+      elevation: 0,
+      flexibleSpace: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [Color(0xFF6366f1), Color(0xFF8b5cf6)],
           ),
         ),
       ),
-      onSelected: (value) {
-        if (value == 'logout') {
-          userProvider.logout();
-          Navigator.pushReplacementNamed(context, '/login');
-        } else {
-          Navigator.pushNamed(context, value);
-        }
-      },
-      itemBuilder: (BuildContext context) => [
-        const PopupMenuItem(
-          value: '/irregular-students',
-          child: Row(
-            children: [
-              Icon(Icons.school_outlined, size: 20),
-              SizedBox(width: 12),
-              Text('Irregular Students'),
-            ],
+      title: const Row(
+        children: [
+          Icon(Icons.schedule, size: 28),
+          SizedBox(width: 12),
+          Text(
+            'SmartSchedule - Scheduler',
+            style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800),
           ),
-        ),
-        const PopupMenuDivider(),
-        const PopupMenuItem(
-          value: '/section-management',
-          child: Row(
-            children: [
-              Icon(Icons.folder_outlined, size: 20),
-              SizedBox(width: 12),
-              Text('Section Management'),
-            ],
-          ),
-        ),
-        const PopupMenuDivider(),
-        const PopupMenuItem(
-          value: '/student-management',
-          child: Row(
-            children: [
-              Icon(Icons.groups_outlined, size: 20),
-              SizedBox(width: 12),
-              Text('Student Management'),
-            ],
-          ),
-        ),
-        const PopupMenuDivider(),
-        const PopupMenuItem(
-          value: '/comments-management',
-          child: Row(
-            children: [
-              Icon(Icons.chat_bubble_outline, size: 20),
-              SizedBox(width: 12),
-              Text('Comments Management'),
-            ],
-          ),
-        ),
-        const PopupMenuDivider(),
-        const PopupMenuItem(
-          value: '/version-control',
-          child: Row(
-            children: [
-              Icon(Icons.history, size: 20),
-              SizedBox(width: 12),
-              Text('Version Control'),
-            ],
-          ),
-        ),
-        const PopupMenuDivider(),
-        const PopupMenuItem(
-          value: '/rules-management',
-          child: Row(
-            children: [
-              Icon(Icons.rule, size: 20),
-              SizedBox(width: 12),
-              Text('Rules Management'),
-            ],
-          ),
-        ),
-        const PopupMenuDivider(),
-        const PopupMenuItem(
-          value: 'logout',
-          child: Row(
-            children: [
-              Icon(Icons.logout, size: 20, color: Colors.red),
-              SizedBox(width: 12),
-              Text('Logout', style: TextStyle(color: Colors.red)),
-            ],
-          ),
+        ],
+      ),
+      actions: [
+        Consumer<UserProvider>(
+          builder: (context, userProvider, child) {
+            final userName = userProvider.displayName;
+
+            return PopupMenuButton<Object?>(
+              icon: CircleAvatar(
+                backgroundColor: Colors.white24,
+                child: Text(
+                  userName.isNotEmpty ? userName[0].toUpperCase() : 'S',
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+              itemBuilder: (BuildContext context) => [
+                const PopupMenuItem(
+                  child: Row(
+                    children: [
+                      Icon(Icons.person, size: 20),
+                      SizedBox(width: 12),
+                      Text('Profile'),
+                    ],
+                  ),
+                ),
+                const PopupMenuDivider(),
+                PopupMenuItem(
+                  onTap: () {
+                    Navigator.pushNamed(context, '/irregular-students');
+                  },
+                  child: const Row(
+                    children: [
+                      Icon(Icons.school_outlined, size: 20),
+                      SizedBox(width: 12),
+                      Text('Irregular Students'),
+                    ],
+                  ),
+                ),
+                const PopupMenuDivider(),
+                PopupMenuItem(
+                  onTap: () {
+                    Navigator.pushNamed(context, '/section-management');
+                  },
+                  child: const Row(
+                    children: [
+                      Icon(Icons.folder_outlined, size: 20),
+                      SizedBox(width: 12),
+                      Text('Section Management'),
+                    ],
+                  ),
+                ),
+                const PopupMenuDivider(),
+                PopupMenuItem(
+                  onTap: () {
+                    Navigator.pushNamed(context, '/student-management');
+                  },
+                  child: const Row(
+                    children: [
+                      Icon(Icons.groups_outlined, size: 20),
+                      SizedBox(width: 12),
+                      Text('Student Management'),
+                    ],
+                  ),
+                ),
+                const PopupMenuDivider(),
+                PopupMenuItem(
+                  onTap: () {
+                    Navigator.pushNamed(context, '/comments-management');
+                  },
+                  child: const Row(
+                    children: [
+                      Icon(Icons.chat_bubble_outline, size: 20),
+                      SizedBox(width: 12),
+                      Text('Comments Management'),
+                    ],
+                  ),
+                ),
+                const PopupMenuDivider(),
+                PopupMenuItem(
+                  onTap: () {
+                    Navigator.pushNamed(context, '/version-control');
+                  },
+                  child: const Row(
+                    children: [
+                      Icon(Icons.history, size: 20),
+                      SizedBox(width: 12),
+                      Text('Version Control'),
+                    ],
+                  ),
+                ),
+                const PopupMenuDivider(),
+                PopupMenuItem(
+                  onTap: () {
+                    Navigator.pushNamed(context, '/rules-management');
+                  },
+                  child: const Row(
+                    children: [
+                      Icon(Icons.rule, size: 20),
+                      SizedBox(width: 12),
+                      Text('Rules Management'),
+                    ],
+                  ),
+                ),
+                const PopupMenuDivider(),
+                PopupMenuItem(
+                  onTap: () async {
+                    userProvider.logout();
+                    if (!mounted) return;
+                    Navigator.pushReplacementNamed(context, '/login');
+                  },
+                  child: const Row(
+                    children: [
+                      Icon(Icons.logout, size: 20),
+                      SizedBox(width: 12),
+                      Text('Logout'),
+                    ],
+                  ),
+                ),
+              ],
+            );
+          },
         ),
       ],
     );

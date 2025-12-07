@@ -95,61 +95,7 @@ class ScheduleService {
     }
   }
 
-  static Future<Map<String, dynamic>> forgotPassword({
-    required String email,
-  }) async {
-    try {
-      final response = await http
-          .post(
-            Uri.parse('${ApiConfig.baseUrl}/api/auth/forgot-password'),
-            headers: {'Content-Type': 'application/json'},
-            body: jsonEncode({'Email': email}),
-          )
-          .timeout(const Duration(seconds: 10));
-
-      if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
-        return {'success': true, 'message': data['message']};
-      } else {
-        final data = jsonDecode(response.body);
-        return {'success': false, 'message': data['message'] ?? 'Failed to send reset code'};
-      }
-    } catch (e) {
-      return {'success': false, 'message': _getErrorMessage(e)};
-    }
-  }
-
-  static Future<Map<String, dynamic>> resetPassword({
-    required String email,
-    required String resetCode,
-    required String newPassword,
-  }) async {
-    try {
-      final response = await http
-          .post(
-            Uri.parse('${ApiConfig.baseUrl}/api/auth/reset-password'),
-            headers: {'Content-Type': 'application/json'},
-            body: jsonEncode({
-              'Email': email,
-              'resetCode': resetCode,
-              'newPassword': newPassword,
-            }),
-          )
-          .timeout(const Duration(seconds: 10));
-
-      if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
-        return {'success': true, 'message': data['message']};
-      } else {
-        final data = jsonDecode(response.body);
-        return {'success': false, 'message': data['message'] ?? 'Failed to reset password'};
-      }
-    } catch (e) {
-      return {'success': false, 'message': _getErrorMessage(e)};
-    }
-  }
-
-  // ================= SCHEDULES =================
+  // Student Schedules (Version 2+, Published only)
   static Future<Map<String, dynamic>> getStudentScheduleByLevel(int level) async {
     try {
       final response = await http.get(
@@ -159,19 +105,24 @@ class ScheduleService {
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
         return {'success': true, 'schedules': data['schedules'], 'level': data['level']};
-      } else {
+      } else if (response.statusCode == 404) {
         final data = jsonDecode(response.body);
         return {'success': false, 'message': data['message'] ?? 'No schedules found'};
+      } else {
+        return {'success': false, 'message': 'Failed to load schedule'};
       }
     } catch (e) {
       return {'success': false, 'message': _getErrorMessage(e)};
     }
   }
 
+  // Committee Schedules (Version 1+, All drafts and published)
   static Future<Map<String, dynamic>> getCommitteeScheduleByLevel(int level, {String? token}) async {
     try {
       final headers = <String, String>{};
-      if (token != null) headers['Authorization'] = 'Bearer $token';
+      if (token != null) {
+        headers['Authorization'] = 'Bearer $token';
+      }
 
       final response = await http.get(
         Uri.parse('${ApiConfig.baseUrl}/api/committee-schedules/$level'),
@@ -187,19 +138,24 @@ class ScheduleService {
           'count': data['count'],
           'level': data['level']
         };
-      } else {
+      } else if (response.statusCode == 404) {
         final data = jsonDecode(response.body);
         return {'success': false, 'message': data['message'] ?? 'No schedules found'};
+      } else {
+        return {'success': false, 'message': 'Failed to load schedule'};
       }
     } catch (e) {
       return {'success': false, 'message': _getErrorMessage(e)};
     }
   }
 
+  // Get schedules for a level (for scheduler/load committee with draft and published)
   static Future<Map<String, dynamic>> getSchedulesByLevel(int level, {String? token}) async {
     try {
       final headers = <String, String>{};
-      if (token != null) headers['Authorization'] = 'Bearer $token';
+      if (token != null) {
+        headers['Authorization'] = 'Bearer $token';
+      }
 
       final response = await http.get(
         Uri.parse('${ApiConfig.baseUrl}/api/schedule/level/$level'),
@@ -217,6 +173,7 @@ class ScheduleService {
     }
   }
 
+  // Generate schedule using Gemini AI
   static Future<Map<String, dynamic>> generateSchedule(int level, {required String token}) async {
     try {
       final response = await http.post(
@@ -226,7 +183,7 @@ class ScheduleService {
           'Authorization': 'Bearer $token',
         },
         body: jsonEncode({'level': level}),
-      ).timeout(const Duration(seconds: 120));
+      ).timeout(const Duration(seconds: 120)); // Longer timeout for AI generation
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
@@ -240,6 +197,7 @@ class ScheduleService {
     }
   }
 
+  // Update schedule grid
   static Future<Map<String, dynamic>> updateSchedule({
     required String scheduleId,
     required Map<String, dynamic> grid,
@@ -272,6 +230,7 @@ class ScheduleService {
     }
   }
 
+  // Publish schedule
   static Future<Map<String, dynamic>> publishSchedule({
     required String scheduleId,
     required String token,
@@ -302,6 +261,35 @@ class ScheduleService {
     }
   }
 
+  // Get schedule version history
+  static Future<Map<String, dynamic>> getScheduleHistory({
+    required String scheduleId,
+    String? token,
+  }) async {
+    try {
+      final headers = <String, String>{};
+      if (token != null) {
+        headers['Authorization'] = 'Bearer $token';
+      }
+
+      final response = await http.get(
+        Uri.parse('${ApiConfig.baseUrl}/api/schedule/history/$scheduleId'),
+        headers: headers,
+      ).timeout(const Duration(seconds: 10));
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        return {'success': true, 'history': data['history']};
+      } else {
+        final data = jsonDecode(response.body);
+        return {'success': false, 'message': data['error'] ?? 'Failed to load history'};
+      }
+    } catch (e) {
+      return {'success': false, 'message': _getErrorMessage(e)};
+    }
+  }
+
+  // Restore schedule to a previous version
   static Future<Map<String, dynamic>> restoreScheduleVersion({
     required String scheduleId,
     required int version,
@@ -333,31 +321,6 @@ class ScheduleService {
     }
   }
 
-  static Future<Map<String, dynamic>> getScheduleHistory({
-    required String scheduleId,
-    String? token,
-  }) async {
-    try {
-      final headers = <String, String>{};
-      if (token != null) headers['Authorization'] = 'Bearer $token';
-
-      final response = await http
-          .get(Uri.parse('${ApiConfig.baseUrl}/api/schedule/history/$scheduleId'), headers: headers)
-          .timeout(const Duration(seconds: 10));
-
-      if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
-        return {'success': true, 'history': data['history']};
-      } else {
-        final data = jsonDecode(response.body);
-        return {'success': false, 'message': data['error'] ?? 'Failed to load history'};
-      }
-    } catch (e) {
-      return {'success': false, 'message': _getErrorMessage(e)};
-    }
-  }
-
-  // ================= COMMENTS =================
   static Future<Map<String, dynamic>> submitFacultyComment({
     required String token,
     required Map<String, dynamic> commentData,
@@ -374,7 +337,8 @@ class ScheduleService {
 
       if (response.statusCode == 201 || response.statusCode == 200) {
         final data = jsonDecode(response.body);
-        return {'success': true, 'comment': data['comment']};
+        // Backend returns 'data' field, not 'comment'
+        return {'success': true, 'comment': data['data']};
       } else {
         final data = jsonDecode(response.body);
         return {'success': false, 'message': data['error'] ?? 'Failed'};
@@ -390,7 +354,7 @@ class ScheduleService {
   }) async {
     try {
       final response = await http.post(
-        Uri.parse('${ApiConfig.baseUrl}/api/comments/student'),
+        Uri.parse('${ApiConfig.baseUrl}/api/comments'),
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer $token',
@@ -400,7 +364,8 @@ class ScheduleService {
 
       if (response.statusCode == 201 || response.statusCode == 200) {
         final data = jsonDecode(response.body);
-        return {'success': true, 'comment': data['comment']};
+        // Backend returns 'data' field, not 'comment'
+        return {'success': true, 'comment': data['data']};
       } else {
         final data = jsonDecode(response.body);
         return {'success': false, 'message': data['error'] ?? 'Failed'};
@@ -517,6 +482,85 @@ class ScheduleService {
       } else {
         final data = jsonDecode(response.body);
         return {'success': false, 'message': data['error'] ?? 'Failed to delete rule'};
+      }
+    } catch (e) {
+      return {'success': false, 'message': _getErrorMessage(e)};
+    }
+  }
+
+  // ====================== NOTIFICATIONS ======================
+
+  /// Get notifications for a user
+  static Future<Map<String, dynamic>> getNotifications({
+    required String userId,
+    required String token,
+  }) async {
+    try {
+      final response = await http.get(
+        Uri.parse('${ApiConfig.baseUrl}/api/notifications/user/$userId'),
+        headers: {
+          'Authorization': 'Bearer $token',
+        },
+      ).timeout(const Duration(seconds: 10));
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        return {'success': true, 'notifications': data['data'] ?? []};
+      } else {
+        final data = jsonDecode(response.body);
+        return {'success': false, 'message': data['error'] ?? 'Failed to load notifications'};
+      }
+    } catch (e) {
+      return {'success': false, 'message': _getErrorMessage(e)};
+    }
+  }
+
+  /// Get unread notification count
+  static Future<Map<String, dynamic>> getNotificationCount({
+    required String userId,
+    required String token,
+  }) async {
+    try {
+      final response = await http.get(
+        Uri.parse('${ApiConfig.baseUrl}/api/notifications/count/$userId'),
+        headers: {
+          'Authorization': 'Bearer $token',
+        },
+      ).timeout(const Duration(seconds: 10));
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        return {'success': true, 'count': data['count']};
+      } else {
+        final data = jsonDecode(response.body);
+        return {'success': false, 'message': data['error'] ?? 'Failed to load count'};
+      }
+    } catch (e) {
+      return {'success': false, 'message': _getErrorMessage(e)};
+    }
+  }
+
+  /// Mark all notifications as read
+  static Future<Map<String, dynamic>> markNotificationsAsRead({
+    required String userId,
+    required String token,
+  }) async {
+    try {
+      final response = await http.post(
+        Uri.parse('${ApiConfig.baseUrl}/api/notifications/mark-read'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+        body: jsonEncode({'userId': userId}),
+      ).timeout(const Duration(seconds: 10));
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        return {'success': true, 'message': data['message']};
+      } else {
+        final data = jsonDecode(response.body);
+        return {'success': false, 'message': data['error'] ?? 'Failed to mark as read'};
       }
     } catch (e) {
       return {'success': false, 'message': _getErrorMessage(e)};

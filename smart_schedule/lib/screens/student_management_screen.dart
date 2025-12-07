@@ -295,11 +295,11 @@ class _StudentManagementScreenState extends State<StudentManagementScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _buildSection3CurrentData(studentProvider),
-                const SizedBox(height: 24),
                 _buildSection1LevelCounts(),
                 const SizedBox(height: 24),
                 _buildSection2CourseCounts(),
+                const SizedBox(height: 24),
+                _buildSection3CurrentData(studentProvider),
               ],
             ),
           );
@@ -747,24 +747,12 @@ class _StudentManagementScreenState extends State<StudentManagementScreen> {
               children: [
                 Icon(Icons.table_chart, color: Color(0xFF06b6d4)),
                 SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Current Student Data Summary',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      SizedBox(height: 4),
-                      Text(
-                        'View existing student counts before making changes',
-                        style: TextStyle(color: Colors.white70, fontSize: 13),
-                      ),
-                    ],
+                Text(
+                  'Current Student Data',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
                   ),
                 ),
               ],
@@ -780,27 +768,10 @@ class _StudentManagementScreenState extends State<StudentManagementScreen> {
             else if (studentProvider.levels.isEmpty)
               Container(
                 padding: const EdgeInsets.all(32),
-                decoration: BoxDecoration(
-                  color: Colors.orange.withOpacity(0.1),
-                  border: Border.all(color: Colors.orange),
-                  borderRadius: BorderRadius.circular(8),
-                ),
                 child: const Center(
-                  child: Column(
-                    children: [
-                      Icon(Icons.info_outline, color: Colors.orange, size: 48),
-                      SizedBox(height: 12),
-                      Text(
-                        'No student data available yet',
-                        style: TextStyle(color: Colors.orange, fontSize: 16, fontWeight: FontWeight.bold),
-                      ),
-                      SizedBox(height: 8),
-                      Text(
-                        'Use the forms below to add student counts',
-                        style: TextStyle(color: Colors.white70, fontSize: 14),
-                        textAlign: TextAlign.center,
-                      ),
-                    ],
+                  child: Text(
+                    'No data available',
+                    style: TextStyle(color: Colors.white54, fontSize: 16),
                   ),
                 ),
               )
