@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SmartSchedule - Login & Register</title>
+    <title>SmartSchedule - Login</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
     <style>
@@ -79,13 +79,14 @@
             letter-spacing: 0.5rem;
         }
 
-        .nav-tabs .nav-link {
+        .forgot-password-link {
             color: #667eea;
+            text-decoration: none;
+            font-size: 0.9rem;
         }
 
-        .nav-tabs .nav-link.active {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
+        .forgot-password-link:hover {
+            text-decoration: underline;
         }
     </style>
 </head>
@@ -103,128 +104,123 @@
                 <div class="col-md-7 auth-right p-4 p-md-5">
                     <div id="alert-container"></div>
 
-                    <!-- Tabs for Login/Register -->
-                    <ul class="nav nav-tabs mb-4" id="authTabs" role="tablist">
-                        <li class="nav-item" role="presentation">
-                            <button class="nav-link active" id="login-tab" data-bs-toggle="tab" data-bs-target="#login-content" type="button">
-                                Login
-                            </button>
-                        </li>
-                        <li class="nav-item" role="presentation">
-                            <button class="nav-link" id="register-tab" data-bs-toggle="tab" data-bs-target="#register-content" type="button">
-                                Register
-                            </button>
-                        </li>
-                    </ul>
-
-                    <div class="tab-content" id="authTabContent">
-                        <!-- LOGIN TAB -->
-                        <div class="tab-pane fade show active" id="login-content">
-                            <!-- Step 1: Email/Password Login -->
-                            <div id="login-step" class="auth-step active">
-                                <h4 class="fw-bold mb-4">Welcome Back!</h4>
-                                <form id="login-form">
-                                    <div class="mb-3">
-                                        <label class="form-label">Email Address</label>
-                                        <div class="input-group">
-                                            <span class="input-group-text"><i class="bi bi-envelope"></i></span>
-                                            <input type="email" class="form-control" placeholder="Enter your email" id="login-email" required>
-                                        </div>
-                                    </div>
-                                    <div class="mb-3">
-                                        <label class="form-label">Password</label>
-                                        <div class="input-group password-wrapper">
-                                            <span class="input-group-text"><i class="bi bi-lock"></i></span>
-                                            <input type="password" class="form-control" placeholder="Enter your password" id="login-password" required>
-                                            <span class="password-toggle" id="toggle-login-password">
-                                                <i class="bi bi-eye"></i>
-                                            </span>
-                                        </div>
-                                    </div>
-                                    <button type="submit" class="btn btn-primary w-100 mb-3" id="login-btn">
-                                        <i class="bi bi-box-arrow-in-right me-2"></i>Login
-                                    </button>
-                                </form>
+                    <!-- Step 1: Email/Password Login -->
+                    <div id="login-step" class="auth-step active">
+                        <h4 class="fw-bold mb-4">Welcome Back!</h4>
+                        <form id="login-form">
+                            <div class="mb-3">
+                                <label class="form-label">Email Address</label>
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="bi bi-envelope"></i></span>
+                                    <input type="email" class="form-control" placeholder="Enter your email" id="login-email" required>
+                                </div>
                             </div>
-
-                            <!-- Step 2: Email Verification -->
-                            <div id="verification-step" class="auth-step">
-                                <h4 class="fw-bold mb-4">Check Your Email</h4>
-                                <p class="text-muted mb-4">We've sent a 6-digit verification code to your email address.</p>
-                                <form id="verification-form">
-                                    <div class="mb-3">
-                                        <label class="form-label">Verification Code</label>
-                                        <div class="input-group">
-                                            <span class="input-group-text"><i class="bi bi-shield-check"></i></span>
-                                            <input type="text" class="form-control verification-code-input"
-                                                   placeholder="000000" id="verification-code"
-                                                   maxlength="6" pattern="[0-9]{6}" required>
-                                        </div>
-                                        <div class="form-text">Enter the 6-digit code from your email</div>
-                                    </div>
-                                    <button type="submit" class="btn btn-primary w-100 mb-3" id="verify-btn">
-                                        <i class="bi bi-check-circle me-2"></i>Verify & Login
-                                    </button>
-                                    <button type="button" class="btn btn-outline-secondary w-100" id="back-btn">
-                                        <i class="bi bi-arrow-left me-2"></i>Back to Login
-                                    </button>
-                                </form>
+                            <div class="mb-3">
+                                <label class="form-label">Password</label>
+                                <div class="input-group password-wrapper">
+                                    <span class="input-group-text"><i class="bi bi-lock"></i></span>
+                                    <input type="password" class="form-control" placeholder="Enter your password" id="login-password" required>
+                                    <span class="password-toggle" id="toggle-login-password">
+                                        <i class="bi bi-eye"></i>
+                                    </span>
+                                </div>
                             </div>
-                        </div>
+                            <div class="mb-3 text-end">
+                                <a href="#" class="forgot-password-link" id="show-forgot-password">Forgot Password?</a>
+                            </div>
+                            <button type="submit" class="btn btn-primary w-100 mb-3" id="login-btn">
+                                <i class="bi bi-box-arrow-in-right me-2"></i>Login
+                            </button>
+                        </form>
+                    </div>
 
-                        <!-- REGISTER TAB -->
-                        <div class="tab-pane fade" id="register-content">
-                            <h4 class="fw-bold mb-4">Create Account</h4>
-                            <form id="register-form">
-                                <div class="mb-3">
-                                    <label class="form-label">First Name</label>
-                                    <div class="input-group">
-                                        <span class="input-group-text"><i class="bi bi-person"></i></span>
-                                        <input type="text" class="form-control" placeholder="First name" id="first-name" required>
-                                    </div>
+                    <!-- Step 2: Email Verification -->
+                    <div id="verification-step" class="auth-step">
+                        <h4 class="fw-bold mb-4">Check Your Email</h4>
+                        <p class="text-muted mb-4">We've sent a 6-digit verification code to your email address.</p>
+                        <form id="verification-form">
+                            <div class="mb-3">
+                                <label class="form-label">Verification Code</label>
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="bi bi-shield-check"></i></span>
+                                    <input type="text" class="form-control verification-code-input"
+                                           placeholder="000000" id="verification-code"
+                                           maxlength="6" pattern="[0-9]{6}" required>
                                 </div>
-                                <div class="mb-3">
-                                    <label class="form-label">Last Name</label>
-                                    <div class="input-group">
-                                        <span class="input-group-text"><i class="bi bi-person"></i></span>
-                                        <input type="text" class="form-control" placeholder="Last name" id="last-name" required>
-                                    </div>
+                                <div class="form-text">Enter the 6-digit code from your email</div>
+                            </div>
+                            <button type="submit" class="btn btn-primary w-100 mb-3" id="verify-btn">
+                                <i class="bi bi-check-circle me-2"></i>Verify & Login
+                            </button>
+                            <button type="button" class="btn btn-outline-secondary w-100" id="back-to-login-btn">
+                                <i class="bi bi-arrow-left me-2"></i>Back to Login
+                            </button>
+                        </form>
+                    </div>
+
+                    <!-- Step 3: Forgot Password -->
+                    <div id="forgot-password-step" class="auth-step">
+                        <h4 class="fw-bold mb-4">Reset Password</h4>
+                        <p class="text-muted mb-4">Enter your email address and we'll send you a reset code.</p>
+                        <form id="forgot-password-form">
+                            <div class="mb-3">
+                                <label class="form-label">Email Address</label>
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="bi bi-envelope"></i></span>
+                                    <input type="email" class="form-control" placeholder="Enter your email" id="forgot-email" required>
                                 </div>
-                                <div class="mb-3">
-                                    <label class="form-label">Email Address</label>
-                                    <div class="input-group">
-                                        <span class="input-group-text"><i class="bi bi-envelope"></i></span>
-                                        <input type="email" class="form-control" placeholder="Enter your email" id="register-email" required>
-                                    </div>
+                            </div>
+                            <button type="submit" class="btn btn-primary w-100 mb-3" id="forgot-btn">
+                                <i class="bi bi-send me-2"></i>Send Reset Code
+                            </button>
+                            <button type="button" class="btn btn-outline-secondary w-100" id="back-from-forgot-btn">
+                                <i class="bi bi-arrow-left me-2"></i>Back to Login
+                            </button>
+                        </form>
+                    </div>
+
+                    <!-- Step 4: Reset Password -->
+                    <div id="reset-password-step" class="auth-step">
+                        <h4 class="fw-bold mb-4">Enter New Password</h4>
+                        <p class="text-muted mb-4">Enter the code we sent to your email and your new password.</p>
+                        <form id="reset-password-form">
+                            <div class="mb-3">
+                                <label class="form-label">Reset Code</label>
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="bi bi-shield-check"></i></span>
+                                    <input type="text" class="form-control verification-code-input"
+                                           placeholder="000000" id="reset-code"
+                                           maxlength="6" pattern="[0-9]{6}" required>
                                 </div>
-                                <div class="mb-3">
-                                    <label class="form-label">Password</label>
-                                    <div class="input-group password-wrapper">
-                                        <span class="input-group-text"><i class="bi bi-lock"></i></span>
-                                        <input type="password" class="form-control" placeholder="Create a password" id="register-password" required>
-                                        <span class="password-toggle" id="toggle-register-password">
-                                            <i class="bi bi-eye"></i>
-                                        </span>
-                                    </div>
-                                    <div class="form-text">Password must be at least 6 characters</div>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">New Password</label>
+                                <div class="input-group password-wrapper">
+                                    <span class="input-group-text"><i class="bi bi-lock"></i></span>
+                                    <input type="password" class="form-control" placeholder="Enter new password" id="new-password" required>
+                                    <span class="password-toggle" id="toggle-new-password">
+                                        <i class="bi bi-eye"></i>
+                                    </span>
                                 </div>
-                                <div class="mb-3">
-                                    <label class="form-label">Role</label>
-                                    <div class="input-group">
-                                        <span class="input-group-text"><i class="bi bi-person-badge"></i></span>
-                                        <select class="form-control" id="role" required>
-                                            <option value="Student">Student</option>
-                                            <option value="Faculty">Faculty</option>
-                                            <option value="LoadCommittee">Load Committee</option>
-                                            <option value="Scheduler">Scheduler</option>
-                                        </select>
-                                    </div>
+                                <div class="form-text">Password must be at least 6 characters</div>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Confirm Password</label>
+                                <div class="input-group password-wrapper">
+                                    <span class="input-group-text"><i class="bi bi-lock"></i></span>
+                                    <input type="password" class="form-control" placeholder="Confirm new password" id="confirm-password" required>
+                                    <span class="password-toggle" id="toggle-confirm-password">
+                                        <i class="bi bi-eye"></i>
+                                    </span>
                                 </div>
-                                <button type="submit" class="btn btn-primary w-100 mb-3" id="register-btn">
-                                    <i class="bi bi-person-plus me-2"></i>Register
-                                </button>
-                            </form>
-                        </div>
+                            </div>
+                            <button type="submit" class="btn btn-primary w-100 mb-3" id="reset-btn">
+                                <i class="bi bi-check-circle me-2"></i>Reset Password
+                            </button>
+                            <button type="button" class="btn btn-outline-secondary w-100" id="back-from-reset-btn">
+                                <i class="bi bi-arrow-left me-2"></i>Back to Login
+                            </button>
+                        </form>
                     </div>
                 </div>
             </div>
@@ -239,23 +235,27 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        // Auto-detect API URL based on environment
+        // 🔧 FIXED: Use full API URL for production Vercel deployment
         const API_URL = (window.location.hostname === 'localhost' ||
                          window.location.hostname === '127.0.0.1' ||
                          window.location.hostname === '')
           ? 'http://localhost:4000/api'  // Local development
-          : '/api';  // Production (Vercel)
+          : 'https://smart-schedule-mhs1.vercel.app/api';  // Production (Vercel)
 
         console.log('🔗 API_URL:', API_URL);
         let currentEmail = '';
         let currentPassword = '';
+        let resetEmail = '';
 
         // Password toggles
         document.getElementById('toggle-login-password').addEventListener('click', function() {
             togglePassword('login-password', this);
         });
-        document.getElementById('toggle-register-password').addEventListener('click', function() {
-            togglePassword('register-password', this);
+        document.getElementById('toggle-new-password').addEventListener('click', function() {
+            togglePassword('new-password', this);
+        });
+        document.getElementById('toggle-confirm-password').addEventListener('click', function() {
+            togglePassword('confirm-password', this);
         });
 
         function togglePassword(inputId, toggleElement) {
@@ -289,14 +289,9 @@
         }
 
         // Step navigation
-        function showVerificationStep() {
-            document.getElementById('login-step').classList.remove('active');
-            document.getElementById('verification-step').classList.add('active');
-        }
-
-        function showLoginStep() {
-            document.getElementById('verification-step').classList.remove('active');
-            document.getElementById('login-step').classList.add('active');
+        function showStep(stepId) {
+            document.querySelectorAll('.auth-step').forEach(step => step.classList.remove('active'));
+            document.getElementById(stepId).classList.add('active');
         }
 
         // Check if email was verified in this session
@@ -323,19 +318,10 @@
 
             const loginBtn = document.getElementById('login-btn');
             loginBtn.disabled = true;
-
-            // Check if already verified in this session
-            if (isEmailVerified(currentEmail)) {
-                loginBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Logging in...';
-                console.log('✅ Email already verified in this session, skipping 2FA');
-                // Skip 2FA - send dummy code to backend or implement direct login
-                // For now, we'll still send to backend but indicate no verification needed
-            } else {
-                loginBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Sending code...';
-            }
+            loginBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Logging in...';
 
             try {
-                const response = await fetch(`${API_URL}/login`, {
+                const response = await fetch(`${API_URL}/auth/login`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ Email: currentEmail, Password: currentPassword })
@@ -345,18 +331,18 @@
 
                 if (response.ok && data.requiresVerification) {
                     showAlert('Verification code sent to your email!', 'success');
-                    showVerificationStep();
+                    showStep('verification-step');
                 } else if (response.ok && data.token) {
                     // Direct login (2FA was disabled or already verified)
                     showAlert('Login successful! Redirecting...', 'success');
-                    markEmailVerified(currentEmail); // Mark as verified for future logins
+                    markEmailVerified(currentEmail);
                     handleSuccessfulLogin(data);
                 } else {
                     showAlert(data.message || 'Login failed. Please check your credentials.', 'danger');
                 }
             } catch (error) {
                 console.error('Login error:', error);
-                showAlert('Connection error. Please check if the backend server is running.', 'danger');
+                showAlert('Connection error. Please check your internet connection.', 'danger');
             } finally {
                 loginBtn.disabled = false;
                 loginBtn.innerHTML = '<i class="bi bi-box-arrow-in-right me-2"></i>Login';
@@ -374,7 +360,7 @@
             verifyBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Verifying...';
 
             try {
-                const response = await fetch(`${API_URL}/login`, {
+                const response = await fetch(`${API_URL}/auth/login`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
@@ -388,7 +374,7 @@
 
                 if (response.ok && data.token) {
                     showAlert('Login successful! Redirecting...', 'success');
-                    markEmailVerified(currentEmail); // Mark email as verified for this session
+                    markEmailVerified(currentEmail);
                     handleSuccessfulLogin(data);
                 } else {
                     showAlert(data.message || 'Invalid verification code.', 'danger');
@@ -402,57 +388,110 @@
             }
         });
 
-        // Back button
-        document.getElementById('back-btn').addEventListener('click', function() {
-            showLoginStep();
-            document.getElementById('verification-code').value = '';
-        });
-
-        // Register form
-        document.getElementById('register-form').addEventListener('submit', async function(e) {
+        // Forgot password form (Step 3)
+        document.getElementById('forgot-password-form').addEventListener('submit', async function(e) {
             e.preventDefault();
 
-            const firstName = document.getElementById('first-name').value;
-            const lastName = document.getElementById('last-name').value;
-            const email = document.getElementById('register-email').value;
-            const password = document.getElementById('register-password').value;
-            const role = document.getElementById('role').value;
+            resetEmail = document.getElementById('forgot-email').value;
+            const forgotBtn = document.getElementById('forgot-btn');
 
-            const registerBtn = document.getElementById('register-btn');
-            registerBtn.disabled = true;
-            registerBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Registering...';
+            forgotBtn.disabled = true;
+            forgotBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Sending...';
 
             try {
-                const response = await fetch(`${API_URL}/register`, {
+                const response = await fetch(`${API_URL}/auth/forgot-password`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ Email: resetEmail })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    showAlert('Reset code sent to your email!', 'success');
+                    showStep('reset-password-step');
+                } else {
+                    showAlert(data.message || 'Failed to send reset code.', 'danger');
+                }
+            } catch (error) {
+                console.error('Forgot password error:', error);
+                showAlert('Connection error. Please try again.', 'danger');
+            } finally {
+                forgotBtn.disabled = false;
+                forgotBtn.innerHTML = '<i class="bi bi-send me-2"></i>Send Reset Code';
+            }
+        });
+
+        // Reset password form (Step 4)
+        document.getElementById('reset-password-form').addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            const resetCode = document.getElementById('reset-code').value;
+            const newPassword = document.getElementById('new-password').value;
+            const confirmPassword = document.getElementById('confirm-password').value;
+
+            if (newPassword !== confirmPassword) {
+                showAlert('Passwords do not match!', 'danger');
+                return;
+            }
+
+            if (newPassword.length < 6) {
+                showAlert('Password must be at least 6 characters!', 'danger');
+                return;
+            }
+
+            const resetBtn = document.getElementById('reset-btn');
+            resetBtn.disabled = true;
+            resetBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Resetting...';
+
+            try {
+                const response = await fetch(`${API_URL}/auth/reset-password`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
-                        First_Name: firstName,
-                        Last_Name: lastName,
-                        Email: email,
-                        Password: password,
-                        role: role
+                        Email: resetEmail,
+                        resetCode: resetCode,
+                        newPassword: newPassword
                     })
                 });
 
                 const data = await response.json();
 
                 if (response.ok) {
-                    showAlert('Registration successful! Please login.', 'success');
-                    document.getElementById('register-form').reset();
-                    setTimeout(() => {
-                        document.getElementById('login-tab').click();
-                    }, 2000);
+                    showAlert('Password reset successful! Please login with your new password.', 'success');
+                    document.getElementById('reset-password-form').reset();
+                    setTimeout(() => showStep('login-step'), 2000);
                 } else {
-                    showAlert(data.message || 'Registration failed. Please try again.', 'danger');
+                    showAlert(data.message || 'Failed to reset password.', 'danger');
                 }
             } catch (error) {
-                console.error('Registration error:', error);
-                showAlert('Connection error. Please check if the backend server is running.', 'danger');
+                console.error('Reset password error:', error);
+                showAlert('Connection error. Please try again.', 'danger');
             } finally {
-                registerBtn.disabled = false;
-                registerBtn.innerHTML = '<i class="bi bi-person-plus me-2"></i>Register';
+                resetBtn.disabled = false;
+                resetBtn.innerHTML = '<i class="bi bi-check-circle me-2"></i>Reset Password';
             }
+        });
+
+        // Navigation buttons
+        document.getElementById('show-forgot-password').addEventListener('click', function(e) {
+            e.preventDefault();
+            showStep('forgot-password-step');
+        });
+
+        document.getElementById('back-to-login-btn').addEventListener('click', function() {
+            showStep('login-step');
+            document.getElementById('verification-code').value = '';
+        });
+
+        document.getElementById('back-from-forgot-btn').addEventListener('click', function() {
+            showStep('login-step');
+            document.getElementById('forgot-email').value = '';
+        });
+
+        document.getElementById('back-from-reset-btn').addEventListener('click', function() {
+            showStep('login-step');
+            document.getElementById('reset-password-form').reset();
         });
 
         // Handle successful login
@@ -492,6 +531,10 @@
             this.value = this.value.replace(/[^0-9]/g, '');
         });
 
+        document.getElementById('reset-code').addEventListener('input', function(e) {
+            this.value = this.value.replace(/[^0-9]/g, '');
+        });
+
         // Auto-login: Check if user already has a valid session
         function checkExistingSession() {
             // Don't auto-redirect if we just came from another page (prevents redirect loops)
@@ -517,9 +560,9 @@
                     // Redirect to appropriate page based on role
                     const rolePages = {
                         'Scheduler': 'index.html',
-                        'Student': 'StudentHP.html',  // Students go to their own page
+                        'Student': 'StudentHP.html',
                         'Faculty': 'index.html',
-                        'LoadCommittee': 'index.html'  // LoadCommittee also goes to dashboard
+                        'LoadCommittee': 'index.html'
                     };
 
                     const targetPage = rolePages[user.role];
