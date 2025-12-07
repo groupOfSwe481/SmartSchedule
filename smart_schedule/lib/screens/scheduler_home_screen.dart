@@ -5,6 +5,7 @@ import '../providers/schedule_provider.dart';
 import '../providers/irregular_provider.dart';
 import '../services/collaboration_manager.dart';
 import '../data/models.dart';
+import 'scheduler_electives_screen.dart';
 
 class SchedulerHomeScreen extends StatefulWidget {
   const SchedulerHomeScreen({super.key});
@@ -110,7 +111,10 @@ class _SchedulerHomeScreenState extends State<SchedulerHomeScreen> {
     );
 
     if (confirm == true) {
-      final success = await scheduleProvider.generateSchedule(level, token: token);
+      final success = await scheduleProvider.generateSchedule(
+        level,
+        token: token,
+      );
       if (mounted) {
         _showSnackBar(
           success
@@ -141,7 +145,6 @@ class _SchedulerHomeScreenState extends State<SchedulerHomeScreen> {
       _disposeControllers();
       _editControllers = {};
 
-      // Initialize controllers with current schedule data
       final days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday'];
       final timeSlots = [
         '8:00-8:50',
@@ -165,11 +168,8 @@ class _SchedulerHomeScreenState extends State<SchedulerHomeScreen> {
       }
     });
 
-    // Initialize real-time collaboration
     try {
       await collaborationManager.init(schedule.id, userProvider.userData!);
-
-      // Listen for cell updates from other users
       collaborationManager.addListener(_handleCollaborationUpdate);
 
       if (mounted) {
@@ -194,21 +194,17 @@ class _SchedulerHomeScreenState extends State<SchedulerHomeScreen> {
       final cellData = update['cellData'] as Map<String, dynamic>;
       final courseValue = cellData['course'] as String;
 
-      // Parse cellId (format: "day-timeSlot")
       final parts = cellId.split('-');
       if (parts.length == 2) {
         final day = parts[0];
         final timeSlot = parts[1];
 
-        // Update the controller if it exists
         final controller = _editControllers[day]?[timeSlot];
         if (controller != null && controller.text != courseValue) {
-          // Only update if the value is different to avoid cursor jumping
           controller.text = courseValue;
         }
       }
 
-      // Clear the update
       collaborationManager.clearLatestCellUpdate();
     }
   }
@@ -235,7 +231,6 @@ class _SchedulerHomeScreenState extends State<SchedulerHomeScreen> {
       return;
     }
 
-    // Build the updated grid from controllers
     final updatedGrid = <String, Map<String, dynamic>>{};
 
     _editControllers.forEach((day, timeSlots) {
@@ -252,7 +247,6 @@ class _SchedulerHomeScreenState extends State<SchedulerHomeScreen> {
       });
     });
 
-    // Save to backend
     final success = await scheduleProvider.updateSchedule(
       scheduleId: schedule.id,
       grid: updatedGrid,
@@ -268,7 +262,6 @@ class _SchedulerHomeScreenState extends State<SchedulerHomeScreen> {
       );
 
       if (success) {
-        // Disconnect collaboration
         collaborationManager.removeListener(_handleCollaborationUpdate);
         collaborationManager.disconnect();
 
@@ -277,7 +270,6 @@ class _SchedulerHomeScreenState extends State<SchedulerHomeScreen> {
           _disposeControllers();
         });
 
-        // Refresh the schedules
         await scheduleProvider.fetchSchedulerSchedules(
           scheduleProvider.currentLevel,
           token: token,
@@ -377,7 +369,6 @@ class _SchedulerHomeScreenState extends State<SchedulerHomeScreen> {
       return;
     }
 
-    // Show loading dialog
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -405,11 +396,9 @@ class _SchedulerHomeScreenState extends State<SchedulerHomeScreen> {
 
     if (!mounted) return;
 
-    // Close loading dialog
     Navigator.pop(context);
 
     if (success) {
-      // Show impact report dialog
       _showImpactReportDialog(irregularProvider.latestImpactReport!);
     } else {
       _showSnackBar(
@@ -427,7 +416,9 @@ class _SchedulerHomeScreenState extends State<SchedulerHomeScreen> {
           children: [
             Icon(
               report.impactedCount > 0 ? Icons.warning : Icons.check_circle,
-              color: report.impactedCount > 0 ? const Color(0xFFf59e0b) : const Color(0xFF10b981),
+              color: report.impactedCount > 0
+                  ? const Color(0xFFf59e0b)
+                  : const Color(0xFF10b981),
             ),
             const SizedBox(width: 12),
             const Text('Schedule Impact Report'),
@@ -439,7 +430,6 @@ class _SchedulerHomeScreenState extends State<SchedulerHomeScreen> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Summary
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
@@ -478,16 +468,11 @@ class _SchedulerHomeScreenState extends State<SchedulerHomeScreen> {
                   ],
                 ),
               ),
-
-              // Impacted students list
               if (report.impactedStudents.isNotEmpty) ...[
                 const SizedBox(height: 16),
                 const Text(
                   'Impacted Students:',
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 14,
-                  ),
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
                 ),
                 const SizedBox(height: 8),
                 Flexible(
@@ -500,7 +485,8 @@ class _SchedulerHomeScreenState extends State<SchedulerHomeScreen> {
                     child: ListView.separated(
                       shrinkWrap: true,
                       itemCount: report.impactedStudents.length,
-                      separatorBuilder: (context, index) => const Divider(height: 1),
+                      separatorBuilder: (context, index) =>
+                          const Divider(height: 1),
                       itemBuilder: (context, index) {
                         final student = report.impactedStudents[index];
                         return ExpansionTile(
@@ -535,7 +521,10 @@ class _SchedulerHomeScreenState extends State<SchedulerHomeScreen> {
                                   const SizedBox(height: 4),
                                   ...student.conflictingCourses.map((course) {
                                     return Padding(
-                                      padding: const EdgeInsets.only(left: 8, top: 4),
+                                      padding: const EdgeInsets.only(
+                                        left: 8,
+                                        top: 4,
+                                      ),
                                       child: Row(
                                         children: [
                                           const Icon(
@@ -546,7 +535,9 @@ class _SchedulerHomeScreenState extends State<SchedulerHomeScreen> {
                                           const SizedBox(width: 8),
                                           Text(
                                             '${course.code} (Level ${course.level})',
-                                            style: const TextStyle(fontSize: 11),
+                                            style: const TextStyle(
+                                              fontSize: 11,
+                                            ),
                                           ),
                                         ],
                                       ),
@@ -629,16 +620,7 @@ class _SchedulerHomeScreenState extends State<SchedulerHomeScreen> {
             final userName = userProvider.displayName;
 
             return PopupMenuButton<Object?>(
-              icon: CircleAvatar(
-                backgroundColor: Colors.white24,
-                child: Text(
-                  userName.isNotEmpty ? userName[0].toUpperCase() : 'S',
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
+              icon: const Icon(Icons.menu, color: Colors.white, size: 28),
               itemBuilder: (BuildContext context) => [
                 const PopupMenuItem(
                   child: Row(
@@ -646,6 +628,24 @@ class _SchedulerHomeScreenState extends State<SchedulerHomeScreen> {
                       Icon(Icons.person, size: 20),
                       SizedBox(width: 12),
                       Text('Profile'),
+                    ],
+                  ),
+                ),
+                const PopupMenuDivider(),
+                PopupMenuItem(
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const SchedulerElectivesScreen(),
+                      ),
+                    );
+                  },
+                  child: const Row(
+                    children: [
+                      Icon(Icons.bookmark_added_outlined, size: 20),
+                      SizedBox(width: 12),
+                      Text('Elective Selection'),
                     ],
                   ),
                 ),
@@ -785,10 +785,7 @@ class _SchedulerHomeScreenState extends State<SchedulerHomeScreen> {
               const SizedBox(height: 8),
               const Text(
                 'Role: Scheduler',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 16,
-                ),
+                style: TextStyle(color: Colors.white, fontSize: 16),
               ),
               const SizedBox(height: 16),
               Container(
@@ -796,7 +793,9 @@ class _SchedulerHomeScreenState extends State<SchedulerHomeScreen> {
                 decoration: BoxDecoration(
                   color: Colors.white.withValues(alpha: 0.15),
                   borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: Colors.white.withValues(alpha: 0.2)),
+                  border: Border.all(
+                    color: Colors.white.withValues(alpha: 0.2),
+                  ),
                 ),
                 child: const Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -806,10 +805,7 @@ class _SchedulerHomeScreenState extends State<SchedulerHomeScreen> {
                       children: [
                         Text(
                           'Current Semester',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 14,
-                          ),
+                          style: TextStyle(color: Colors.white, fontSize: 14),
                         ),
                         SizedBox(height: 4),
                         Text(
@@ -822,11 +818,7 @@ class _SchedulerHomeScreenState extends State<SchedulerHomeScreen> {
                         ),
                       ],
                     ),
-                    Icon(
-                      Icons.calendar_today,
-                      color: Colors.white,
-                      size: 32,
-                    ),
+                    Icon(Icons.calendar_today, color: Colors.white, size: 32),
                   ],
                 ),
               ),
@@ -876,19 +868,15 @@ class _SchedulerHomeScreenState extends State<SchedulerHomeScreen> {
                 spacing: 8,
                 runSpacing: 8,
                 children: List.generate(6, (index) {
-                  final level = index + 3; // Start from level 3 (3, 4, 5, 6, 7, 8)
+                  final level = index + 3;
                   final isSelected = scheduleProvider.currentLevel == level;
-                  return _buildLevelButton(
-                    level,
-                    isSelected,
-                    () {
-                      scheduleProvider.setLevel(level);
-                      scheduleProvider.fetchSchedulerSchedules(
-                        level,
-                        token: userProvider.token,
-                      );
-                    },
-                  );
+                  return _buildLevelButton(level, isSelected, () {
+                    scheduleProvider.setLevel(level);
+                    scheduleProvider.fetchSchedulerSchedules(
+                      level,
+                      token: userProvider.token,
+                    );
+                  });
                 }),
               );
             },
@@ -975,7 +963,8 @@ class _SchedulerHomeScreenState extends State<SchedulerHomeScreen> {
                   ElevatedButton.icon(
                     onPressed: scheduleProvider.isLoading
                         ? null
-                        : () => _generateSchedule(scheduleProvider.currentLevel),
+                        : () =>
+                              _generateSchedule(scheduleProvider.currentLevel),
                     icon: const Icon(Icons.auto_awesome, size: 18),
                     label: const Text('Generate'),
                     style: ElevatedButton.styleFrom(
@@ -990,33 +979,6 @@ class _SchedulerHomeScreenState extends State<SchedulerHomeScreen> {
                 ],
               ),
               const SizedBox(height: 16),
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFe3f2fd),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: const Row(
-                  children: [
-                    Icon(
-                      Icons.info_outline,
-                      color: Color(0xFF1976d2),
-                      size: 20,
-                    ),
-                    SizedBox(width: 12),
-                    Expanded(
-                      child: Text(
-                        'Tip: Click "Edit" to enter edit mode, make your changes, then click "Save".',
-                        style: TextStyle(
-                          color: Color(0xFF1976d2),
-                          fontSize: 13,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 20),
               if (scheduleProvider.isLoading)
                 const Center(
                   child: Padding(
@@ -1066,11 +1028,7 @@ class _SchedulerHomeScreenState extends State<SchedulerHomeScreen> {
         padding: const EdgeInsets.all(40),
         child: Column(
           children: [
-            const Icon(
-              Icons.calendar_today,
-              size: 64,
-              color: Colors.grey,
-            ),
+            const Icon(Icons.calendar_today, size: 64, color: Colors.grey),
             const SizedBox(height: 16),
             Text(
               'No schedules available for Level $level',
@@ -1103,14 +1061,12 @@ class _SchedulerHomeScreenState extends State<SchedulerHomeScreen> {
   }
 
   Widget _buildSchedulesList(List<Schedule> schedules) {
-    // Ensure selected index is within bounds
     if (_selectedScheduleIndex >= schedules.length) {
       _selectedScheduleIndex = 0;
     }
 
     return Column(
       children: [
-        // Schedule selector tabs
         if (schedules.length > 1)
           Container(
             height: 50,
@@ -1125,7 +1081,10 @@ class _SchedulerHomeScreenState extends State<SchedulerHomeScreen> {
                   onTap: () => setState(() => _selectedScheduleIndex = index),
                   child: Container(
                     margin: const EdgeInsets.only(right: 8),
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 12,
+                    ),
                     decoration: BoxDecoration(
                       color: isSelected
                           ? const Color(0xFF6366f1)
@@ -1168,7 +1127,6 @@ class _SchedulerHomeScreenState extends State<SchedulerHomeScreen> {
               },
             ),
           ),
-        // Selected schedule
         _buildScheduleCard(schedules[_selectedScheduleIndex]),
       ],
     );
@@ -1184,78 +1142,88 @@ class _SchedulerHomeScreenState extends State<SchedulerHomeScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text(
-                    'Level ${schedule.level} - ${schedule.section}',
-                    style: const TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Row(
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 8,
-                          vertical: 4,
-                        ),
-                        decoration: BoxDecoration(
-                          color: schedule.isPublished ? Colors.green : Colors.orange,
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Text(
-                          schedule.status,
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 12,
-                          ),
+                      Text(
+                        'Level ${schedule.level} - ${schedule.section}',
+                        style: const TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
                         ),
                       ),
-                      if (schedule.version > 0) ...[
-                        const SizedBox(width: 8),
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 8,
-                            vertical: 4,
-                          ),
-                          decoration: BoxDecoration(
-                            color: const Color(0xFF6366f1),
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: Text(
-                            'v${schedule.version}',
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 12,
+                      const SizedBox(height: 4),
+                      Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 8,
+                              vertical: 4,
+                            ),
+                            decoration: BoxDecoration(
+                              color: schedule.isPublished
+                                  ? Colors.green
+                                  : Colors.orange,
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Text(
+                              schedule.status,
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 12,
+                              ),
                             ),
                           ),
-                        ),
-                      ],
+                          if (schedule.version > 0) ...[
+                            const SizedBox(width: 8),
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 8,
+                                vertical: 4,
+                              ),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFF6366f1),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: Text(
+                                'v${schedule.version}',
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 12,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ],
+                      ),
                     ],
                   ),
                 ],
               ),
-              // Action buttons
-              Row(
+              const SizedBox(height: 12),
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
                 children: [
                   if (_isEditMode) ...[
-                    // Cancel button
                     TextButton.icon(
                       onPressed: _cancelEditMode,
                       icon: const Icon(Icons.cancel, size: 18),
                       label: const Text('Cancel'),
                       style: TextButton.styleFrom(
                         foregroundColor: Colors.grey.shade700,
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 12,
+                        ),
                       ),
                     ),
-                    const SizedBox(width: 8),
-                    // Save button
                     ElevatedButton.icon(
                       onPressed: () => _saveEditMode(schedule),
                       icon: const Icon(Icons.save, size: 18),
@@ -1263,10 +1231,13 @@ class _SchedulerHomeScreenState extends State<SchedulerHomeScreen> {
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.green,
                         foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 12,
+                        ),
                       ),
                     ),
                   ] else ...[
-                    // Edit button
                     ElevatedButton.icon(
                       onPressed: () => _enterEditMode(schedule),
                       icon: const Icon(Icons.edit, size: 18),
@@ -1274,10 +1245,12 @@ class _SchedulerHomeScreenState extends State<SchedulerHomeScreen> {
                       style: ElevatedButton.styleFrom(
                         backgroundColor: const Color(0xFF6366f1),
                         foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 12,
+                        ),
                       ),
                     ),
-                    // Publish button - show for all schedules
-                    const SizedBox(width: 8),
                     ElevatedButton.icon(
                       onPressed: () => _publishSchedule(schedule),
                       icon: const Icon(Icons.publish, size: 18),
@@ -1285,17 +1258,23 @@ class _SchedulerHomeScreenState extends State<SchedulerHomeScreen> {
                       style: ElevatedButton.styleFrom(
                         backgroundColor: const Color(0xFF10b981),
                         foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 12,
+                        ),
                       ),
                     ),
-                    // Check Impact button - show for all schedules
-                    const SizedBox(width: 8),
                     ElevatedButton.icon(
                       onPressed: () => _checkImpact(schedule),
-                      icon: const Icon(Icons.warning_amber, size: 18),
+                      icon: const Icon(Icons.info_outline, size: 18),
                       label: const Text('Check Impact'),
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFFf59e0b),
+                        backgroundColor: const Color(0xFF3b82f6),
                         foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 12,
+                        ),
                       ),
                     ),
                   ],
@@ -1304,7 +1283,6 @@ class _SchedulerHomeScreenState extends State<SchedulerHomeScreen> {
             ],
           ),
           const SizedBox(height: 16),
-          // Show active collaborators when in edit mode
           if (_isEditMode) _buildActiveUsersWidget(),
           if (_isEditMode) const SizedBox(height: 16),
           _buildScheduleTable(schedule),
@@ -1330,10 +1308,7 @@ class _SchedulerHomeScreenState extends State<SchedulerHomeScreen> {
                 const SizedBox(width: 8),
                 Text(
                   'Offline mode - Changes will sync when reconnected',
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: Colors.orange.shade700,
-                  ),
+                  style: TextStyle(fontSize: 12, color: Colors.orange.shade700),
                 ),
               ],
             ),
@@ -1351,14 +1326,15 @@ class _SchedulerHomeScreenState extends State<SchedulerHomeScreen> {
             ),
             child: Row(
               children: [
-                Icon(Icons.check_circle, size: 16, color: Colors.green.shade700),
+                Icon(
+                  Icons.check_circle,
+                  size: 16,
+                  color: Colors.green.shade700,
+                ),
                 const SizedBox(width: 8),
                 Text(
                   'Real-time collaboration active - You\'re editing alone',
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: Colors.green.shade700,
-                  ),
+                  style: TextStyle(fontSize: 12, color: Colors.green.shade700),
                 ),
               ],
             ),
@@ -1464,9 +1440,7 @@ class _SchedulerHomeScreenState extends State<SchedulerHomeScreen> {
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
       child: DataTable(
-        headingRowColor: WidgetStateProperty.all(
-          const Color(0xFFe3f2fd),
-        ),
+        headingRowColor: WidgetStateProperty.all(const Color(0xFFe3f2fd)),
         border: TableBorder.all(color: const Color(0xFFe2e8f0), width: 1),
         columnSpacing: 8,
         dataRowMinHeight: 60,
@@ -1504,12 +1478,7 @@ class _SchedulerHomeScreenState extends State<SchedulerHomeScreen> {
               ),
               ...timeSlots.map((timeSlot) {
                 final course = grid[day]?[timeSlot];
-                return _buildScheduleCell(
-                  schedule,
-                  day,
-                  timeSlot,
-                  course,
-                );
+                return _buildScheduleCell(schedule, day, timeSlot, course);
               }),
             ],
           );
@@ -1524,7 +1493,6 @@ class _SchedulerHomeScreenState extends State<SchedulerHomeScreen> {
     String timeSlot,
     ScheduleCourse? course,
   ) {
-    // In edit mode, show text input with real-time collaboration
     if (_isEditMode) {
       final controller = _editControllers[day]?[timeSlot];
       if (controller == null) {
@@ -1536,7 +1504,6 @@ class _SchedulerHomeScreenState extends State<SchedulerHomeScreen> {
       return DataCell(
         Consumer<CollaborationManager>(
           builder: (context, collaborationManager, child) {
-            // Check if another user is editing this cell
             final otherUserEditing = collaborationManager.activeUsers
                 .where((u) => u.clientId != collaborationManager.clientId)
                 .any((u) => u.activeCell == cellId);
@@ -1556,8 +1523,10 @@ class _SchedulerHomeScreenState extends State<SchedulerHomeScreen> {
                 textAlign: TextAlign.center,
                 decoration: InputDecoration(
                   border: const OutlineInputBorder(),
-                  contentPadding:
-                      const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 4,
+                    vertical: 8,
+                  ),
                   isDense: true,
                   filled: otherUserEditing,
                   fillColor: otherUserEditing
@@ -1565,11 +1534,9 @@ class _SchedulerHomeScreenState extends State<SchedulerHomeScreen> {
                       : null,
                 ),
                 onTap: () {
-                  // Notify others that we're editing this cell
                   collaborationManager.setActiveCell(cellId);
                 },
                 onChanged: (value) {
-                  // Send real-time updates as user types
                   collaborationManager.updateCell(cellId, {
                     'course': value,
                     'day': day,
@@ -1577,7 +1544,6 @@ class _SchedulerHomeScreenState extends State<SchedulerHomeScreen> {
                   });
                 },
                 onEditingComplete: () {
-                  // Clear active cell when done
                   collaborationManager.clearActiveCell();
                 },
               ),
@@ -1587,7 +1553,6 @@ class _SchedulerHomeScreenState extends State<SchedulerHomeScreen> {
       );
     }
 
-    // In view mode, show course info
     if (course == null || course.isEmpty) {
       return const DataCell(
         Center(
@@ -1632,10 +1597,7 @@ class _SchedulerHomeScreenState extends State<SchedulerHomeScreen> {
               const SizedBox(height: 4),
               Text(
                 course.location!,
-                style: const TextStyle(
-                  fontSize: 10,
-                  color: Colors.grey,
-                ),
+                style: const TextStyle(fontSize: 10, color: Colors.grey),
               ),
             ],
           ],
@@ -1643,5 +1605,4 @@ class _SchedulerHomeScreenState extends State<SchedulerHomeScreen> {
       ),
     );
   }
-
 }

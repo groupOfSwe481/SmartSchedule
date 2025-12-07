@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../providers/user_provider.dart';
 import '../providers/schedule_provider.dart';
 import '../providers/notification_provider.dart';
+import '../providers/elective_provider.dart'; // Ensure this is imported
 import '../widgets/comment_modal.dart';
 import 'notifications_screen.dart';
 
@@ -13,26 +14,54 @@ class StudentHomeScreen extends StatefulWidget {
   State<StudentHomeScreen> createState() => _StudentHomeScreenState();
 }
 
-class _StudentHomeScreenState extends State<StudentHomeScreen> with SingleTickerProviderStateMixin {
+class _StudentHomeScreenState extends State<StudentHomeScreen>
+    with SingleTickerProviderStateMixin {
   late TabController _tabController;
+  // Controller for suggestions to prevent cursor jumping during rebuilds
+  late TextEditingController _suggestionsController;
 
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
+    _suggestionsController = TextEditingController();
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final scheduleProvider = context.read<ScheduleProvider>();
       final notificationProvider = context.read<NotificationProvider>();
       final userProvider = context.read<UserProvider>();
+      final electiveProvider = context.read<ElectiveProvider>();
 
-      // Load student's schedule (Version 2+, Published schedules only)
+      // 1. Load student's schedule (Default Level 4)
       scheduleProvider.fetchStudentSchedule(4);
 
-      // Start auto-refresh for notifications
+      // 2. Start auto-refresh for notifications
       if (userProvider.isLoggedIn && userProvider.userId.isNotEmpty) {
-        notificationProvider.startAutoRefresh(userProvider.userId, userProvider.token!);
-        notificationProvider.loadNotificationCount(userProvider.userId, userProvider.token!);
+        notificationProvider.startAutoRefresh(
+          userProvider.userId,
+          userProvider.token!,
+        );
+        notificationProvider.loadNotificationCount(
+          userProvider.userId,
+          userProvider.token!,
+        );
+      }
+
+      // 3. Load Elective Data
+      String studentId = _extractStudentId(
+        userProvider.userData?['Email'] ??
+            userProvider.userData?['email'] ??
+            '',
+      );
+      if (userProvider.isLoggedIn && studentId != '---') {
+        electiveProvider.loadElectiveData(studentId, userProvider.token!).then((
+          _,
+        ) {
+          // Sync text controller with loaded data once available
+          if (mounted) {
+            _suggestionsController.text = electiveProvider.suggestions;
+          }
+        });
       }
     });
   }
@@ -40,6 +69,7 @@ class _StudentHomeScreenState extends State<StudentHomeScreen> with SingleTicker
   @override
   void dispose() {
     _tabController.dispose();
+    _suggestionsController.dispose();
     context.read<NotificationProvider>().stopAutoRefresh();
     super.dispose();
   }
@@ -73,7 +103,7 @@ class _StudentHomeScreenState extends State<StudentHomeScreen> with SingleTicker
               controller: _tabController,
               children: [
                 _buildScheduleTab(),
-                _buildElectiveTab(),
+                _buildElectiveTab(), // New Logic Here
               ],
             ),
           ),
@@ -96,11 +126,15 @@ class _StudentHomeScreenState extends State<StudentHomeScreen> with SingleTicker
       ),
       title: const Row(
         children: [
-          Icon(Icons.calendar_month, size: 28),
+          Icon(Icons.calendar_month, size: 28, color: Colors.white),
           SizedBox(width: 12),
           Text(
             'SmartSchedule',
-            style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800),
+            style: TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.w800,
+              color: Colors.white,
+            ),
           ),
         ],
       ),
@@ -110,7 +144,10 @@ class _StudentHomeScreenState extends State<StudentHomeScreen> with SingleTicker
             return Stack(
               children: [
                 IconButton(
-                  icon: const Icon(Icons.notifications_outlined),
+                  icon: const Icon(
+                    Icons.notifications_outlined,
+                    color: Colors.white,
+                  ),
                   onPressed: () {
                     Navigator.push(
                       context,
@@ -126,7 +163,7 @@ class _StudentHomeScreenState extends State<StudentHomeScreen> with SingleTicker
                     top: 8,
                     child: Container(
                       padding: const EdgeInsets.all(4),
-                      decoration: BoxDecoration(
+                      decoration: const BoxDecoration(
                         color: Colors.red,
                         shape: BoxShape.circle,
                       ),
@@ -240,7 +277,9 @@ class _StudentHomeScreenState extends State<StudentHomeScreen> with SingleTicker
                           ),
                         ),
                         Text(
-                          userProvider.userData?['Email'] ?? userProvider.userData?['email'] ?? '',
+                          userProvider.userData?['Email'] ??
+                              userProvider.userData?['email'] ??
+                              '',
                           style: TextStyle(
                             color: Colors.white.withOpacity(0.9),
                             fontSize: 14,
@@ -269,14 +308,15 @@ class _StudentHomeScreenState extends State<StudentHomeScreen> with SingleTicker
                       children: [
                         const Text(
                           'Student ID',
-                          style: TextStyle(
-                            color: Colors.white70,
-                            fontSize: 12,
-                          ),
+                          style: TextStyle(color: Colors.white70, fontSize: 12),
                         ),
                         const SizedBox(height: 4),
                         Text(
-                          _extractStudentId(userProvider.userData?['Email'] ?? userProvider.userData?['email'] ?? ''),
+                          _extractStudentId(
+                            userProvider.userData?['Email'] ??
+                                userProvider.userData?['email'] ??
+                                '',
+                          ),
                           style: const TextStyle(
                             color: Colors.white,
                             fontSize: 16,
@@ -285,14 +325,11 @@ class _StudentHomeScreenState extends State<StudentHomeScreen> with SingleTicker
                         ),
                       ],
                     ),
-                    Column(
+                    const Column(
                       children: [
                         Text(
                           'Current Semester',
-                          style: TextStyle(
-                            color: Colors.white70,
-                            fontSize: 12,
-                          ),
+                          style: TextStyle(color: Colors.white70, fontSize: 12),
                         ),
                         SizedBox(height: 4),
                         Text(
@@ -332,23 +369,16 @@ class _StudentHomeScreenState extends State<StudentHomeScreen> with SingleTicker
         ),
         labelColor: Colors.white,
         unselectedLabelColor: const Color(0xFF64748b),
-        labelStyle: const TextStyle(
-          fontWeight: FontWeight.w600,
-          fontSize: 15,
-        ),
+        labelStyle: const TextStyle(fontWeight: FontWeight.w600, fontSize: 15),
         tabs: const [
-          Tab(
-            icon: Icon(Icons.calendar_today, size: 20),
-            text: 'My Schedule',
-          ),
-          Tab(
-            icon: Icon(Icons.edit_note, size: 20),
-            text: 'Elective Form',
-          ),
+          Tab(icon: Icon(Icons.calendar_today, size: 20), text: 'My Schedule'),
+          Tab(icon: Icon(Icons.edit_note, size: 20), text: 'Elective Form'),
         ],
       ),
     );
   }
+
+  // ==================== SCHEDULE TAB LOGIC ====================
 
   Widget _buildScheduleTab() {
     return RefreshIndicator(
@@ -387,7 +417,7 @@ class _StudentHomeScreenState extends State<StudentHomeScreen> with SingleTicker
             borderRadius: BorderRadius.circular(16),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.2),
+                color: Colors.black.withOpacity(0.05),
                 blurRadius: 10,
                 offset: const Offset(0, 4),
               ),
@@ -427,17 +457,25 @@ class _StudentHomeScreenState extends State<StudentHomeScreen> with SingleTicker
                       borderRadius: BorderRadius.circular(12),
                       child: Container(
                         width: 100,
-                        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+                        padding: const EdgeInsets.symmetric(
+                          vertical: 12,
+                          horizontal: 16,
+                        ),
                         decoration: BoxDecoration(
                           gradient: isSelected
                               ? const LinearGradient(
-                                  colors: [Color(0xFF6366f1), Color(0xFF8b5cf6)],
+                                  colors: [
+                                    Color(0xFF6366f1),
+                                    Color(0xFF8b5cf6),
+                                  ],
                                 )
                               : null,
                           color: isSelected ? null : const Color(0xFFF1F5F9),
                           borderRadius: BorderRadius.circular(12),
                           border: Border.all(
-                            color: isSelected ? Colors.transparent : const Color(0xFFE2E8F0),
+                            color: isSelected
+                                ? Colors.transparent
+                                : const Color(0xFFE2E8F0),
                             width: 2,
                           ),
                         ),
@@ -445,8 +483,12 @@ class _StudentHomeScreenState extends State<StudentHomeScreen> with SingleTicker
                           'Level $level',
                           textAlign: TextAlign.center,
                           style: TextStyle(
-                            color: isSelected ? Colors.white : const Color(0xFF64748b),
-                            fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+                            color: isSelected
+                                ? Colors.white
+                                : const Color(0xFF64748b),
+                            fontWeight: isSelected
+                                ? FontWeight.bold
+                                : FontWeight.w500,
                             fontSize: 15,
                           ),
                         ),
@@ -468,10 +510,7 @@ class _StudentHomeScreenState extends State<StudentHomeScreen> with SingleTicker
       decoration: BoxDecoration(
         color: const Color(0xFFEEF2FF),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: const Color(0xFFE2E8F0),
-          width: 1,
-        ),
+        border: Border.all(color: const Color(0xFFE2E8F0), width: 1),
       ),
       child: const Row(
         children: [
@@ -480,10 +519,7 @@ class _StudentHomeScreenState extends State<StudentHomeScreen> with SingleTicker
           Expanded(
             child: Text(
               'Tip: Click on any course to add your comments and feedback!',
-              style: TextStyle(
-                color: Color(0xFF4F46E5),
-                fontSize: 14,
-              ),
+              style: TextStyle(color: Color(0xFF4F46E5), fontSize: 14),
             ),
           ),
         ],
@@ -505,7 +541,9 @@ class _StudentHomeScreenState extends State<StudentHomeScreen> with SingleTicker
               child: Column(
                 children: [
                   CircularProgressIndicator(
-                    valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF6366f1)),
+                    valueColor: AlwaysStoppedAnimation<Color>(
+                      Color(0xFF6366f1),
+                    ),
                   ),
                   SizedBox(height: 16),
                   Text(
@@ -552,7 +590,11 @@ class _StudentHomeScreenState extends State<StudentHomeScreen> with SingleTicker
             child: const Center(
               child: Column(
                 children: [
-                  Icon(Icons.calendar_today_outlined, color: Color(0xFF94a3b8), size: 64),
+                  Icon(
+                    Icons.calendar_today_outlined,
+                    color: Color(0xFF94a3b8),
+                    size: 64,
+                  ),
                   SizedBox(height: 16),
                   Text(
                     'No schedule available for this level',
@@ -569,10 +611,19 @@ class _StudentHomeScreenState extends State<StudentHomeScreen> with SingleTicker
             final index = entry.key;
             final schedule = entry.value;
             return Container(
-              margin: EdgeInsets.only(bottom: index < schedules.length - 1 ? 16 : 0),
+              margin: EdgeInsets.only(
+                bottom: index < schedules.length - 1 ? 16 : 0,
+              ),
               decoration: BoxDecoration(
                 color: Colors.white,
                 borderRadius: BorderRadius.circular(16),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.05),
+                    blurRadius: 10,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -581,7 +632,10 @@ class _StudentHomeScreenState extends State<StudentHomeScreen> with SingleTicker
                     padding: const EdgeInsets.all(16),
                     child: Row(
                       children: [
-                        const Icon(Icons.calendar_month, color: Color(0xFF6366f1)),
+                        const Icon(
+                          Icons.calendar_month,
+                          color: Color(0xFF6366f1),
+                        ),
                         const SizedBox(width: 8),
                         Text(
                           'Level ${scheduleProvider.currentLevel} - ${schedule.section}',
@@ -593,7 +647,10 @@ class _StudentHomeScreenState extends State<StudentHomeScreen> with SingleTicker
                         ),
                         const Spacer(),
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 6,
+                          ),
                           decoration: BoxDecoration(
                             color: const Color(0xFF10b981),
                             borderRadius: BorderRadius.circular(12),
@@ -752,7 +809,11 @@ class _StudentHomeScreenState extends State<StudentHomeScreen> with SingleTicker
                     const SizedBox(height: 4),
                     Row(
                       children: [
-                        const Icon(Icons.location_on, size: 10, color: Color(0xFF64748b)),
+                        const Icon(
+                          Icons.location_on,
+                          size: 10,
+                          color: Color(0xFF64748b),
+                        ),
                         const SizedBox(width: 2),
                         Expanded(
                           child: Text(
@@ -774,87 +835,401 @@ class _StudentHomeScreenState extends State<StudentHomeScreen> with SingleTicker
     );
   }
 
+  // ==================== ELECTIVE TAB LOGIC ====================
+
   Widget _buildElectiveTab() {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            padding: const EdgeInsets.all(20),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(16),
-            ),
+    return Consumer<ElectiveProvider>(
+      builder: (context, provider, child) {
+        final userProvider = context.read<UserProvider>();
+        final studentId = _extractStudentId(
+          userProvider.userData?['Email'] ??
+              userProvider.userData?['email'] ??
+              '',
+        );
+        final token = userProvider.token!;
+
+        if (provider.isLoading) {
+          return const Center(child: CircularProgressIndicator());
+        }
+
+        // State: Form Inactive
+        if (!provider.isFormActive) {
+          return Center(
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                const Row(
-                  children: [
-                    Icon(Icons.edit_note, color: Color(0xFF6366f1), size: 28),
-                    SizedBox(width: 12),
-                    Text(
-                      'Elective Course Form',
-                      style: TextStyle(
-                        color: Color(0xFF1e293b),
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ],
+                const Icon(
+                  Icons.timer_off_outlined,
+                  size: 64,
+                  color: Colors.grey,
                 ),
                 const SizedBox(height: 16),
-                Container(
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFEEF2FF),
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(
-                      color: const Color(0xFFE2E8F0),
-                      width: 1,
-                    ),
-                  ),
-                  child: const Row(
-                    children: [
-                      Icon(Icons.info_outline, color: Color(0xFF6366F1)),
-                      SizedBox(width: 12),
-                      Expanded(
-                        child: Text(
-                          'Submit your elective course preferences here',
-                          style: TextStyle(color: Color(0xFF4F46E5)),
-                        ),
-                      ),
-                    ],
+                const Text(
+                  "Elective Form is currently closed",
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.grey,
                   ),
                 ),
-                const SizedBox(height: 24),
-                const Center(
-                  child: Column(
-                    children: [
-                      Icon(Icons.construction, color: Color(0xFF94a3b8), size: 64),
-                      SizedBox(height: 16),
-                      Text(
-                        'Elective Form Coming Soon',
-                        style: TextStyle(
-                          color: Color(0xFF475569),
-                          fontSize: 18,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                      SizedBox(height: 8),
-                      Text(
-                        'This feature will allow you to select your preferred elective courses',
-                        textAlign: TextAlign.center,
-                        style: TextStyle(color: Color(0xFF64748b)),
-                      ),
-                    ],
+                const SizedBox(height: 8),
+                if (provider.error != null)
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                    child: Text(
+                      provider.error!,
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(color: Colors.red),
+                    ),
                   ),
+                const SizedBox(height: 24),
+                ElevatedButton.icon(
+                  onPressed: () {
+                    provider.loadElectiveData(studentId, token);
+                  },
+                  icon: const Icon(Icons.refresh),
+                  label: const Text('Retry'),
                 ),
               ],
             ),
+          );
+        }
+
+        // State: Active Form
+        return SingleChildScrollView(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // 1. Status Header
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  gradient: const LinearGradient(
+                    colors: [Color(0xFF6366f1), Color(0xFF8b5cf6)],
+                  ),
+                  borderRadius: BorderRadius.circular(12),
+                  boxShadow: [
+                    BoxShadow(
+                      color: const Color(0xFF6366f1).withOpacity(0.3),
+                      blurRadius: 10,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                ),
+                child: Row(
+                  children: [
+                    const Icon(
+                      Icons.access_time_filled,
+                      color: Colors.white,
+                      size: 28,
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            "Elective Registration Open",
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 16,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            "Deadline: ${provider.deadline?.toString().split(' ')[0] ?? 'Soon'}",
+                            style: const TextStyle(
+                              color: Colors.white70,
+                              fontSize: 13,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    if (provider.isSubmitted)
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 10,
+                          vertical: 6,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: const Text(
+                          "SUBMITTED",
+                          style: TextStyle(
+                            color: Colors.green,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 12,
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+
+              const SizedBox(height: 24),
+
+              // 2. Courses Section
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text(
+                    "Available Courses",
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFF1e293b),
+                    ),
+                  ),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 4,
+                    ),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFEEF2FF),
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(
+                        color: const Color(0xFF6366f1).withOpacity(0.3),
+                      ),
+                    ),
+                    child: Text(
+                      '${provider.selectedCourseCodes.length} Selected',
+                      style: const TextStyle(
+                        color: Color(0xFF6366f1),
+                        fontWeight: FontWeight.bold,
+                        fontSize: 12,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+
+              if (provider.availableCourses.isEmpty)
+                const Padding(
+                  padding: EdgeInsets.all(20.0),
+                  child: Center(child: Text("No elective courses found.")),
+                ),
+
+              ListView.builder(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                itemCount: provider.availableCourses.length,
+                itemBuilder: (context, index) {
+                  final course = provider.availableCourses[index];
+                  final isSelected = provider.selectedCourseCodes.contains(
+                    course.code,
+                  );
+
+                  return Container(
+                    margin: const EdgeInsets.only(bottom: 12),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                        color: isSelected
+                            ? const Color(0xFF6366f1)
+                            : const Color(0xFFE2E8F0),
+                        width: isSelected ? 2 : 1,
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.02),
+                          blurRadius: 5,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    child: CheckboxListTile(
+                      activeColor: const Color(0xFF6366f1),
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 8,
+                      ),
+                      title: Text(
+                        "${course.code} - ${course.name}",
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 14,
+                        ),
+                      ),
+                      subtitle: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const SizedBox(height: 4),
+                          Row(
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 6,
+                                  vertical: 2,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: Colors.grey[100],
+                                  borderRadius: BorderRadius.circular(4),
+                                ),
+                                child: Text(
+                                  "${course.creditHours} CH",
+                                  style: TextStyle(
+                                    fontSize: 11,
+                                    color: Colors.grey[800],
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              Text(
+                                course.department,
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: Colors.grey[600],
+                                ),
+                              ),
+                            ],
+                          ),
+                          if (course.description.isNotEmpty) ...[
+                            const SizedBox(height: 6),
+                            Text(
+                              course.description,
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: Colors.grey[500],
+                              ),
+                            ),
+                          ],
+                        ],
+                      ),
+                      value: isSelected,
+                      onChanged: provider.isSubmitted
+                          ? null
+                          : (bool? value) {
+                              provider.toggleCourse(
+                                course.code,
+                                studentId,
+                                token,
+                              );
+                            },
+                    ),
+                  );
+                },
+              ),
+
+              const SizedBox(height: 24),
+              const Text(
+                "Suggestions & Needs",
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: Color(0xFF1e293b),
+                ),
+              ),
+              const SizedBox(height: 8),
+
+              // 3. Suggestions TextField
+              TextField(
+                controller: _suggestionsController,
+                enabled: !provider.isSubmitted,
+                maxLines: 4,
+                style: const TextStyle(fontSize: 14),
+                decoration: InputDecoration(
+                  hintText:
+                      "Example: I need evening classes, or request specific course...",
+                  hintStyle: TextStyle(color: Colors.grey[400]),
+                  filled: true,
+                  fillColor: Colors.white,
+                  contentPadding: const EdgeInsets.all(16),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: const BorderSide(color: Color(0xFF6366f1)),
+                  ),
+                ),
+                onChanged: (val) {
+                  provider.updateSuggestions(val, studentId, token);
+                },
+              ),
+
+              const SizedBox(height: 30),
+
+              // 4. Submit Button
+              SizedBox(
+                width: double.infinity,
+                height: 54,
+                child: ElevatedButton(
+                  onPressed:
+                      (provider.isSubmitted ||
+                          provider.selectedCourseCodes.isEmpty)
+                      ? null
+                      : () async {
+                          bool success = await provider.submitFinal(
+                            studentId,
+                            token,
+                          );
+                          if (success && mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text(
+                                  "Electives Submitted Successfully!",
+                                ),
+                                backgroundColor: Colors.green,
+                              ),
+                            );
+                          }
+                        },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF6366f1),
+                    disabledBackgroundColor: const Color(
+                      0xFF6366f1,
+                    ).withOpacity(0.5),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    elevation: 4,
+                  ),
+                  child: provider.isLoading
+                      ? const SizedBox(
+                          height: 20,
+                          width: 20,
+                          child: CircularProgressIndicator(
+                            color: Colors.white,
+                            strokeWidth: 2,
+                          ),
+                        )
+                      : const Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(Icons.send_rounded, color: Colors.white),
+                            SizedBox(width: 8),
+                            Text(
+                              "Submit Choices",
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white,
+                              ),
+                            ),
+                          ],
+                        ),
+                ),
+              ),
+              const SizedBox(height: 50),
+            ],
           ),
-        ],
-      ),
+        );
+      },
     );
   }
 }

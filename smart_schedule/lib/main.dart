@@ -19,6 +19,8 @@ import 'screens/student_management_screen.dart';
 import 'screens/comments_management_screen.dart';
 import 'screens/version_control_screen.dart';
 import 'screens/rules_management_screen.dart';
+import 'providers/elective_provider.dart';
+import 'providers/faculty_provider.dart';
 
 void main() {
   runApp(const MyApp());
@@ -40,6 +42,8 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => StudentProvider()),
         ChangeNotifierProvider(create: (_) => NotificationProvider()),
         ChangeNotifierProvider(create: (_) => CollaborationManager()),
+        ChangeNotifierProvider(create: (_) => ElectiveProvider()),
+        ChangeNotifierProvider(create: (_) => FacultyProvider()),
       ],
       child: MaterialApp(
         title: 'SmartSchedule',

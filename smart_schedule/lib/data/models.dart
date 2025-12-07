@@ -16,10 +16,7 @@ class ScheduleCourse {
     // Handle string format: "CS101 (Lec)" or "Computer Science"
     if (json is String) {
       final match = RegExp(r'^([A-Z]{2,4}\d{3})').firstMatch(json);
-      return ScheduleCourse(
-        code: match?.group(1),
-        course: json,
-      );
+      return ScheduleCourse(code: match?.group(1), course: json);
     }
 
     // Handle object format: { "code": "CS101", "course": "...", "location": "..." }
@@ -96,8 +93,8 @@ class Schedule {
       createdAt: json['created_at'] != null
           ? DateTime.parse(json['created_at'] as String)
           : (json['createdAt'] != null
-              ? DateTime.parse(json['createdAt'] as String)
-              : DateTime.now()),
+                ? DateTime.parse(json['createdAt'] as String)
+                : DateTime.now()),
     );
   }
 
@@ -253,18 +250,26 @@ class IrregularStudent {
       userId: json['user_id'] as String? ?? '',
       level: json['level'] as int,
       irregulars: json['irregulars'] as bool? ?? true,
-      preventFallingBehindCourses: (json['prevent_falling_behind_courses'] as List<dynamic>?)
-          ?.map((e) => e as String)
-          .toList() ?? [],
-      remainingCoursesFromPastLevels: (json['remaining_courses_from_past_levels'] as List<dynamic>?)
-          ?.map((e) => e as String)
-          .toList() ?? [],
-      coursesTaken: (json['courses_taken'] as List<dynamic>?)
-          ?.map((e) => e as String)
-          .toList() ?? [],
-      userElectiveChoice: (json['user_elective_choice'] as List<dynamic>?)
-          ?.map((e) => e as String)
-          .toList() ?? [],
+      preventFallingBehindCourses:
+          (json['prevent_falling_behind_courses'] as List<dynamic>?)
+              ?.map((e) => e as String)
+              .toList() ??
+          [],
+      remainingCoursesFromPastLevels:
+          (json['remaining_courses_from_past_levels'] as List<dynamic>?)
+              ?.map((e) => e as String)
+              .toList() ??
+          [],
+      coursesTaken:
+          (json['courses_taken'] as List<dynamic>?)
+              ?.map((e) => e as String)
+              .toList() ??
+          [],
+      userElectiveChoice:
+          (json['user_elective_choice'] as List<dynamic>?)
+              ?.map((e) => e as String)
+              .toList() ??
+          [],
     );
   }
 
@@ -297,9 +302,13 @@ class ImpactedStudent {
     return ImpactedStudent(
       studentId: json['studentId'] as String? ?? '',
       level: json['level'] as int? ?? 0,
-      conflictingCourses: (json['conflictingCourses'] as List<dynamic>?)
-          ?.map((e) => ConflictingCourse.fromJson(e as Map<String, dynamic>))
-          .toList() ?? [],
+      conflictingCourses:
+          (json['conflictingCourses'] as List<dynamic>?)
+              ?.map(
+                (e) => ConflictingCourse.fromJson(e as Map<String, dynamic>),
+              )
+              .toList() ??
+          [],
     );
   }
 }
@@ -308,10 +317,7 @@ class ConflictingCourse {
   final String code;
   final int level;
 
-  ConflictingCourse({
-    required this.code,
-    required this.level,
-  });
+  ConflictingCourse({required this.code, required this.level});
 
   factory ConflictingCourse.fromJson(Map<String, dynamic> json) {
     return ConflictingCourse(
@@ -339,9 +345,11 @@ class ImpactReport {
       impactedCount: json['impactedCount'] as int? ?? 0,
       draftScheduleId: json['draftScheduleId'] as String? ?? '',
       draftSection: json['draftSection'] as String? ?? '',
-      impactedStudents: (json['impactedStudents'] as List<dynamic>?)
-          ?.map((e) => ImpactedStudent.fromJson(e as Map<String, dynamic>))
-          .toList() ?? [],
+      impactedStudents:
+          (json['impactedStudents'] as List<dynamic>?)
+              ?.map((e) => ImpactedStudent.fromJson(e as Map<String, dynamic>))
+              .toList() ??
+          [],
     );
   }
 }
@@ -427,13 +435,21 @@ class Course {
       level: json['level'] as int?,
       examDate: json['exam_date'] as String?,
       examTime: json['exam_time'] as String?,
-      prerequisites: (json['prerequisites'] as List<dynamic>?)
-          ?.where((e) => e != null)
-          .map((e) => e as String)
-          .toList() ?? [],
+      prerequisites:
+          (json['prerequisites'] as List<dynamic>?)
+              ?.where((e) => e != null)
+              .map((e) => e as String)
+              .toList() ??
+          [],
       pattern: json['pattern'] != null
           ? CoursePattern.fromJson(json['pattern'] as Map<String, dynamic>)
-          : CoursePattern(type: 'custom', lectureHours: 0, labHours: 0, tutorialHours: 0, totalHours: 0),
+          : CoursePattern(
+              type: 'custom',
+              lectureHours: 0,
+              labHours: 0,
+              tutorialHours: 0,
+              totalHours: 0,
+            ),
       createdAt: json['created_at'] != null
           ? DateTime.parse(json['created_at'] as String)
           : DateTime.now(),
@@ -467,7 +483,11 @@ class SectionTime {
   final String startTime;
   final String endTime;
 
-  SectionTime({required this.day, required this.startTime, required this.endTime});
+  SectionTime({
+    required this.day,
+    required this.startTime,
+    required this.endTime,
+  });
 
   factory SectionTime.fromJson(Map<String, dynamic> json) {
     return SectionTime(
@@ -507,12 +527,16 @@ class Section {
       secNum: json['sec_num'] as String? ?? '',
       courseCode: json['course'] as String? ?? '',
       type: json['type'] as String? ?? '',
-      timeSlot: (json['time_Slot'] as List<dynamic>?)
-          ?.map((e) => e as String)
-          .toList() ?? [],
-      timeSlotDetails: (json['time_slots_detail'] as List<dynamic>?)
-          ?.map((e) => SectionTime.fromJson(e as Map<String, dynamic>))
-          .toList() ?? [],
+      timeSlot:
+          (json['time_Slot'] as List<dynamic>?)
+              ?.map((e) => e as String)
+              .toList() ??
+          [],
+      timeSlotDetails:
+          (json['time_slots_detail'] as List<dynamic>?)
+              ?.map((e) => SectionTime.fromJson(e as Map<String, dynamic>))
+              .toList() ??
+          [],
       level: json['academic_level'] as int?,
     );
   }
@@ -550,11 +574,16 @@ class StudentLevelData {
       levelNum: json['level_num'] as int,
       studentCount: json['student_count'] as int? ?? 0,
       courseCount: json['course_count'] as int? ?? 0,
-      courseEnrollments: (json['course_enrollments'] as Map<String, dynamic>?)
-          ?.map((key, value) => MapEntry(key, value as int)) ?? {},
-      courses: (json['courses'] as List<dynamic>?)
-          ?.map((e) => Course.fromJson(e as Map<String, dynamic>))
-          .toList() ?? [],
+      courseEnrollments:
+          (json['course_enrollments'] as Map<String, dynamic>?)?.map(
+            (key, value) => MapEntry(key, value as int),
+          ) ??
+          {},
+      courses:
+          (json['courses'] as List<dynamic>?)
+              ?.map((e) => Course.fromJson(e as Map<String, dynamic>))
+              .toList() ??
+          [],
       updatedAt: json['updated_at'] != null
           ? DateTime.parse(json['updated_at'] as String)
           : null,
@@ -654,4 +683,82 @@ class AppNotification {
     if (relatedId != null) 'relatedId': relatedId,
     'createdAt': createdAt.toIso8601String(),
   };
+}
+// ... existing code ...
+
+// --- Add these new classes to models.dart ---
+
+class ElectiveCourse {
+  final String code;
+  final String name;
+  final int creditHours;
+  final String department;
+  final String description;
+
+  ElectiveCourse({
+    required this.code,
+    required this.name,
+    required this.creditHours,
+    required this.department,
+    required this.description,
+  });
+
+  factory ElectiveCourse.fromJson(Map<String, dynamic> json) {
+    return ElectiveCourse(
+      code: json['code'] ?? '',
+      name: json['name'] ?? '',
+      creditHours: json['credit_hours'] ?? 0,
+      department: json['department'] ?? '',
+      description: json['description'] ?? '',
+    );
+  }
+}
+
+class ElectiveSubmission {
+  final String id;
+  final String studentId;
+  final List<String> selectedCourses;
+  final String suggestions;
+  final String status; // 'draft' or 'submitted'
+  final DateTime? submittedAt;
+
+  ElectiveSubmission({
+    required this.id,
+    required this.studentId,
+    required this.selectedCourses,
+    this.suggestions = '',
+    this.status = 'draft',
+    this.submittedAt,
+  });
+
+  factory ElectiveSubmission.fromJson(Map<String, dynamic> json) {
+    return ElectiveSubmission(
+      id: json['_id'] ?? '',
+      studentId: json['student_id'] ?? '',
+      selectedCourses:
+          (json['selected_courses'] as List<dynamic>?)
+              ?.map((e) => e.toString())
+              .toList() ??
+          [],
+      suggestions: json['suggestions'] ?? '',
+      status: json['submission_status'] ?? 'draft',
+      submittedAt: json['submitted_at'] != null
+          ? DateTime.parse(json['submitted_at'])
+          : null,
+    );
+  }
+}
+
+class ElectiveFormStatus {
+  final bool formActive;
+  final DateTime? deadline;
+  final List<ElectiveCourse> availableCourses;
+  final ElectiveSubmission? currentSubmission;
+
+  ElectiveFormStatus({
+    required this.formActive,
+    this.deadline,
+    this.availableCourses = const [],
+    this.currentSubmission,
+  });
 }
