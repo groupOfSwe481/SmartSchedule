@@ -32,10 +32,10 @@ class SectionService {
           .timeout(const Duration(seconds: 10));
 
       if (response.statusCode == 200) {
-        final List sections = jsonDecode(response.body);
+        final data = jsonDecode(response.body);
         return {
           'success': true,
-          'sections': sections,
+          'sections': data['sections'] ?? [],
         };
       } else {
         final data = jsonDecode(response.body);

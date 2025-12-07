@@ -372,4 +372,117 @@ class ScheduleService {
       return {'success': false, 'message': _getErrorMessage(e)};
     }
   }
+
+  // Get all rules
+  static Future<Map<String, dynamic>> getAllRules({String? token}) async {
+    try {
+      final headers = <String, String>{};
+      if (token != null) {
+        headers['Authorization'] = 'Bearer $token';
+      }
+
+      final response = await http.get(
+        Uri.parse('${ApiConfig.baseUrl}/api/rules'),
+        headers: headers,
+      ).timeout(const Duration(seconds: 10));
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        return {'success': true, 'rules': data['data'] ?? []};
+      } else {
+        final data = jsonDecode(response.body);
+        return {'success': false, 'message': data['error'] ?? 'Failed to load rules'};
+      }
+    } catch (e) {
+      return {'success': false, 'message': _getErrorMessage(e)};
+    }
+  }
+
+  // Create a new rule
+  static Future<Map<String, dynamic>> createRule({
+    required String token,
+    required String ruleName,
+    required String ruleDescription,
+  }) async {
+    try {
+      final response = await http.post(
+        Uri.parse('${ApiConfig.baseUrl}/api/rules'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+        body: jsonEncode({
+          'rule_name': ruleName,
+          'rule_description': ruleDescription,
+        }),
+      ).timeout(const Duration(seconds: 10));
+
+      if (response.statusCode == 201 || response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        return {'success': true, 'rule': data['rule'], 'message': data['message']};
+      } else {
+        final data = jsonDecode(response.body);
+        return {'success': false, 'message': data['error'] ?? 'Failed to create rule'};
+      }
+    } catch (e) {
+      return {'success': false, 'message': _getErrorMessage(e)};
+    }
+  }
+
+  // Update an existing rule
+  static Future<Map<String, dynamic>> updateRule({
+    required String token,
+    required String ruleId,
+    required String ruleName,
+    required String ruleDescription,
+  }) async {
+    try {
+      final response = await http.put(
+        Uri.parse('${ApiConfig.baseUrl}/api/rules/$ruleId'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+        body: jsonEncode({
+          'rule_name': ruleName,
+          'rule_description': ruleDescription,
+        }),
+      ).timeout(const Duration(seconds: 10));
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        return {'success': true, 'rule': data['rule'], 'message': data['message']};
+      } else {
+        final data = jsonDecode(response.body);
+        return {'success': false, 'message': data['error'] ?? 'Failed to update rule'};
+      }
+    } catch (e) {
+      return {'success': false, 'message': _getErrorMessage(e)};
+    }
+  }
+
+  // Delete a rule
+  static Future<Map<String, dynamic>> deleteRule({
+    required String token,
+    required String ruleId,
+  }) async {
+    try {
+      final response = await http.delete(
+        Uri.parse('${ApiConfig.baseUrl}/api/rules/$ruleId'),
+        headers: {
+          'Authorization': 'Bearer $token',
+        },
+      ).timeout(const Duration(seconds: 10));
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        return {'success': true, 'message': data['message']};
+      } else {
+        final data = jsonDecode(response.body);
+        return {'success': false, 'message': data['error'] ?? 'Failed to delete rule'};
+      }
+    } catch (e) {
+      return {'success': false, 'message': _getErrorMessage(e)};
+    }
+  }
 }

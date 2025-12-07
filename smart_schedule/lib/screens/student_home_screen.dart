@@ -51,7 +51,7 @@ class _StudentHomeScreenState extends State<StudentHomeScreen> with SingleTicker
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF1e293b),
+      backgroundColor: const Color(0xFFF8FAFC),
       appBar: _buildAppBar(),
       body: Column(
         children: [
@@ -262,7 +262,7 @@ class _StudentHomeScreenState extends State<StudentHomeScreen> with SingleTicker
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16),
       decoration: BoxDecoration(
-        color: const Color(0xFF334155),
+        color: Colors.white,
         borderRadius: BorderRadius.circular(12),
       ),
       child: TabBar(
@@ -274,7 +274,7 @@ class _StudentHomeScreenState extends State<StudentHomeScreen> with SingleTicker
           borderRadius: BorderRadius.circular(12),
         ),
         labelColor: Colors.white,
-        unselectedLabelColor: Colors.white60,
+        unselectedLabelColor: const Color(0xFF64748b),
         labelStyle: const TextStyle(
           fontWeight: FontWeight.w600,
           fontSize: 15,
@@ -326,7 +326,7 @@ class _StudentHomeScreenState extends State<StudentHomeScreen> with SingleTicker
         return Container(
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            color: const Color(0xFF334155),
+            color: Colors.white,
             borderRadius: BorderRadius.circular(16),
             boxShadow: [
               BoxShadow(
@@ -346,7 +346,7 @@ class _StudentHomeScreenState extends State<StudentHomeScreen> with SingleTicker
                   Text(
                     'Select Academic Level',
                     style: TextStyle(
-                      color: Colors.white,
+                      color: Color(0xFF1e293b),
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
                     ),
@@ -377,10 +377,10 @@ class _StudentHomeScreenState extends State<StudentHomeScreen> with SingleTicker
                                   colors: [Color(0xFF6366f1), Color(0xFF8b5cf6)],
                                 )
                               : null,
-                          color: isSelected ? null : const Color(0xFF475569),
+                          color: isSelected ? null : const Color(0xFFF1F5F9),
                           borderRadius: BorderRadius.circular(12),
                           border: Border.all(
-                            color: isSelected ? Colors.transparent : const Color(0xFF64748b),
+                            color: isSelected ? Colors.transparent : const Color(0xFFE2E8F0),
                             width: 2,
                           ),
                         ),
@@ -388,7 +388,7 @@ class _StudentHomeScreenState extends State<StudentHomeScreen> with SingleTicker
                           'Level $level',
                           textAlign: TextAlign.center,
                           style: TextStyle(
-                            color: isSelected ? Colors.white : Colors.white70,
+                            color: isSelected ? Colors.white : const Color(0xFF64748b),
                             fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
                             fontSize: 15,
                           ),
@@ -409,22 +409,22 @@ class _StudentHomeScreenState extends State<StudentHomeScreen> with SingleTicker
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: const Color(0xFF1e40af).withOpacity(0.2),
+        color: const Color(0xFFEEF2FF),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: const Color(0xFF3b82f6).withOpacity(0.3),
+          color: const Color(0xFFE2E8F0),
           width: 1,
         ),
       ),
       child: const Row(
         children: [
-          Icon(Icons.info_outline, color: Color(0xFF60a5fa), size: 24),
+          Icon(Icons.info_outline, color: Color(0xFF6366F1), size: 24),
           SizedBox(width: 12),
           Expanded(
             child: Text(
               'Tip: Click on any course to add your comments and feedback!',
               style: TextStyle(
-                color: Color(0xFFbfdbfe),
+                color: Color(0xFF4F46E5),
                 fontSize: 14,
               ),
             ),
@@ -441,7 +441,7 @@ class _StudentHomeScreenState extends State<StudentHomeScreen> with SingleTicker
           return Container(
             padding: const EdgeInsets.all(40),
             decoration: BoxDecoration(
-              color: const Color(0xFF334155),
+              color: Colors.white,
               borderRadius: BorderRadius.circular(16),
             ),
             child: const Center(
@@ -453,7 +453,7 @@ class _StudentHomeScreenState extends State<StudentHomeScreen> with SingleTicker
                   SizedBox(height: 16),
                   Text(
                     'Loading schedule...',
-                    style: TextStyle(color: Colors.white70),
+                    style: TextStyle(color: Color(0xFF475569)),
                   ),
                 ],
               ),
@@ -465,7 +465,7 @@ class _StudentHomeScreenState extends State<StudentHomeScreen> with SingleTicker
           return Container(
             padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
-              color: const Color(0xFF334155),
+              color: Colors.white,
               borderRadius: BorderRadius.circular(16),
             ),
             child: Center(
@@ -475,7 +475,7 @@ class _StudentHomeScreenState extends State<StudentHomeScreen> with SingleTicker
                   const SizedBox(height: 12),
                   Text(
                     scheduleProvider.error!,
-                    style: const TextStyle(color: Colors.white70),
+                    style: const TextStyle(color: Color(0xFF475569)),
                     textAlign: TextAlign.center,
                   ),
                 ],
@@ -489,17 +489,17 @@ class _StudentHomeScreenState extends State<StudentHomeScreen> with SingleTicker
           return Container(
             padding: const EdgeInsets.all(40),
             decoration: BoxDecoration(
-              color: const Color(0xFF334155),
+              color: Colors.white,
               borderRadius: BorderRadius.circular(16),
             ),
             child: const Center(
               child: Column(
                 children: [
-                  Icon(Icons.calendar_today_outlined, color: Colors.white38, size: 64),
+                  Icon(Icons.calendar_today_outlined, color: Color(0xFF94a3b8), size: 64),
                   SizedBox(height: 16),
                   Text(
                     'No schedule available for this level',
-                    style: TextStyle(color: Colors.white70, fontSize: 16),
+                    style: TextStyle(color: Color(0xFF475569), fontSize: 16),
                   ),
                 ],
               ),
@@ -507,54 +507,61 @@ class _StudentHomeScreenState extends State<StudentHomeScreen> with SingleTicker
           );
         }
 
-        return Container(
-          decoration: BoxDecoration(
-            color: const Color(0xFF334155),
-            borderRadius: BorderRadius.circular(16),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Padding(
-                padding: const EdgeInsets.all(16),
-                child: Row(
-                  children: [
-                    const Icon(Icons.calendar_month, color: Color(0xFF6366f1)),
-                    const SizedBox(width: 8),
-                    Text(
-                      'Academic Schedule - Level ${scheduleProvider.currentLevel}',
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const Spacer(),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFF10b981),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: const Text(
-                        'Current',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 12,
-                          fontWeight: FontWeight.bold,
+        return Column(
+          children: schedules.asMap().entries.map((entry) {
+            final index = entry.key;
+            final schedule = entry.value;
+            return Container(
+              margin: EdgeInsets.only(bottom: index < schedules.length - 1 ? 16 : 0),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Row(
+                      children: [
+                        const Icon(Icons.calendar_month, color: Color(0xFF6366f1)),
+                        const SizedBox(width: 8),
+                        Text(
+                          'Level ${scheduleProvider.currentLevel} - ${schedule.section}',
+                          style: const TextStyle(
+                            color: Color(0xFF1e293b),
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
-                      ),
+                        const Spacer(),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF10b981),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Text(
+                            'v${schedule.version}',
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
-                  ],
-                ),
+                  ),
+                  const Divider(color: Color(0xFFE2E8F0), height: 1),
+                  SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    child: _buildScheduleTable(schedule),
+                  ),
+                ],
               ),
-              const Divider(color: Color(0xFF475569), height: 1),
-              SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                child: _buildScheduleTable(schedules[0]),
-              ),
-            ],
-          ),
+            );
+          }).toList(),
         );
       },
     );
@@ -576,7 +583,7 @@ class _StudentHomeScreenState extends State<StudentHomeScreen> with SingleTicker
       padding: const EdgeInsets.all(16),
       child: Table(
         border: TableBorder.all(
-          color: const Color(0xFF475569),
+          color: const Color(0xFFE2E8F0),
           width: 1,
           borderRadius: BorderRadius.circular(8),
         ),
@@ -627,12 +634,12 @@ class _StudentHomeScreenState extends State<StudentHomeScreen> with SingleTicker
   Widget _buildTimeCell(String time) {
     return Container(
       padding: const EdgeInsets.all(12),
-      color: const Color(0xFF475569),
+      color: const Color(0xFFF1F5F9),
       child: Text(
         time,
         textAlign: TextAlign.center,
         style: const TextStyle(
-          color: Colors.white,
+          color: Color(0xFF1e293b),
           fontWeight: FontWeight.w600,
           fontSize: 12,
         ),
@@ -658,7 +665,7 @@ class _StudentHomeScreenState extends State<StudentHomeScreen> with SingleTicker
             },
       child: Container(
         padding: const EdgeInsets.all(8),
-        color: const Color(0xFF334155),
+        color: Colors.white,
         child: isEmpty
             ? const SizedBox(height: 50)
             : Column(
@@ -678,7 +685,7 @@ class _StudentHomeScreenState extends State<StudentHomeScreen> with SingleTicker
                   Text(
                     cell.course,
                     style: const TextStyle(
-                      color: Colors.white,
+                      color: Color(0xFF1e293b),
                       fontSize: 11,
                     ),
                     maxLines: 2,
@@ -688,13 +695,13 @@ class _StudentHomeScreenState extends State<StudentHomeScreen> with SingleTicker
                     const SizedBox(height: 4),
                     Row(
                       children: [
-                        const Icon(Icons.location_on, size: 10, color: Colors.white60),
+                        const Icon(Icons.location_on, size: 10, color: Color(0xFF64748b)),
                         const SizedBox(width: 2),
                         Expanded(
                           child: Text(
                             cell.location!,
                             style: const TextStyle(
-                              color: Colors.white60,
+                              color: Color(0xFF64748b),
                               fontSize: 10,
                             ),
                             maxLines: 1,
@@ -719,7 +726,7 @@ class _StudentHomeScreenState extends State<StudentHomeScreen> with SingleTicker
           Container(
             padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
-              color: const Color(0xFF334155),
+              color: Colors.white,
               borderRadius: BorderRadius.circular(16),
             ),
             child: Column(
@@ -732,7 +739,7 @@ class _StudentHomeScreenState extends State<StudentHomeScreen> with SingleTicker
                     Text(
                       'Elective Course Form',
                       style: TextStyle(
-                        color: Colors.white,
+                        color: Color(0xFF1e293b),
                         fontSize: 20,
                         fontWeight: FontWeight.bold,
                       ),
@@ -743,21 +750,21 @@ class _StudentHomeScreenState extends State<StudentHomeScreen> with SingleTicker
                 Container(
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
-                    color: const Color(0xFF1e40af).withOpacity(0.2),
+                    color: const Color(0xFFEEF2FF),
                     borderRadius: BorderRadius.circular(12),
                     border: Border.all(
-                      color: const Color(0xFF3b82f6).withOpacity(0.3),
+                      color: const Color(0xFFE2E8F0),
                       width: 1,
                     ),
                   ),
                   child: const Row(
                     children: [
-                      Icon(Icons.info_outline, color: Color(0xFF60a5fa)),
+                      Icon(Icons.info_outline, color: Color(0xFF6366F1)),
                       SizedBox(width: 12),
                       Expanded(
                         child: Text(
                           'Submit your elective course preferences here',
-                          style: TextStyle(color: Color(0xFFbfdbfe)),
+                          style: TextStyle(color: Color(0xFF4F46E5)),
                         ),
                       ),
                     ],
@@ -767,12 +774,12 @@ class _StudentHomeScreenState extends State<StudentHomeScreen> with SingleTicker
                 const Center(
                   child: Column(
                     children: [
-                      Icon(Icons.construction, color: Colors.white38, size: 64),
+                      Icon(Icons.construction, color: Color(0xFF94a3b8), size: 64),
                       SizedBox(height: 16),
                       Text(
                         'Elective Form Coming Soon',
                         style: TextStyle(
-                          color: Colors.white70,
+                          color: Color(0xFF475569),
                           fontSize: 18,
                           fontWeight: FontWeight.w600,
                         ),
@@ -781,7 +788,7 @@ class _StudentHomeScreenState extends State<StudentHomeScreen> with SingleTicker
                       Text(
                         'This feature will allow you to select your preferred elective courses',
                         textAlign: TextAlign.center,
-                        style: TextStyle(color: Colors.white54),
+                        style: TextStyle(color: Color(0xFF64748b)),
                       ),
                     ],
                   ),

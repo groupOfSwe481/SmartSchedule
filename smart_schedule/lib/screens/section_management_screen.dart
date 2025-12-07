@@ -486,14 +486,14 @@ class _SectionManagementScreenState extends State<SectionManagementScreen>
                                 ),
                               ),
                               const SizedBox(height: 8),
-                              ...section.times.map((time) => Padding(
+                              ...section.timeSlot.map((time) => Padding(
                                 padding: const EdgeInsets.only(bottom: 4),
                                 child: Row(
                                   children: [
                                     const Icon(Icons.access_time, size: 16, color: Color(0xFF6366f1)),
                                     const SizedBox(width: 8),
                                     Text(
-                                      '${time.day}: ${time.time}',
+                                      time,
                                       style: const TextStyle(color: Colors.white70),
                                     ),
                                   ],

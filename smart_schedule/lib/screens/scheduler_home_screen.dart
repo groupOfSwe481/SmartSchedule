@@ -703,6 +703,32 @@ class _SchedulerHomeScreenState extends State<SchedulerHomeScreen> {
                 ),
                 const PopupMenuDivider(),
                 PopupMenuItem(
+                  onTap: () {
+                    Navigator.pushNamed(context, '/version-control');
+                  },
+                  child: const Row(
+                    children: [
+                      Icon(Icons.history, size: 20),
+                      SizedBox(width: 12),
+                      Text('Version Control'),
+                    ],
+                  ),
+                ),
+                const PopupMenuDivider(),
+                PopupMenuItem(
+                  onTap: () {
+                    Navigator.pushNamed(context, '/rules-management');
+                  },
+                  child: const Row(
+                    children: [
+                      Icon(Icons.rule, size: 20),
+                      SizedBox(width: 12),
+                      Text('Rules Management'),
+                    ],
+                  ),
+                ),
+                const PopupMenuDivider(),
+                PopupMenuItem(
                   onTap: () async {
                     userProvider.logout();
                     if (!mounted) return;

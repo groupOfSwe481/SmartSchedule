@@ -132,6 +132,49 @@ class Schedule {
   bool get isDraft => status == 'Draft';
 }
 
+// DTO for Schedule History/Version Control
+class ScheduleHistory {
+  final String id;
+  final String scheduleId;
+  final int historyVersion;
+  final DateTime timestamp;
+  final Map<String, dynamic> delta;
+  final String userId;
+  final String summary;
+
+  ScheduleHistory({
+    required this.id,
+    required this.scheduleId,
+    required this.historyVersion,
+    required this.timestamp,
+    required this.delta,
+    required this.userId,
+    required this.summary,
+  });
+
+  factory ScheduleHistory.fromJson(Map<String, dynamic> json) {
+    return ScheduleHistory(
+      id: json['_id'] as String,
+      scheduleId: json['schedule_id'] as String,
+      historyVersion: json['history_version'] as int,
+      timestamp: DateTime.parse(json['timestamp'] as String),
+      delta: json['delta'] as Map<String, dynamic>? ?? {},
+      userId: json['user_id'] as String,
+      summary: json['summary'] as String,
+    );
+  }
+
+  Map<String, dynamic> toJson() => {
+    '_id': id,
+    'schedule_id': scheduleId,
+    'history_version': historyVersion,
+    'timestamp': timestamp.toIso8601String(),
+    'delta': delta,
+    'user_id': userId,
+    'summary': summary,
+  };
+}
+
 // DTO for POST /api/comments/faculty
 class FacultyCommentRequest {
   final String facultyId;
@@ -419,20 +462,23 @@ class Course {
 // Section Time Model
 class SectionTime {
   final String day;
-  final String time;
+  final String startTime;
+  final String endTime;
 
-  SectionTime({required this.day, required this.time});
+  SectionTime({required this.day, required this.startTime, required this.endTime});
 
   factory SectionTime.fromJson(Map<String, dynamic> json) {
     return SectionTime(
-      day: json['day'] as String,
-      time: json['time'] as String,
+      day: json['day'] as String? ?? '',
+      startTime: json['start_time'] as String? ?? '',
+      endTime: json['end_time'] as String? ?? '',
     );
   }
 
   Map<String, dynamic> toJson() => {
     'day': day,
-    'time': time,
+    'start_time': startTime,
+    'end_time': endTime,
   };
 }
 
@@ -441,35 +487,41 @@ class Section {
   final String secNum;
   final String courseCode;
   final String type;
-  final List<SectionTime> times;
+  final List<String> timeSlot;
+  final List<SectionTime> timeSlotDetails;
   final int? level;
 
   Section({
     required this.secNum,
     required this.courseCode,
     required this.type,
-    required this.times,
+    required this.timeSlot,
+    required this.timeSlotDetails,
     this.level,
   });
 
   factory Section.fromJson(Map<String, dynamic> json) {
     return Section(
-      secNum: json['sec_num'] as String,
-      courseCode: json['course_code'] as String,
-      type: json['type'] as String,
-      times: (json['times'] as List<dynamic>?)
+      secNum: json['sec_num'] as String? ?? '',
+      courseCode: json['course'] as String? ?? '',
+      type: json['type'] as String? ?? '',
+      timeSlot: (json['time_Slot'] as List<dynamic>?)
+          ?.map((e) => e as String)
+          .toList() ?? [],
+      timeSlotDetails: (json['time_slots_detail'] as List<dynamic>?)
           ?.map((e) => SectionTime.fromJson(e as Map<String, dynamic>))
           .toList() ?? [],
-      level: json['level'] as int?,
+      level: json['academic_level'] as int?,
     );
   }
 
   Map<String, dynamic> toJson() => {
     'sec_num': secNum,
-    'course_code': courseCode,
+    'course': courseCode,
     'type': type,
-    'times': times.map((t) => t.toJson()).toList(),
-    if (level != null) 'level': level,
+    'time_Slot': timeSlot,
+    'time_slots_detail': timeSlotDetails.map((t) => t.toJson()).toList(),
+    if (level != null) 'academic_level': level,
   };
 }
 
@@ -514,5 +566,41 @@ class StudentLevelData {
     'course_enrollments': courseEnrollments,
     'courses': courses.map((c) => c.toJson()).toList(),
     if (updatedAt != null) 'updated_at': updatedAt!.toIso8601String(),
+  };
+}
+
+// Rule Model
+class Rule {
+  final String id;
+  final String ruleName;
+  final String ruleDescription;
+  final DateTime? createdAt;
+  final DateTime? updatedAt;
+
+  Rule({
+    required this.id,
+    required this.ruleName,
+    required this.ruleDescription,
+    this.createdAt,
+    this.updatedAt,
+  });
+
+  factory Rule.fromJson(Map<String, dynamic> json) {
+    return Rule(
+      id: json['_id'] as String? ?? '',
+      ruleName: json['rule_name'] as String? ?? '',
+      ruleDescription: json['rule_description'] as String? ?? '',
+      createdAt: json['createdAt'] != null
+          ? DateTime.parse(json['createdAt'] as String)
+          : null,
+      updatedAt: json['updatedAt'] != null
+          ? DateTime.parse(json['updatedAt'] as String)
+          : null,
+    );
+  }
+
+  Map<String, dynamic> toJson() => {
+    'rule_name': ruleName,
+    'rule_description': ruleDescription,
   };
 }

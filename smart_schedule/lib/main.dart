@@ -16,6 +16,8 @@ import 'screens/irregular_students_screen.dart';
 import 'screens/section_management_screen.dart';
 import 'screens/student_management_screen.dart';
 import 'screens/comments_management_screen.dart';
+import 'screens/version_control_screen.dart';
+import 'screens/rules_management_screen.dart';
 
 void main() {
   runApp(const MyApp());
@@ -54,6 +56,8 @@ class MyApp extends StatelessWidget {
           '/section-management': (context) => const SectionManagementScreen(),
           '/student-management': (context) => const StudentManagementScreen(),
           '/comments-management': (context) => const CommentsManagementScreen(),
+          '/version-control': (context) => const VersionControlScreen(),
+          '/rules-management': (context) => const RulesManagementScreen(),
         },
       ),
     );

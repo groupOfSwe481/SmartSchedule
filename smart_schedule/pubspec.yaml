@@ -33,6 +33,10 @@ dependencies:
   image_picker: ^1.0.4 # Required for student management OCR image upload
   # --- END FILE & IMAGE PACKAGES ---
 
+  # --- START UTILITY PACKAGES ---
+  intl: ^0.19.0 # Date formatting for version control
+  # --- END UTILITY PACKAGES ---
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
