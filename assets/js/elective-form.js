@@ -120,36 +120,80 @@ class ElectiveFormManager {
         }
     }
 
-    async checkFormStatus() {
-        try {
-            if (!this.studentData) return false;
-            
-            const response = await fetch(`${API_URL}/student-electives/${this.studentData.student_id}`, {
-                headers: {
-                    'Authorization': `Bearer ${sessionStorage.getItem('token')}`
-                }
-            });
-            
-            const data = await response.json();
-            
-            this.isFormActive = data.form_active;
-            
-            if (data.form_active && data.submission && data.submission.submission_status === 'submitted') {
-                this.showAlreadySubmittedState(data.submission);
-                return true;
+async checkFormStatus() {
+    try {
+        console.log('🔍 Checking form status via /api/elective-courses...');
+        
+        // This endpoint already checks if form is active
+        const response = await fetch(`${API_URL}/elective-courses`, {
+            headers: {
+                'Authorization': `Bearer ${sessionStorage.getItem('token')}`
             }
+        });
+        
+        console.log('📊 Elective courses response status:', response.status);
+        
+        if (!response.ok) {
+            // Form is not active or has error
+            const errorData = await response.json();
+            console.log('❌ Form not active:', errorData);
             
-            if (!data.form_active) {
-                this.showFormInactive(data.message);
-                return true;
+            if (errorData.error === 'Elective form is not currently available') {
+                this.showFormInactive('The elective form is not currently available.');
+            } else if (errorData.error === 'Elective form is not currently active') {
+                this.showFormInactive('Elective form period has not started or has ended.');
+            } else {
+                this.showFormInactive(errorData.error || 'Form is not active');
             }
-            
-            return false;
-        } catch (error) {
-            console.error('Error checking form status:', error);
-            return false;
+            return true;
         }
+        
+        // Form is active!
+        const data = await response.json();
+        console.log('✅ Form is active! Data:', data);
+        
+        this.isFormActive = data.form_active;
+        this.formDeadline = new Date(data.deadline);
+        
+        console.log('📅 Form active:', this.isFormActive);
+        console.log('⏰ Deadline:', this.formDeadline);
+        
+        // Now check if student already submitted
+        if (!this.studentData) return false;
+        
+        const submissionResponse = await fetch(`${API_URL}/student-electives/${this.studentData.student_id}`, {
+            headers: {
+                'Authorization': `Bearer ${sessionStorage.getItem('token')}`
+            }
+        });
+        
+        if (submissionResponse.ok) {
+            const submissionData = await submissionResponse.json();
+            console.log('📝 Student submission data:', submissionData);
+            
+            if (submissionData.submission && submissionData.submission.submission_status === 'submitted') {
+                this.showAlreadySubmittedState(submissionData.submission);
+                return true;
+            }
+            
+            if (submissionData.submission && submissionData.submission.submission_status === 'draft') {
+                this.existingSubmission = submissionData.submission;
+                this.formStatus = 'draft';
+            }
+        }
+        
+        console.log('🎯 Form is available for student');
+        return false; // Form is available
+        
+    } catch (error) {
+        console.error('❌ Error checking form status:', error);
+        this.showFormInactive('Error checking form availability. Please try again.');
+        return true; // Block form on error
     }
+}
+
+
+
 
     updateWelcomeMessage() {
         // Update welcome message if elements exist
@@ -170,67 +214,83 @@ class ElectiveFormManager {
         }
     }
 
-    async loadElectiveForm() {
-        const shouldBlockForm = await this.checkFormStatus();
-        if (shouldBlockForm) {
+async loadElectiveForm() {
+    console.log('🔄 Loading elective form...');
+    
+    // Check form status
+    const shouldBlockForm = await this.checkFormStatus();
+    if (shouldBlockForm) {
+        console.log('⏹️ Form blocked by status check');
+        return;
+    }
+    
+    if (this.allCourses.length > 0) {
+        console.log('✅ Courses already loaded');
+        return;
+    }
+    
+    try {
+        console.log('📡 Fetching elective courses...');
+        const response = await fetch(`${API_URL}/elective-courses`, {
+            headers: {
+                'Authorization': `Bearer ${sessionStorage.getItem('token')}`
+            }
+        });
+        
+        if (!response.ok) {
+            const errorData = await response.json();
+            console.error('❌ API Error:', errorData);
+            this.showFormInactive(errorData.error || 'Form is not active');
             return;
         }
         
-        if (this.allCourses.length > 0) return;
+        const data = await response.json();
+        console.log('✅ Got courses data:', {
+            form_active: data.form_active,
+            deadline: data.deadline,
+            courses_count: data.courses.length
+        });
         
-        try {
-            const response = await fetch(`${API_URL}/elective-courses`, {
-                headers: {
-                    'Authorization': `Bearer ${sessionStorage.getItem('token')}`
-                }
-            });
-            
-            const data = await response.json();
-            
-            if (!response.ok) {
-                this.showFormInactive(data.error || 'Form is not active');
-                return;
-            }
-            
-            if (!this.hasLoadedTakenCourses) {
-                await this.fetchStudentCoursesTaken();
-            }
-            
-            const originalCount = data.courses.length;
-            this.allCourses = this.filterOutTakenCourses(data.courses);
-            const filteredCount = originalCount - this.allCourses.length;
-            
-            console.log(`📊 Course filtering: ${originalCount} total, ${filteredCount} taken, ${this.allCourses.length} available`);
-            
-            this.formDeadline = new Date(data.deadline);
-            this.isFormActive = true;
-            
-            if (!this.isBeforeDeadline()) {
-                this.showDeadlinePassed();
-                return;
-            }
-            
-            if (this.allCourses.length === 0) {
-                this.showNoAvailableCourses(originalCount, filteredCount);
-                return;
-            }
-            
-            this.renderCourses(originalCount, filteredCount);
-            this.setupEventListeners();
-            await this.checkExistingSubmission();
-            
-        } catch (error) {
-            console.error('Error loading elective form:', error);
-            const coursesList = document.getElementById('coursesList');
-            if (coursesList) {
-                coursesList.innerHTML = `
-                    <div class="alert alert-danger">
-                        <i class="bi bi-exclamation-triangle"></i> Failed to load elective form: ${error.message}
-                    </div>
-                `;
-            }
+        if (!this.hasLoadedTakenCourses) {
+            await this.fetchStudentCoursesTaken();
+        }
+        
+        const originalCount = data.courses.length;
+        this.allCourses = this.filterOutTakenCourses(data.courses);
+        const filteredCount = originalCount - this.allCourses.length;
+        
+        console.log(`📊 Course filtering: ${originalCount} total, ${filteredCount} taken, ${this.allCourses.length} available`);
+        
+        this.formDeadline = new Date(data.deadline);
+        this.isFormActive = true;
+        
+        if (!this.isBeforeDeadline()) {
+            this.showDeadlinePassed();
+            return;
+        }
+        
+        if (this.allCourses.length === 0) {
+            this.showNoAvailableCourses(originalCount, filteredCount);
+            return;
+        }
+        
+        this.renderCourses(originalCount, filteredCount);
+        this.setupEventListeners();
+        await this.checkExistingSubmission();
+        
+    } catch (error) {
+        console.error('❌ Error loading elective form:', error);
+        const coursesList = document.getElementById('coursesList');
+        if (coursesList) {
+            coursesList.innerHTML = `
+                <div class="alert alert-danger">
+                    <i class="bi bi-exclamation-triangle"></i> Failed to load elective form: ${error.message}
+                </div>
+            `;
         }
     }
+}
+
 
     filterOutTakenCourses(courses) {
         if (!this.coursesTaken || this.coursesTaken.length === 0) {
@@ -250,10 +310,24 @@ class ElectiveFormManager {
     }
 
     isBeforeDeadline() {
-        if (!this.formDeadline) return false;
-        const now = new Date();
-        return now < this.formDeadline;
+    if (!this.formDeadline) {
+        console.warn('⚠️ No deadline set');
+        return false;
     }
+    
+    const now = new Date();
+    const deadline = new Date(this.formDeadline);
+    
+    // Debug logging
+    console.log('⏰ Deadline check:', {
+        now: now.toISOString(),
+        deadline: deadline.toISOString(),
+        isBefore: now < deadline,
+        differenceHours: (deadline - now) / (1000 * 60 * 60)
+    });
+    
+    return now < deadline;
+}
 
     showDeadlinePassed() {
         const coursesList = document.getElementById('coursesList');

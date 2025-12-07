@@ -14,15 +14,15 @@ router.get('/elective-courses', async (req: Request, res: Response) => {
     const db = getDB();
     console.log('📚 Fetching elective courses...');
 
-    // Check if elective form is currently active in Deadlines collection
-    const deadline = await db.collection('Deadlines')
-      .find({
-        type: 'elective_form',
-        is_active: true  // Check if form is active
-      })
-      .sort({ end_date: -1 })
-      .limit(1)
-      .toArray();
+  // Check if elective form is currently active in elective_deadlines collection
+const deadline = await db.collection('elective_deadlines')
+  .find({
+    type: 'elective_form',
+    is_active: true  // Check if form is active
+  })
+  .sort({ end_date: -1 })
+  .limit(1)
+  .toArray();
 
     if (deadline.length === 0) {
       console.log('⚠️ No active elective deadline found');
@@ -105,7 +105,7 @@ router.get('/student-electives/:student_id', async (req: Request, res: Response)
     console.log(`🔍 Checking elective submission for student: ${studentId}`);
 
     // Get current deadline
-    const deadline = await db.collection('Deadlines')
+    const deadline = await db.collection('elective_deadlines')
       .find({
         type: 'elective_form',
         is_active: true
@@ -170,7 +170,7 @@ router.post('/start-electives/:student_id', async (req: Request, res: Response) 
     console.log(`🆕 Starting elective submission for student: ${studentId}`);
 
     // Get current deadline
-    const deadline = await db.collection('Deadlines')
+    const deadline = await db.collection('elective_deadlines')
       .find({
         type: 'elective_form',
         is_active: true
@@ -246,7 +246,7 @@ router.put('/save-electives/:student_id', async (req: Request, res: Response) =>
     console.log(`💾 Saving electives for student: ${studentId}`);
 
     // Get current deadline
-    const deadline = await db.collection('Deadlines')
+    const deadline = await db.collection('elective_deadlines')
       .find({
         type: 'elective_form',
         is_active: true
@@ -311,7 +311,7 @@ router.post('/submit-electives/:student_id', async (req: Request, res: Response)
     console.log(`📤 Submitting electives for student: ${studentId}`);
 
     // Get current deadline
-    const deadline = await db.collection('Deadlines')
+    const deadline = await db.collection('elective_deadlines')
       .find({
         type: 'elective_form',
         is_active: true
