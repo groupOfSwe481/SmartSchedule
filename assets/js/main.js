@@ -153,7 +153,7 @@
 
   // -------------------------------
   // 📅 Generate Table for Schedule Grid
-  // -------------------------------
+  // ------------------------------
   function generateTable(grid) {
     const table = document.createElement("table");
     table.className = "table table-bordered text-center align-middle";
@@ -163,15 +163,15 @@
 
     const headerRow = document.createElement("tr");
     headerRow.innerHTML = `
-      <th>Day / Time</th>
-      <th>8:00-8:50</th>
-      <th>9:00-9:50</th>
-      <th>10:00-10:50</th>
-      <th>11:00-11:50</th>
-      <th>12:00-12:50</th>
-      <th>1:00-1:50</th>
-      <th>2:00-2:50</th>
-    `;
+    <th>Day / Time</th>
+    <th>8:00-8:50</th>
+    <th>9:00-9:50</th>
+    <th>10:00-10:50</th>
+    <th>11:00-11:50</th>
+    <th>12:00-12:50</th>
+    <th>1:00-1:50</th>
+    <th>2:00-2:50</th>
+  `;
     thead.appendChild(headerRow);
 
     const tbody = document.createElement("tbody");
@@ -190,13 +190,31 @@
       const row = document.createElement("tr");
       row.innerHTML = `<th>${day}</th>`;
       for (const time of slots) {
-        const course = grid[day]?.[time] || "";
-        const cell =
-          course.toLowerCase() === "break"
-            ? `<td class="bg-light-subtle fw-bold">${course}</td>`
-            : `<td>${course}</td>`;
+        // ✅ FIX: Safely handle all types
+        const rawValue = grid[day]?.[time];
+        const course =
+          rawValue === null || rawValue === undefined ? "" : String(rawValue);
+        console.log(course);
+        let courseText = "";
+
+        if (typeof rawValue === "string") {
+          courseText = rawValue.trim();
+        } else if (rawValue && typeof rawValue === "object") {
+          courseText =
+            rawValue.code || rawValue.name || JSON.stringify(rawValue);
+        } else {
+          courseText = "";
+        }
+
+        const isBreak = courseText.toLowerCase() === "break";
+
+        const cell = isBreak
+          ? `<td class="bg-light-subtle fw-bold">${course}</td>`
+          : `<td>${course}</td>`;
+
         row.innerHTML += cell;
       }
+
       tbody.appendChild(row);
     }
 
@@ -204,7 +222,6 @@
     table.appendChild(tbody);
     return table;
   }
-
   // -------------------------------
   // 🚀 Attach Publish Handlers
   // -------------------------------
