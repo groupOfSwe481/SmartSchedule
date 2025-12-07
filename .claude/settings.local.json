@@ -45,7 +45,9 @@
       "Bash(flutter.bat pub get:*)",
       "Bash(npm run dev:ws:*)",
       "Bash(npm run dev:collab:*)",
-      "Bash(ls:*)"
+      "Bash(ls:*)",
+      "Bash(flutter analyze:*)",
+      "Bash(flutter.bat analyze:*)"
     ],
     "deny": [],
     "ask": []
