@@ -604,3 +604,52 @@ class Rule {
     'rule_description': ruleDescription,
   };
 }
+
+// Notification Model
+class AppNotification {
+  final String id;
+  final String userId;
+  final String title;
+  final String message;
+  final bool read;
+  final List<String>? role;
+  final String? relatedId;
+  final DateTime createdAt;
+
+  AppNotification({
+    required this.id,
+    required this.userId,
+    required this.title,
+    required this.message,
+    required this.read,
+    this.role,
+    this.relatedId,
+    required this.createdAt,
+  });
+
+  factory AppNotification.fromJson(Map<String, dynamic> json) {
+    return AppNotification(
+      id: json['_id'] as String? ?? '',
+      userId: json['userId'] as String? ?? '',
+      title: json['title'] as String? ?? '',
+      message: json['message'] as String? ?? '',
+      read: json['read'] as bool? ?? false,
+      role: (json['role'] as List<dynamic>?)?.map((e) => e as String).toList(),
+      relatedId: json['relatedId'] as String?,
+      createdAt: json['createdAt'] != null
+          ? DateTime.parse(json['createdAt'] as String)
+          : DateTime.now(),
+    );
+  }
+
+  Map<String, dynamic> toJson() => {
+    '_id': id,
+    'userId': userId,
+    'title': title,
+    'message': message,
+    'read': read,
+    if (role != null) 'role': role,
+    if (relatedId != null) 'relatedId': relatedId,
+    'createdAt': createdAt.toIso8601String(),
+  };
+}

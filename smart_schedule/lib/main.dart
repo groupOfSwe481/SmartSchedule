@@ -7,6 +7,7 @@ import 'providers/irregular_provider.dart';
 import 'providers/course_provider.dart';
 import 'providers/section_provider.dart';
 import 'providers/student_provider.dart';
+import 'providers/notification_provider.dart';
 import 'services/collaboration_manager.dart';
 import 'screens/login_screen.dart';
 import 'screens/faculty_home_screen.dart';
@@ -37,6 +38,7 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => CourseProvider()),
         ChangeNotifierProvider(create: (_) => SectionProvider()),
         ChangeNotifierProvider(create: (_) => StudentProvider()),
+        ChangeNotifierProvider(create: (_) => NotificationProvider()),
         ChangeNotifierProvider(create: (_) => CollaborationManager()),
       ],
       child: MaterialApp(

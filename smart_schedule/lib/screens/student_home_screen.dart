@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/user_provider.dart';
 import '../providers/schedule_provider.dart';
+import '../providers/notification_provider.dart';
 import '../widgets/comment_modal.dart';
+import 'notifications_screen.dart';
 
 class StudentHomeScreen extends StatefulWidget {
   const StudentHomeScreen({super.key});
@@ -21,15 +23,24 @@ class _StudentHomeScreenState extends State<StudentHomeScreen> with SingleTicker
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final scheduleProvider = context.read<ScheduleProvider>();
+      final notificationProvider = context.read<NotificationProvider>();
+      final userProvider = context.read<UserProvider>();
 
       // Load student's schedule (Version 2+, Published schedules only)
       scheduleProvider.fetchStudentSchedule(4);
+
+      // Start auto-refresh for notifications
+      if (userProvider.isLoggedIn && userProvider.userId.isNotEmpty) {
+        notificationProvider.startAutoRefresh(userProvider.userId, userProvider.token!);
+        notificationProvider.loadNotificationCount(userProvider.userId, userProvider.token!);
+      }
     });
   }
 
   @override
   void dispose() {
     _tabController.dispose();
+    context.read<NotificationProvider>().stopAutoRefresh();
     super.dispose();
   }
 
@@ -94,6 +105,52 @@ class _StudentHomeScreenState extends State<StudentHomeScreen> with SingleTicker
         ],
       ),
       actions: [
+        Consumer<NotificationProvider>(
+          builder: (context, notificationProvider, child) {
+            return Stack(
+              children: [
+                IconButton(
+                  icon: const Icon(Icons.notifications_outlined),
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const NotificationsScreen(),
+                      ),
+                    );
+                  },
+                ),
+                if (notificationProvider.unreadCount > 0)
+                  Positioned(
+                    right: 8,
+                    top: 8,
+                    child: Container(
+                      padding: const EdgeInsets.all(4),
+                      decoration: BoxDecoration(
+                        color: Colors.red,
+                        shape: BoxShape.circle,
+                      ),
+                      constraints: const BoxConstraints(
+                        minWidth: 16,
+                        minHeight: 16,
+                      ),
+                      child: Text(
+                        notificationProvider.unreadCount > 9
+                            ? '9+'
+                            : notificationProvider.unreadCount.toString(),
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 10,
+                          fontWeight: FontWeight.bold,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                  ),
+              ],
+            );
+          },
+        ),
         Consumer<UserProvider>(
           builder: (context, userProvider, child) {
             final userName = userProvider.displayName;

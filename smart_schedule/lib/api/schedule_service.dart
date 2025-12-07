@@ -487,4 +487,83 @@ class ScheduleService {
       return {'success': false, 'message': _getErrorMessage(e)};
     }
   }
+
+  // ====================== NOTIFICATIONS ======================
+
+  /// Get notifications for a user
+  static Future<Map<String, dynamic>> getNotifications({
+    required String userId,
+    required String token,
+  }) async {
+    try {
+      final response = await http.get(
+        Uri.parse('${ApiConfig.baseUrl}/api/notifications/user/$userId'),
+        headers: {
+          'Authorization': 'Bearer $token',
+        },
+      ).timeout(const Duration(seconds: 10));
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        return {'success': true, 'notifications': data['data'] ?? []};
+      } else {
+        final data = jsonDecode(response.body);
+        return {'success': false, 'message': data['error'] ?? 'Failed to load notifications'};
+      }
+    } catch (e) {
+      return {'success': false, 'message': _getErrorMessage(e)};
+    }
+  }
+
+  /// Get unread notification count
+  static Future<Map<String, dynamic>> getNotificationCount({
+    required String userId,
+    required String token,
+  }) async {
+    try {
+      final response = await http.get(
+        Uri.parse('${ApiConfig.baseUrl}/api/notifications/count/$userId'),
+        headers: {
+          'Authorization': 'Bearer $token',
+        },
+      ).timeout(const Duration(seconds: 10));
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        return {'success': true, 'count': data['count']};
+      } else {
+        final data = jsonDecode(response.body);
+        return {'success': false, 'message': data['error'] ?? 'Failed to load count'};
+      }
+    } catch (e) {
+      return {'success': false, 'message': _getErrorMessage(e)};
+    }
+  }
+
+  /// Mark all notifications as read
+  static Future<Map<String, dynamic>> markNotificationsAsRead({
+    required String userId,
+    required String token,
+  }) async {
+    try {
+      final response = await http.post(
+        Uri.parse('${ApiConfig.baseUrl}/api/notifications/mark-read'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+        body: jsonEncode({'userId': userId}),
+      ).timeout(const Duration(seconds: 10));
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        return {'success': true, 'message': data['message']};
+      } else {
+        final data = jsonDecode(response.body);
+        return {'success': false, 'message': data['error'] ?? 'Failed to mark as read'};
+      }
+    } catch (e) {
+      return {'success': false, 'message': _getErrorMessage(e)};
+    }
+  }
 }

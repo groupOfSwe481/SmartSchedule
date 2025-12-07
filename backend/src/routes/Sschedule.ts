@@ -56,12 +56,22 @@ router.get(
         // Normalize section name: trim whitespace and convert to lowercase for comparison
         const section = (schedule.section || 'default').trim().toLowerCase();
 
-        // Prefer published schedules, then latest version
-        if (!latestBySection.has(section) ||
-            (schedule.publishedAt && !latestBySection.get(section)!.publishedAt) ||
-            (schedule.version && latestBySection.get(section)!.version &&
-             schedule.version > latestBySection.get(section)!.version!)) {
+        console.log(`🔍 [STUDENT-API] Processing schedule: section="${schedule.section}" normalized="${section}" version=${schedule.version} published=${!!schedule.publishedAt}`);
+
+        const existing = latestBySection.get(section);
+
+        if (!existing) {
+          // No schedule for this section yet, add it
           latestBySection.set(section, schedule);
+          console.log(`  ➕ Added new section: ${section}`);
+        } else {
+          // Compare versions - higher version wins
+          if (schedule.version && existing.version && schedule.version > existing.version) {
+            latestBySection.set(section, schedule);
+            console.log(`  🔄 Replaced ${section}: v${existing.version} -> v${schedule.version}`);
+          } else {
+            console.log(`  ⏭️ Skipped ${section}: v${schedule.version} (keeping v${existing.version})`);
+          }
         }
       }
 
@@ -70,6 +80,9 @@ router.get(
         .sort((a, b) => ((a.section || '').trim().toLowerCase()).localeCompare((b.section || '').trim().toLowerCase()));
 
       console.log(`📊 [STUDENT-API] Returning ${selectedSchedules.length} schedule(s) - latest version per group`);
+      selectedSchedules.forEach(s => {
+        console.log(`  📄 ${s.section} v${s.version} (published: ${!!s.publishedAt})`);
+      });
 
       return res.json({
         level: studentLevel,
