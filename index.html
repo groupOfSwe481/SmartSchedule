@@ -4,7 +4,6 @@
     <!-- Auth Guard - MUST be first script -->
     <script src="assets/js/auth-guard.js"></script>
 
-
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Schedules - SmartSchedule</title>
@@ -112,10 +111,8 @@
         border-top: 1px solid rgba(255, 255, 255, 0.1);
         position: relative;
       }
-      /* ✅ STYLES FOR THE DROPUP MENU */
+
       .sidebar-footer .dropdown-menu {
-        /* We only set the width and a small margin. */
-        /* Bootstrap's 'dropup' class handles the position. */
         width: calc(var(--sidebar-width) - 3rem);
         margin-bottom: 0.5rem;
       }
@@ -242,7 +239,6 @@
         flex-wrap: wrap;
       }
 
-      /* Override Bootstrap button styles */
       .level-btn.btn {
         flex: 1;
         min-width: 120px;
@@ -297,7 +293,6 @@
         min-height: 400px;
       }
 
-      /* Schedule Card Styling */
       #schedule-container .card {
         background: white;
         border: 1px solid #e2e8f0;
@@ -313,13 +308,11 @@
         font-size: 1.25rem;
       }
 
-      /* Card Header Alignment */
       #schedule-container .card .d-flex {
         align-items: center;
         gap: 1rem;
       }
 
-      /* Action Buttons in Schedule Cards */
       #schedule-container .btn {
         border-radius: 10px;
         font-weight: 600;
@@ -338,7 +331,6 @@
         font-size: 0.8rem;
       }
 
-      /* Button container spacing */
       #schedule-container .d-flex > div {
         display: flex;
         gap: 0.75rem;
@@ -399,7 +391,6 @@
         background: #475569;
       }
 
-      /* Schedule Table Styling */
       #schedule-container .table {
         margin-top: 1rem;
         border-radius: 12px;
@@ -431,7 +422,6 @@
         color: #1e293b;
       }
 
-      /* Course Items */
       #schedule-container .course-item {
         background: linear-gradient(
           135deg,
@@ -446,7 +436,6 @@
         font-weight: 500;
       }
 
-      /* Conflict Styling */
       #schedule-container .conflict-cell {
         background: linear-gradient(135deg, #fff5f5 0%, #ffe4e6 100%);
         border: 2px solid #ef4444 !important;
@@ -463,11 +452,74 @@
         margin-top: 0.5rem;
       }
 
-      /* Break cells */
       #schedule-container .bg-light-subtle {
         background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
         font-weight: 600;
         color: #64748b;
+      }
+
+      /* NOTIFICATIONS MODAL STYLES */
+      .notification-item {
+        transition: background-color 0.2s ease;
+      }
+
+      .notification-item:hover {
+        background-color: #f8f9fa;
+      }
+
+      .notification-item.unread {
+        background-color: #f0f4ff;
+      }
+
+      .deadline-item {
+        transition: all 0.2s ease;
+      }
+
+      .deadline-item:hover {
+        background-color: #f8f9fa;
+      }
+
+      #notificationTabs .nav-link {
+        color: #64748b;
+        border: none;
+        padding: 1rem 1.5rem;
+        transition: all 0.3s ease;
+      }
+
+      #notificationTabs .nav-link:hover {
+        color: #6366f1;
+        background-color: #f8f9ff;
+      }
+
+      #notificationTabs .nav-link.active {
+        color: #6366f1;
+        background-color: #f0f4ff;
+        border-bottom: 3px solid #6366f1;
+      }
+
+      #notificationsList::-webkit-scrollbar,
+      #deadlinesList::-webkit-scrollbar {
+        width: 8px;
+      }
+
+      #notificationsList::-webkit-scrollbar-track,
+      #deadlinesList::-webkit-scrollbar-track {
+        background: #f1f1f1;
+      }
+
+      #notificationsList::-webkit-scrollbar-thumb,
+      #deadlinesList::-webkit-scrollbar-thumb {
+        background: #cbd5e1;
+        border-radius: 4px;
+      }
+
+      #notificationsList::-webkit-scrollbar-thumb:hover,
+      #deadlinesList::-webkit-scrollbar-thumb:hover {
+        background: #94a3b8;
+      }
+
+      .bi-inbox, .bi-calendar-check {
+        color: #cbd5e1;
       }
 
       /* RESPONSIVE */
@@ -670,141 +722,11 @@
       </div>
     </div>
 
-    <script src="assets/js/bootstrap.bundle.min.js"></script>
+    <!-- ============================================ -->
+    <!-- MODALS SECTION -->
+    <!-- ============================================ -->
 
-    <script>
-      document.addEventListener("DOMContentLoaded", () => {
-        const sidebar = document.getElementById("sidebar");
-        const sidebarToggle = document.getElementById("sidebarToggle");
-
-        // --- 1. AUTO-ACTIVE SIDEBAR ---
-        const currentPage =
-          window.location.pathname.split("/").pop() || "index.html";
-        const allLinks = document.querySelectorAll(".sidebar-nav-link");
-
-        allLinks.forEach((link) => {
-          link.classList.remove("active");
-          const linkHref = link.getAttribute("href");
-
-          // Check for index page (href="#" or index.html)
-          if (
-            (currentPage === "index.html" || currentPage === "") &&
-            linkHref === "#"
-          ) {
-            link.classList.add("active");
-          }
-          // Check for other pages
-          else if (linkHref === currentPage) {
-            link.classList.add("active");
-          }
-        });
-
-        // --- 2. USER DISPLAY LOGIC ---
-        const displayEl = document.getElementById("sidebarUserName");
-        const avatarEl = document.getElementById("userAvatar");
-
-        const raw = sessionStorage.getItem("user");
-        let user = null;
-        try {
-          user = raw ? JSON.parse(raw) : null;
-        } catch (e) {
-          console.warn("Could not parse user:", e);
-        }
-
-        const first = user?.First_Name ?? user?.firstName ?? "";
-        const last = user?.Last_Name ?? user?.lastName ?? "";
-        const displayName =
-          [first, last].filter(Boolean).join(" ").trim() || "Committee Member";
-
-        if (displayEl) displayEl.textContent = displayName;
-        if (avatarEl) {
-          const initials = displayName
-            .split(" ")
-            .map((n) => n[0])
-            .join("")
-            .toUpperCase()
-            .substring(0, 2);
-          avatarEl.textContent = initials || "CM";
-        }
-
-        // --- 3. SIDEBAR TOGGLE LOGIC ---
-        if (sidebarToggle && sidebar) {
-          sidebarToggle.addEventListener("click", () => {
-            sidebar.classList.toggle("active");
-          });
-
-          document.addEventListener("click", (e) => {
-            if (window.innerWidth <= 992) {
-              if (
-                !sidebar.contains(e.target) &&
-                !sidebarToggle.contains(e.target)
-              ) {
-                sidebar.classList.remove("active");
-              }
-            }
-          });
-        }
-
-        // --- 4. LOGOUT BUTTON LOGIC ---
-        const logoutBtn = document.getElementById("logoutButton");
-        if (logoutBtn) {
-          logoutBtn.addEventListener("click", (e) => {
-            e.preventDefault();
-            // Clear all session and local storage
-            sessionStorage.clear();
-            localStorage.clear();
-            // Use replace to prevent back button issues and correct filename
-            window.location.replace("LoginReg.html");
-          });
-        }
-      });
-    </script>
-<!-- ✅ Use the bundle -->
-<script src="assets/js/vendor/yjs-bundle.js"></script>
-
-<script>
-  console.log('🔍 Y available?', typeof window.Y !== 'undefined');
-  console.log('🔍 WebsocketProvider available?', typeof window.WebsocketProvider !== 'undefined');
-</script>
-
-<!-- Then your other scripts -->
-<!-- 5. Load collaboration.js -->
-<script src="assets/js/collaboration.js"></script>
-
-<!-- 6. Rest of your scripts -->
-<script src="assets/js/irregulars.js"></script>
-<script src="assets/js/notifications.js"></script>
-
-
-<!-- 5. PDF.js -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
-<script>
-  if (typeof pdfjsLib !== "undefined") {
-    pdfjsLib.GlobalWorkerOptions.workerSrc =
-      "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
-  }
-</script>
-
-<!-- 6. API and services -->
-<script src="assets/js/api.js"></script>
-<script src="assets/js/validation.js"></script>
-<script src="assets/js/notifications-util.js"></script>
-<script src="assets/js/courseService.js"></script>
-<script src="assets/js/scheduleService.js"></script>
-
-<!-- 7. Managers -->
-<script src="assets/js/courseManager.js"></script>
-<script src="assets/js/sectionManager.js"></script>
-<script src="assets/js/fileUploadManager.js"></script>
-
-<!-- 8. Dashboard and features -->
-<script src="assets/js/faculty-dashboard.js"></script>
-<script src="assets/js/version-history.js"></script>
-<script src="assets/js/faculty-comments.js"></script>
-
-<!-- 9. MAIN.JS MUST BE LAST! -->
-<script src="assets/js/main.js"></script>
-
+    <!-- Impact Report Modal -->
     <div
       class="modal fade"
       id="impactReportModal"
@@ -937,5 +859,191 @@
         </div>
       </div>
     </div>
+
+<!-- ============================================ -->
+
+<!-- Notifications Modal -->
+<div class="modal fade" id="notificationsModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg">
+    <div class="modal-content border-0 shadow-lg">
+      
+      <!-- Header -->
+      <div class="modal-header bg-gradient text-white" style="background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);">
+        <div class="d-flex align-items-center gap-3">
+          <i class="bi bi-bell-fill fs-3"></i>
+          <div>
+            <h5 class="modal-title fw-bold mb-0">Notifications & Deadlines</h5>
+            <small class="opacity-75">Stay updated with your schedule</small>
+          </div>
+        </div>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+
+      <!-- Body -->
+      <div class="modal-body p-0">
+        <!-- Tabs -->
+        <ul class="nav nav-tabs nav-fill border-bottom">
+          <li class="nav-item">
+            <button class="nav-link active fw-semibold" data-bs-toggle="tab" data-bs-target="#notifications-content">
+              <i class="bi bi-bell me-2"></i>Notifications
+            </button>
+          </li>
+          <li class="nav-item">
+            <button class="nav-link fw-semibold" data-bs-toggle="tab" data-bs-target="#deadlines-content">
+              <i class="bi bi-calendar-event me-2"></i>Deadlines
+            </button>
+          </li>
+        </ul>
+
+        <!-- Tab Content -->
+        <div class="tab-content">
+          <!-- Notifications Tab -->
+          <div class="tab-pane fade show active" id="notifications-content">
+            <div id="notificationsList" style="max-height: 500px; overflow-y: auto;">
+              <div class="text-center py-5">
+                <div class="spinner-border text-primary"></div>
+                <p class="text-muted mt-3">Loading...</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Deadlines Tab -->
+          <div class="tab-pane fade" id="deadlines-content">
+            <div id="deadlinesList" style="max-height: 500px; overflow-y: auto;">
+              <div class="text-center py-5">
+                <div class="spinner-border text-primary"></div>
+                <p class="text-muted mt-3">Loading...</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Footer -->
+      <div class="modal-footer bg-light">
+        <small class="text-muted me-auto">
+          <i class="bi bi-info-circle me-1"></i>Last updated: Just now
+        </small>
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+    <!-- ============================================ -->
+    <!-- SCRIPTS SECTION - Correct Loading Order -->
+    <!-- ============================================ -->
+
+    <script src="assets/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+      document.addEventListener("DOMContentLoaded", () => {
+        const sidebar = document.getElementById("sidebar");
+        const sidebarToggle = document.getElementById("sidebarToggle");
+
+        const currentPage =
+          window.location.pathname.split("/").pop() || "index.html";
+        const allLinks = document.querySelectorAll(".sidebar-nav-link");
+
+        allLinks.forEach((link) => {
+          link.classList.remove("active");
+          const linkHref = link.getAttribute("href");
+
+          if (
+            (currentPage === "index.html" || currentPage === "") &&
+            linkHref === "#"
+          ) {
+            link.classList.add("active");
+          }
+          else if (linkHref === currentPage) {
+            link.classList.add("active");
+          }
+        });
+
+        const displayEl = document.getElementById("sidebarUserName");
+        const avatarEl = document.getElementById("userAvatar");
+
+        const raw = sessionStorage.getItem("user");
+        let user = null;
+        try {
+          user = raw ? JSON.parse(raw) : null;
+        } catch (e) {
+          console.warn("Could not parse user:", e);
+        }
+
+        const first = user?.First_Name ?? user?.firstName ?? "";
+        const last = user?.Last_Name ?? user?.lastName ?? "";
+        const displayName =
+          [first, last].filter(Boolean).join(" ").trim() || "Committee Member";
+
+        if (displayEl) displayEl.textContent = displayName;
+        if (avatarEl) {
+          const initials = displayName
+            .split(" ")
+            .map((n) => n[0])
+            .join("")
+            .toUpperCase()
+            .substring(0, 2);
+          avatarEl.textContent = initials || "CM";
+        }
+
+        if (sidebarToggle && sidebar) {
+          sidebarToggle.addEventListener("click", () => {
+            sidebar.classList.toggle("active");
+          });
+
+          document.addEventListener("click", (e) => {
+            if (window.innerWidth <= 992) {
+              if (
+                !sidebar.contains(e.target) &&
+                !sidebarToggle.contains(e.target)
+              ) {
+                sidebar.classList.remove("active");
+              }
+            }
+          });
+        }
+
+        const logoutBtn = document.getElementById("logoutButton");
+        if (logoutBtn) {
+          logoutBtn.addEventListener("click", (e) => {
+            e.preventDefault();
+            sessionStorage.clear();
+            localStorage.clear();
+            window.location.replace("LoginReg.html");
+          });
+        }
+      });
+    </script>
+
+    <script src="assets/js/main.js"></script>
+    <script src="assets/js/irregulars.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <script>
+      if (typeof pdfjsLib !== "undefined") {
+        pdfjsLib.GlobalWorkerOptions.workerSrc =
+          "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
+      }
+    </script>
+    <script src="assets/js/api.js"></script>
+    <script src="assets/js/validation.js"></script>
+    <script src="assets/js/notifications-util.js"></script>
+    <script src="assets/js/courseService.js"></script>
+    <script src="assets/js/scheduleService.js"></script>
+    <script src="assets/js/courseManager.js"></script>
+    <script src="assets/js/sectionManager.js"></script>
+    <script src="assets/js/fileUploadManager.js"></script>
+    <script src="assets/js/faculty-dashboard.js"></script>
+    <script src="assets/js/version-history.js"></script>
+    <script src="assets/js/faculty-comments.js"></script>
+    <script src="assets/js/notifications.js"></script>
+
   </body>
-</html>
+</html>  <li class="nav-item" role="presentation">
+                <button class="nav-link fw-semibold" id="deadlines-tab" data-bs-toggle="tab" 
+                        data-bs-target="#deadlines-content" type="button" role="tab" 
+                        aria-controls="deadlines-content" aria-selected="false">
+                  <i class="bi bi-calendar-event me-2"></i>Deadlines
+                </button>
+              </li>

@@ -43,54 +43,64 @@ router.post("/", async (req: Request, res: Response) => {
       });
     }
 
-    // ✅ Find student
+    // ✅ Find student (optional - if not found, we'll still allow comment)
     const student = await Student.findOne({ student_id }).lean();
-    console.log('👤 [COMMENT] Found student:', student ? 'Yes' : 'No');
-    
-    if (!student) {
-      return res.status(404).json({ 
-        success: false, 
-        error: "Student not found" 
-      });
-    }
+    console.log('👤 [COMMENT] Found student profile:', student ? 'Yes' : 'No');
 
-    console.log('🔍 [COMMENT] Student user_id:', student.user_id, 'Type:', typeof student.user_id);
+    let studentName = student_id;
+    let studentLevel = 4; // Default level
 
-    // ✅ Try multiple ways to find the user
-    let user = null;
-    
-    // Try 1: If user_id is a number, search by userID
-    if (typeof student.user_id === 'number') {
-      user = await User.findOne({ userID: student.user_id }).lean();
-      console.log('🔍 [COMMENT] Search by userID (number):', user ? 'Found' : 'Not found');
-    }
-    
-    // Try 2: If user_id is ObjectId string, search by _id
-    if (!user && typeof student.user_id === 'string') {
-      try {
-        user = await User.findById(student.user_id).lean();
-        console.log('🔍 [COMMENT] Search by _id (ObjectId):', user ? 'Found' : 'Not found');
-      } catch (e) {
-        console.log('⚠️ [COMMENT] Not a valid ObjectId');
+    if (student) {
+      console.log('🔍 [COMMENT] Student user_id:', student.user_id, 'Type:', typeof student.user_id);
+      studentLevel = student.level || 4;
+
+      // ✅ Try multiple ways to find the user
+      let user = null;
+
+      // Try 1: If user_id is a number, search by userID
+      if (typeof student.user_id === 'number') {
+        user = await User.findOne({ userID: student.user_id }).lean();
+        console.log('🔍 [COMMENT] Search by userID (number):', user ? 'Found' : 'Not found');
+      }
+
+      // Try 2: If user_id is ObjectId string, search by _id
+      if (!user && typeof student.user_id === 'string') {
+        try {
+          user = await User.findById(student.user_id).lean();
+          console.log('🔍 [COMMENT] Search by _id (ObjectId):', user ? 'Found' : 'Not found');
+        } catch (e) {
+          console.log('⚠️ [COMMENT] Not a valid ObjectId');
+        }
+      }
+
+      // Try 3: Search by userID if it's a string number
+      if (!user && typeof student.user_id === 'string' && !isNaN(Number(student.user_id))) {
+        user = await User.findOne({ userID: Number(student.user_id) }).lean();
+        console.log('🔍 [COMMENT] Search by userID (string->number):', user ? 'Found' : 'Not found');
+      }
+
+      if (user) {
+        studentName = `${user.First_Name} ${user.Last_Name}`.trim();
+      }
+    } else {
+      // If no student profile, try to find user by email pattern
+      console.log('⚠️ [COMMENT] No student profile, trying to find user by email');
+      const userByEmail = await User.findOne({
+        Email: new RegExp(`^${student_id}`)
+      }).lean();
+
+      if (userByEmail) {
+        studentName = `${userByEmail.First_Name} ${userByEmail.Last_Name}`.trim();
+        console.log('✅ [COMMENT] Found user by email pattern:', studentName);
       }
     }
-    
-    // Try 3: Search by userID if it's a string number
-    if (!user && typeof student.user_id === 'string' && !isNaN(Number(student.user_id))) {
-      user = await User.findOne({ userID: Number(student.user_id) }).lean();
-      console.log('🔍 [COMMENT] Search by userID (string->number):', user ? 'Found' : 'Not found');
-    }
 
-    const studentName = user 
-      ? `${user.First_Name} ${user.Last_Name}`.trim() 
-      : student_id;
-
-    console.log('✅ [COMMENT] Student name:', studentName);
+    console.log('✅ [COMMENT] Student name:', studentName, 'Level:', studentLevel);
 
     const comment = new Comment({
       student_id,
       student_name: studentName,
-      student_level: student.level,
+      student_level: studentLevel,
       course_code,
       course_name,
       time_slot,

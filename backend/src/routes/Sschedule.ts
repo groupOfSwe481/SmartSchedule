@@ -10,7 +10,7 @@ const router: Router = Router();
 
 /**
  * @route   GET /api/student-schedules/:level
- * @desc    Fetches schedules for students (version 2+ only, published preferred)
+ * @desc    Fetches schedules for students (version 2+ only, published preferred, latest version per group)
  * @access  Public (Students)
  */
 router.get(
@@ -26,23 +26,22 @@ router.get(
 
       console.log(`📡 [STUDENT-API] Fetching schedules for Level ${studentLevel}`);
 
-      // ✅ للطلاب: فقط النسخة 2 فما فوق
-      const schedules = await Schedule.find({
+      // ✅ Get all schedules version 2+
+      const allSchedules = await Schedule.find({
         level: studentLevel,
-        version: { $gte: 2 }  // ✅ نسخة 2 أو أعلى فقط
+        version: { $gte: 2 }  // ✅ Version 2 or higher only
       })
-        .sort({ 
-          publishedAt: -1,  // المنشورة أولاً
-          version: -1,      // ثم أحدث نسخة
+        .sort({
+          publishedAt: -1,  // Published first
+          version: -1,      // Then latest version
           created_at: -1,
           createdAt: -1
         })
-        .limit(10)
         .lean();
 
-      console.log(`✅ [STUDENT-API] Found ${schedules.length} schedule(s) (version 2+)`);
+      console.log(`✅ [STUDENT-API] Found ${allSchedules.length} schedule(s) (version 2+)`);
 
-      if (schedules.length === 0) {
+      if (allSchedules.length === 0) {
         console.log(`⚠️ [STUDENT-API] No schedules version 2+ for Level ${studentLevel}`);
         return res.status(404).json({
           error: `No final schedules available for Level ${level} yet.`,
@@ -50,15 +49,27 @@ router.get(
         });
       }
 
-      // ✅ نعطي أولوية للجداول المنشورة
-      let selectedSchedules = schedules.filter(s => s.publishedAt != null);
-      
-      if (selectedSchedules.length === 0) {
-        console.log(`ℹ️ [STUDENT-API] No published schedules, using latest version ${schedules[0].version}`);
-        selectedSchedules = [schedules[0]];
+      // ✅ Group by section and get latest version for each group
+      const latestBySection = new Map<string, typeof allSchedules[0]>();
+
+      for (const schedule of allSchedules) {
+        // Normalize section name: trim whitespace and convert to lowercase for comparison
+        const section = (schedule.section || 'default').trim().toLowerCase();
+
+        // Prefer published schedules, then latest version
+        if (!latestBySection.has(section) ||
+            (schedule.publishedAt && !latestBySection.get(section)!.publishedAt) ||
+            (schedule.version && latestBySection.get(section)!.version &&
+             schedule.version > latestBySection.get(section)!.version!)) {
+          latestBySection.set(section, schedule);
+        }
       }
 
-      console.log(`📊 [STUDENT-API] Returning schedule - Version: ${selectedSchedules[0]?.version}, Published: ${selectedSchedules[0]?.publishedAt || 'Not yet'}`);
+      // Convert map to array and sort by section
+      const selectedSchedules = Array.from(latestBySection.values())
+        .sort((a, b) => ((a.section || '').trim().toLowerCase()).localeCompare((b.section || '').trim().toLowerCase()));
+
+      console.log(`📊 [STUDENT-API] Returning ${selectedSchedules.length} schedule(s) - latest version per group`);
 
       return res.json({
         level: studentLevel,
@@ -68,9 +79,9 @@ router.get(
     } catch (e: unknown) {
       console.error("❌ [STUDENT-API] Error:", e);
       const errorMessage = e instanceof Error ? e.message : String(e);
-      return res.status(500).json({ 
-        message: "Server error", 
-        error: errorMessage 
+      return res.status(500).json({
+        message: "Server error",
+        error: errorMessage
       });
     }
   }
@@ -79,8 +90,8 @@ router.get(
 /**
  * ✅ ⭐ NEW ENDPOINT ⭐
  * @route   GET /api/committee-schedules/:level
- * @desc    Fetches schedules for Load Committee (version 1+ including drafts)
- * @access  Load Committee Members
+ * @desc    Fetches schedules for Load Committee (version 1+ including drafts, latest version per group)
+ * @access  Load Committee Members & Faculty
  */
 router.get(
   "/committee-schedules/:level",
@@ -95,22 +106,21 @@ router.get(
 
       console.log(`📡 [COMMITTEE-API] Fetching schedules for Level ${committeeLevel}`);
 
-      // ✅ للجنة: جميع النسخ من 1 فما فوق (بما فيها المسودات)
-      const schedules = await Schedule.find({
+      // ✅ Get all versions for this level (version 1+)
+      const allSchedules = await Schedule.find({
         level: committeeLevel,
-        version: { $gte: 1 }  // ✅ النسخة 1 فما فوق
+        version: { $gte: 1 }  // ✅ Version 1 and above
       })
-        .sort({ 
-          version: -1,      // أحدث نسخة أولاً
+        .sort({
+          version: -1,      // Latest version first
           created_at: -1,
           createdAt: -1
         })
-        .limit(20)  // نعرض المزيد للجنة
         .lean();
 
-      console.log(`✅ [COMMITTEE-API] Found ${schedules.length} schedule(s) (version 1+)`);
+      console.log(`✅ [COMMITTEE-API] Found ${allSchedules.length} total schedule(s) (version 1+)`);
 
-      if (schedules.length === 0) {
+      if (allSchedules.length === 0) {
         console.log(`⚠️ [COMMITTEE-API] No schedules for Level ${committeeLevel}`);
         return res.status(404).json({
           error: `No schedules available for Level ${level}.`,
@@ -118,23 +128,38 @@ router.get(
         });
       }
 
-      // ✅ نعرض أحدث نسخة متاحة
-      const latestSchedule = schedules[0];
+      // ✅ Group by section and get latest version for each group
+      const latestBySection = new Map<string, typeof allSchedules[0]>();
 
-      console.log(`📊 [COMMITTEE-API] Returning schedule - Version: ${latestSchedule.version}, Published: ${latestSchedule.publishedAt || 'Draft'}`);
+      for (const schedule of allSchedules) {
+        // Normalize section name: trim whitespace and convert to lowercase for comparison
+        const section = (schedule.section || 'default').trim().toLowerCase();
+
+        if (!latestBySection.has(section) ||
+            (schedule.version && latestBySection.get(section)!.version &&
+             schedule.version > latestBySection.get(section)!.version!)) {
+          latestBySection.set(section, schedule);
+        }
+      }
+
+      // Convert map to array and sort by section
+      const latestSchedules = Array.from(latestBySection.values())
+        .sort((a, b) => ((a.section || '').trim().toLowerCase()).localeCompare((b.section || '').trim().toLowerCase()));
+
+      console.log(`📊 [COMMITTEE-API] Returning ${latestSchedules.length} schedule(s) - latest version per group`);
 
       return res.json({
         level: committeeLevel,
-        schedules: [latestSchedule],  // نعرض أحدث نسخة
-        allVersions: schedules,        // نرسل جميع النسخ للمعلومات
-        count: schedules.length
+        schedules: latestSchedules,  // ✅ Latest version of each group
+        allVersions: allSchedules,   // All versions for version control
+        count: allSchedules.length
       });
     } catch (e: unknown) {
       console.error("❌ [COMMITTEE-API] Error:", e);
       const errorMessage = e instanceof Error ? e.message : String(e);
-      return res.status(500).json({ 
-        message: "Server error", 
-        error: errorMessage 
+      return res.status(500).json({
+        message: "Server error",
+        error: errorMessage
       });
     }
   }

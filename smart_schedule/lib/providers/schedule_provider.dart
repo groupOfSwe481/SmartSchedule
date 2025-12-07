@@ -22,7 +22,7 @@ class ScheduleProvider with ChangeNotifier {
     notifyListeners();
   }
 
-  /// Fetch schedules for Students (Published only, Version 2+)
+  /// Fetch schedules for Students (Published only, Latest version per group)
   Future<void> fetchStudentSchedule(int level) async {
     _isLoading = true;
     _error = null;
@@ -33,9 +33,11 @@ class ScheduleProvider with ChangeNotifier {
       final result = await ScheduleService.getStudentScheduleByLevel(level);
 
       if (result['success']) {
+        // Backend already returns latest version per group, just use it directly
         _schedules = (result['schedules'] as List)
             .map((json) => Schedule.fromJson(json as Map<String, dynamic>))
             .toList();
+
         _error = null;
       } else {
         _error = result['message'];
@@ -50,7 +52,7 @@ class ScheduleProvider with ChangeNotifier {
     }
   }
 
-  /// Fetch schedules for LoadCommittee/Faculty (All versions, Version 1+)
+  /// Fetch schedules for LoadCommittee/Faculty (Latest version per group only)
   Future<void> fetchCommitteeSchedule(int level, {String? token}) async {
     _isLoading = true;
     _error = null;
@@ -61,10 +63,12 @@ class ScheduleProvider with ChangeNotifier {
       final result = await ScheduleService.getCommitteeScheduleByLevel(level, token: token);
 
       if (result['success']) {
+        // Backend already returns latest version per group, just use it directly
         _schedules = (result['schedules'] as List)
             .map((json) => Schedule.fromJson(json as Map<String, dynamic>))
             .toList();
 
+        // Store all versions for version control screen
         if (result['allVersions'] != null) {
           _allVersions = (result['allVersions'] as List)
               .map((json) => Schedule.fromJson(json as Map<String, dynamic>))

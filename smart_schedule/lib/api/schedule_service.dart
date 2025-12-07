@@ -337,7 +337,8 @@ class ScheduleService {
 
       if (response.statusCode == 201 || response.statusCode == 200) {
         final data = jsonDecode(response.body);
-        return {'success': true, 'comment': data['comment']};
+        // Backend returns 'data' field, not 'comment'
+        return {'success': true, 'comment': data['data']};
       } else {
         final data = jsonDecode(response.body);
         return {'success': false, 'message': data['error'] ?? 'Failed'};
@@ -363,7 +364,8 @@ class ScheduleService {
 
       if (response.statusCode == 201 || response.statusCode == 200) {
         final data = jsonDecode(response.body);
-        return {'success': true, 'comment': data['comment']};
+        // Backend returns 'data' field, not 'comment'
+        return {'success': true, 'comment': data['data']};
       } else {
         final data = jsonDecode(response.body);
         return {'success': false, 'message': data['error'] ?? 'Failed'};
