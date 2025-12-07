@@ -467,4 +467,174 @@ router.post("/register", async (req: Request, res: Response) => {
   }
 });
 
+// Forgot Password - Send reset code to email
+router.post("/forgot-password", emailLimiter, withTimeout(async (req: Request, res: Response) => {
+  try {
+    const { Email } = req.body;
+
+    // Input validation
+    if (!Email) {
+      return res.status(400).json({ message: "Email is required" });
+    }
+
+    if (typeof Email !== 'string') {
+      return res.status(400).json({ message: "Invalid email format" });
+    }
+
+    // Sanitize and validate email
+    let sanitizedEmail = Email.trim();
+    if (!validator.isEmail(sanitizedEmail)) {
+      return res.status(400).json({ message: "Invalid email format" });
+    }
+    sanitizedEmail = validator.normalizeEmail(sanitizedEmail) || sanitizedEmail;
+
+    // Check if user exists
+    const user = await User.findOne({ Email: sanitizedEmail }).maxTimeMS(8000).exec();
+
+    // Security: Don't reveal if email exists or not (prevent user enumeration)
+    if (!user) {
+      // Still return success to prevent email enumeration
+      return res.json({
+        message: "If this email exists, a reset code has been sent"
+      });
+    }
+
+    // Check per-email rate limit
+    if (!checkEmailRateLimit(sanitizedEmail)) {
+      return res.status(429).json({
+        message: "Too many reset code requests for this email. Please wait 15 minutes."
+      });
+    }
+
+    // Generate reset code
+    const resetCode = generateCode();
+    const expires = Date.now() + 10 * 60 * 1000; // 10 minutes
+
+    // Store reset code
+    verificationCodes.set(sanitizedEmail, {
+      code: resetCode,
+      expires,
+      userId: user.id
+    });
+
+    // Send reset code email
+    try {
+      const mailOptions = {
+        from: process.env.EMAIL_USER,
+        to: sanitizedEmail,
+        subject: 'SmartSchedule - Password Reset Code',
+        html: `
+          <h2>Password Reset Request</h2>
+          <p>You requested to reset your password. Your reset code is:</p>
+          <p><strong style="font-size: 24px; color: #667eea;">${resetCode}</strong></p>
+          <p>This code will expire in 10 minutes.</p>
+          <p>If you didn't request this, please ignore this email and your password will remain unchanged.</p>
+          <hr>
+          <small style="color: #666;">
+            For security reasons, we limit password reset requests.
+            You can request up to 3 codes per 15 minutes.
+          </small>
+        `
+      };
+
+      const emailPromise = transporter.sendMail(mailOptions);
+      const timeoutPromise = new Promise((_, reject) =>
+        setTimeout(() => reject(new Error('Email sending timeout')), 10000)
+      );
+
+      await Promise.race([emailPromise, timeoutPromise]);
+
+      return res.json({
+        message: "Reset code sent to your email",
+        rateLimitInfo: {
+          remainingAttempts: 3 - (emailAttempts.get(sanitizedEmail)?.count || 0),
+          resetTime: emailAttempts.get(sanitizedEmail)?.resetTime
+        }
+      });
+    } catch (emailError) {
+      console.error('Reset email sending failed:', emailError);
+      return res.status(503).json({
+        message: "Failed to send reset code. Email service may be unavailable. Please try again later."
+      });
+    }
+
+  } catch (error) {
+    console.error('Forgot password error:', error);
+    return res.status(500).json({ message: "Server error" });
+  }
+}, 8000));
+
+// Reset Password - Verify code and update password
+router.post("/reset-password", withTimeout(async (req: Request, res: Response) => {
+  try {
+    const { Email, resetCode, newPassword } = req.body;
+
+    // Input validation
+    if (!Email || !resetCode || !newPassword) {
+      return res.status(400).json({ message: "Email, reset code, and new password are required" });
+    }
+
+    if (typeof Email !== 'string' || typeof resetCode !== 'string' || typeof newPassword !== 'string') {
+      return res.status(400).json({ message: "Invalid input format" });
+    }
+
+    // Sanitize inputs
+    let sanitizedEmail = Email.trim();
+    let sanitizedResetCode = resetCode.trim();
+    let sanitizedNewPassword = newPassword.trim();
+
+    // Validate email
+    if (!validator.isEmail(sanitizedEmail)) {
+      return res.status(400).json({ message: "Invalid email format" });
+    }
+    sanitizedEmail = validator.normalizeEmail(sanitizedEmail) || sanitizedEmail;
+
+    // Validate reset code format (6 digits)
+    if (!/^\d{6}$/.test(sanitizedResetCode)) {
+      return res.status(400).json({ message: "Reset code must be 6 digits" });
+    }
+
+    // Validate new password
+    if (sanitizedNewPassword.length < 6) {
+      return res.status(400).json({ message: "Password must be at least 6 characters" });
+    }
+
+    if (sanitizedNewPassword.length > 128) {
+      return res.status(400).json({ message: "Password too long" });
+    }
+
+    // Check if reset code exists and is valid
+    const storedData = verificationCodes.get(sanitizedEmail);
+
+    if (!storedData || storedData.code !== sanitizedResetCode || Date.now() > storedData.expires) {
+      return res.status(401).json({ message: "Invalid or expired reset code" });
+    }
+
+    // Find user
+    const user = await User.findOne({ Email: sanitizedEmail }).maxTimeMS(8000).exec();
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    // Update password
+    user.Password = sanitizedNewPassword; // Will be hashed by User model's pre-save hook
+    await user.save();
+
+    // Clear the used reset code
+    verificationCodes.delete(sanitizedEmail);
+
+    // Clear email rate limit for this user (allow them to login immediately)
+    emailAttempts.delete(sanitizedEmail);
+
+    return res.json({
+      message: "Password reset successful. You can now login with your new password."
+    });
+
+  } catch (error) {
+    console.error('Reset password error:', error);
+    return res.status(500).json({ message: "Server error" });
+  }
+}, 8000));
+
 export default router;
