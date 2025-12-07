@@ -3,9 +3,11 @@
 // ========================================
 
 // Smart API URL detection
-const isLocalhost = window.location.hostname === 'localhost' ||
-                    window.location.hostname === '127.0.0.1';
-const API_BASE = window.API_URL || (isLocalhost ? 'http://localhost:4000/api' : '/api');
+const isLocalhost =
+  window.location.hostname === "localhost" ||
+  window.location.hostname === "127.0.0.1";
+const API_BASE =
+  window.API_URL || (isLocalhost ? "http://localhost:4000/api" : "/api");
 
 let currentVersionLevel = null;
 let currentScheduleForVersion = null;
@@ -73,9 +75,7 @@ async function fetchSchedulesForLevel(level) {
 
   try {
     // This route fetches the latest DRAFTS (status: 'Draft')
-    const res = await fetch(
-      `${API_BASE}/schedule/level/${level}`
-    );
+    const res = await fetch(`${API_BASE}/schedule/level/${level}`);
     const data = await res.json();
 
     if (!res.ok) {
@@ -190,9 +190,7 @@ async function fetchVersionHistory(scheduleId, section, level) {
 
     // Fetch current schedule (for reconstruction)
     // We fetch from the 'draft' route, as that's what we are editing
-    const scheduleRes = await fetch(
-      `${API_BASE}/schedule/level/${level}`
-    );
+    const scheduleRes = await fetch(`${API_BASE}/schedule/level/${level}`);
     const scheduleData = await scheduleRes.json();
     const currentSchedule = scheduleData.schedules.find(
       (s) => s._id === scheduleId
@@ -295,12 +293,7 @@ async function fetchVersionHistory(scheduleId, section, level) {
               <button class="btn btn-sm btn-success restore-version-btn" 
                 onclick="restoreVersion('${scheduleId}', ${version.history_version}, '${section}', ${level})">
                 <i class="bi bi-arrow-counterclockwise me-1"></i>Restore This Version
-              </button>
-              <button class="btn btn-sm btn-outline-secondary" 
-                onclick="compareVersions(${version.history_version}, ${currentHistoryVersion})">
-                <i class="bi bi-arrow-left-right me-1"></i>Compare with Current
-              </button>
-              `
+              </button>`
                   : `
               <button class="btn btn-sm btn-outline-secondary" disabled>
                 <i class="bi bi-check-circle me-1"></i>Already Current
