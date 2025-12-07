@@ -682,4 +682,12 @@
     document.getElementById("versionSchedulesContainer").style.display = "block";
     document.getElementById("versionEmptyState").style.display = "none";
   }
+
+  // ========================================
+  // Expose functions to global scope for onclick handlers
+  // ========================================
+  window.fetchVersionHistory = fetchVersionHistory;
+  window.viewFullSchedule = viewFullSchedule;
+  window.restoreVersion = restoreVersion;
+  window.compareVersions = compareVersions;
 })();
