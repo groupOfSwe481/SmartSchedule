@@ -39,19 +39,26 @@ router.get('/elective-courses', async (req: Request, res: Response) => {
 
     console.log('📅 Deadline check:', {
       now: now.toISOString(),
+      nowLocal: now.toLocaleString(),
       start: startDate.toISOString(),
       end: endDate.toISOString(),
-      is_active: formDeadline.is_active
+      is_active: formDeadline.is_active,
+      nowAfterStart: now >= startDate,
+      nowBeforeEnd: now <= endDate,
+      isWithinPeriod: now >= startDate && now <= endDate
     });
 
     // Check if current date is within the form period
     if (now < startDate || now > endDate) {
       console.log('⚠️ Current date is outside the form period');
+      console.log(`   now (${now.toISOString()}) < start (${startDate.toISOString()}): ${now < startDate}`);
+      console.log(`   now (${now.toISOString()}) > end (${endDate.toISOString()}): ${now > endDate}`);
       return res.status(400).json({
         error: 'Elective form is not currently active',
         form_active: false,
         start_date: startDate,
-        end_date: endDate
+        end_date: endDate,
+        current_date: now
       });
     }
 
@@ -119,6 +126,17 @@ router.get('/student-electives/:student_id', async (req: Request, res: Response)
     const now = new Date();
     const endDate = new Date(formDeadline.end_date);
     const startDate = new Date(formDeadline.start_date || now);
+
+    console.log('📅 Form Status Check:', {
+      now: now.toISOString(),
+      nowLocal: now.toLocaleString(),
+      startDate: startDate.toISOString(),
+      endDate: endDate.toISOString(),
+      is_active_flag: formDeadline.is_active,
+      nowAfterStart: now >= startDate,
+      nowBeforeEnd: now <= endDate
+    });
+
     const isActive = formDeadline.is_active && now >= startDate && now <= endDate;
 
     // Check if student has a submission for this period

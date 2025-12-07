@@ -255,6 +255,12 @@
     <div class="main-wrapper">
       <header class="top-header">
         <h1><i class="bi bi-bookmark-check me-3"></i>Elective Selection</h1>
+        <div class="top-header-actions">
+          <button class="notification-btn" data-bs-toggle="modal" data-bs-target="#notificationsModal">
+            <i class="bi bi-bell-fill"></i>
+            <span class="notification-badge" id="notificationBadge">0</span>
+          </button>
+        </div>
       </header>
 
       <div class="main-container">
@@ -485,5 +491,31 @@
     </script>
     <script src="assets/js/main.js"></script>
     <script src="assets/js/faculty-elective-selection.js"></script>
+
+  <!-- Notifications Modal -->
+  <div class="modal fade" id="notificationsModal" tabindex="-1">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title fw-semibold">
+            <i class="bi bi-bell me-2 text-primary"></i> Notifications
+          </h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body p-0">
+          <div id="notificationsList" style="max-height: 500px; overflow-y: auto">
+            <div class="text-center py-3">
+              <div class="spinner-border spinner-border-sm me-2"></div>
+              Loading notifications...
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Notifications Scripts -->
+  <script src="assets/js/notifications-util.js"></script>
+  <script src="assets/js/notifications.js"></script>
   </body>
 </html>
