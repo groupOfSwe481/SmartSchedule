@@ -19,23 +19,36 @@ class StudentProvider with ChangeNotifier {
     notifyListeners();
 
     try {
+      print('🔄 StudentProvider: Fetching levels...');
       final result = await StudentService.getAllLevels(token: token);
+      print('📊 StudentProvider: Got result with success=${result['success']}');
 
       if (result['success']) {
+        print('📋 Raw data type: ${result['data'].runtimeType}');
+        print('📋 Data length: ${(result['data'] as List).length}');
+
         _levels = (result['data'] as List)
-            .map((json) => StudentLevelData.fromJson(json as Map<String, dynamic>))
+            .map((json) {
+              print('🔍 Parsing item: ${json.toString().substring(0, 100)}...');
+              return StudentLevelData.fromJson(json as Map<String, dynamic>);
+            })
             .toList();
+        print('✅ StudentProvider: Parsed ${_levels.length} levels successfully');
         _error = null;
       } else {
+        print('❌ StudentProvider: API returned error: ${result['message']}');
         _error = result['message'];
         _levels = [];
       }
-    } catch (e) {
+    } catch (e, stackTrace) {
+      print('💥 StudentProvider: Exception while fetching levels: $e');
+      print('Stack trace: $stackTrace');
       _error = 'Error loading levels: $e';
       _levels = [];
     } finally {
       _isLoading = false;
       notifyListeners();
+      print('🏁 StudentProvider: fetchLevels complete. Levels count: ${_levels.length}');
     }
   }
 
