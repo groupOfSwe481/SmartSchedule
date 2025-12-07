@@ -418,70 +418,122 @@ class ViewEditManager {
     // ==========================================
     // VIEW MANAGEMENT
     // ==========================================
-    changeView() {
-        const viewType = document.getElementById('viewType').value;
-        this.currentView = viewType;
-        
-        const coursesView = document.getElementById('coursesView');
-        const sectionsView = document.getElementById('sectionsView');
-        
-        if (viewType === 'courses') {
-            coursesView.style.display = 'block';
-            sectionsView.style.display = 'none';
-        } else {
-            coursesView.style.display = 'none';
-            sectionsView.style.display = 'block';
-        }
-        
-        this.filterData();
+changeView() {
+    const viewType = document.getElementById('viewType').value;
+    this.currentView = viewType;
+    
+    const coursesView = document.getElementById('coursesView');
+    const sectionsView = document.getElementById('sectionsView');
+    
+    if (viewType === 'courses') {
+        coursesView.style.display = 'block';
+        sectionsView.style.display = 'none';
+    } else {
+        coursesView.style.display = 'none';
+        sectionsView.style.display = 'block';
     }
+    
+    this.filterData();
+}
 
-    filterData() {
-        const department = document.getElementById('filterDepartment').value;
-        const level = document.getElementById('filterLevel').value;
-        const searchQuery = document.getElementById('searchQuery').value.toLowerCase();
-        
-        if (this.currentView === 'courses') {
-            let filtered = this.allCourses;
-            
-            if (department !== 'all') {
-                filtered = filtered.filter(c => c.department === department);
-            }
-            
-            if (level !== 'all') {
-                filtered = filtered.filter(c => c.level && c.level.toString() === level);
-            }
-            
-            if (searchQuery) {
-                filtered = filtered.filter(c => 
-                    c.name.toLowerCase().includes(searchQuery) ||
-                    c.code.toLowerCase().includes(searchQuery)
-                );
-            }
-            
-            this.filteredData = filtered;
-            this.renderCourses();
-        } else {
-            let filtered = this.allSections;
-            
-            if (department !== 'all') {
-                const deptCourses = this.allCourses
-                    .filter(c => c.department === department)
-                    .map(c => c.code);
-                filtered = filtered.filter(s => deptCourses.includes(s.course));
-            }
-            
-            if (searchQuery) {
-                filtered = filtered.filter(s => 
-                    s.course.toLowerCase().includes(searchQuery) ||
-                    s.sec_num.toLowerCase().includes(searchQuery)
-                );
-            }
-            
-            this.filteredData = filtered;
-            this.renderSections();
-        }
+// ADD THIS METHOD to map level ObjectIds to numbers
+getLevelNumber(level) {
+    if (!level) return null;
+    
+    // If level is already a number
+    if (typeof level === 'number') return level;
+    
+    // If level is an ObjectId, map it to level number
+    const levelMap = {
+        '68d05cdf2e291f6388ce5391': 3,
+        '68d084b00fb05dceffa21488': 4,
+        '68d085370fb05dceffa2148a': 5,
+        '68d086260fb05dceffa2148b': 6,
+        '68d086670fb05dceffa2148c': 7,
+        '68d086b90fb05dceffa2148e': 8
+    };
+    
+    // Check if level is an object with $oid property
+    if (typeof level === 'object' && level.$oid) {
+        return levelMap[level.$oid] || null;
     }
+    
+    // Check if level is a string ObjectId
+    if (typeof level === 'string' && level in levelMap) {
+        return levelMap[level];
+    }
+    
+    return null;
+}
+
+filterData() {
+    const department = document.getElementById('filterDepartment').value;
+    const level = document.getElementById('filterLevel').value;
+    const searchQuery = document.getElementById('searchQuery').value.toLowerCase();
+    
+    if (this.currentView === 'courses') {
+        let filtered = this.allCourses;
+        
+        if (department !== 'all') {
+            filtered = filtered.filter(c => c.department === department);
+        }
+        
+        // FIXED: Proper level filtering
+        if (level !== 'all') {
+            // Extract the level number from "Level X" string
+            const levelNumber = parseInt(level.replace('Level ', ''));
+            
+            filtered = filtered.filter(c => {
+                const courseLevel = this.getLevelNumber(c.level);
+                return courseLevel === levelNumber;
+            });
+        }
+        
+        if (searchQuery) {
+            filtered = filtered.filter(c => 
+                c.name.toLowerCase().includes(searchQuery) ||
+                c.code.toLowerCase().includes(searchQuery)
+            );
+        }
+        
+        this.filteredData = filtered;
+        this.renderCourses();
+    } else {
+        // For sections, you might want to filter based on the course's level
+        let filtered = this.allSections;
+        
+        if (department !== 'all') {
+            const deptCourses = this.allCourses
+                .filter(c => c.department === department)
+                .map(c => c.code);
+            filtered = filtered.filter(s => deptCourses.includes(s.course));
+        }
+        
+        // FIXED: Section level filtering
+        if (level !== 'all' && level !== 'all') {
+            const levelNumber = parseInt(level.replace('Level ', ''));
+            
+            filtered = filtered.filter(s => {
+                // Find the course for this section
+                const course = this.allCourses.find(c => c.code === s.course);
+                if (!course) return false;
+                
+                const courseLevel = this.getLevelNumber(course.level);
+                return courseLevel === levelNumber;
+            });
+        }
+        
+        if (searchQuery) {
+            filtered = filtered.filter(s => 
+                s.course.toLowerCase().includes(searchQuery) ||
+                s.sec_num.toLowerCase().includes(searchQuery)
+            );
+        }
+        
+        this.filteredData = filtered;
+        this.renderSections();
+    }
+}
 
     refreshView() {
         this.loadAllData();
@@ -515,45 +567,51 @@ class ViewEditManager {
         });
     }
 
-    createCourseCard(course) {
-        const card = document.createElement('div');
-        card.className = 'card course-edit-card mb-3';
-        card.innerHTML = `
-            <div class="card-header bg-light">
-                <div class="d-flex justify-content-between align-items-center">
-                    <h6 class="mb-0">
-                        <i class="bi bi-book-fill text-primary"></i>
-                        <strong>${course.code}</strong> - ${course.name}
-                    </h6>
-                    <div>
-                        <button class="btn btn-sm btn-outline-primary" onclick="window.viewEditManager.editCourse('${course.code}')">
-                            <i class="bi bi-pencil"></i> Edit
-                        </button>
-                        <button class="btn btn-sm btn-outline-danger" onclick="window.viewEditManager.deleteCourse('${course.code}')">
-                            <i class="bi bi-trash"></i> Delete
-                        </button>
-                    </div>
+createCourseCard(course) {
+    const card = document.createElement('div');
+    card.className = 'card course-edit-card mb-3';
+    
+    // Get readable level
+    const levelNumber = this.getLevelNumber(course.level);
+    const levelText = levelNumber ? `Level ${levelNumber}` : 'Not specified';
+    
+    card.innerHTML = `
+        <div class="card-header bg-light">
+            <div class="d-flex justify-content-between align-items-center">
+                <h6 class="mb-0">
+                    <i class="bi bi-book-fill text-primary"></i>
+                    <strong>${course.code}</strong> - ${course.name}
+                </h6>
+                <div>
+                    <button class="btn btn-sm btn-outline-primary" onclick="window.viewEditManager.editCourse('${course.code}')">
+                        <i class="bi bi-pencil"></i> Edit
+                    </button>
+                    <button class="btn btn-sm btn-outline-danger" onclick="window.viewEditManager.deleteCourse('${course.code}')">
+                        <i class="bi bi-trash"></i> Delete
+                    </button>
                 </div>
             </div>
-            <div class="card-body">
-                <div class="row">
-                    <div class="col-md-6">
-                        <p class="mb-1"><strong>Department:</strong> ${course.department}</p>
-                        <p class="mb-1"><strong>College:</strong> ${course.college}</p>
-                        <p class="mb-1"><strong>Credit Hours:</strong> ${course.credit_hours}</p>
-                        <p class="mb-1"><strong>Duration:</strong> ${course.Duration} hours/week</p>
-                    </div>
-                    <div class="col-md-6">
-                        <p class="mb-1"><strong>Level:</strong> ${course.level ? `Level ${course.level}` : 'Not specified'}</p>
-                        <p class="mb-1"><strong>Elective:</strong> ${course.is_elective ? 'Yes' : 'No'}</p>
-                        <p class="mb-1"><strong>Pattern:</strong> ${course.pattern ? this.formatPattern(course.pattern.type) : 'N/A'}</p>
-                        <p class="mb-1"><strong>Prerequisites:</strong> ${this.formatPrerequisites(course.prerequisites)}</p>
-                    </div>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <p class="mb-1"><strong>Department:</strong> ${course.department}</p>
+                    <p class="mb-1"><strong>College:</strong> ${course.college}</p>
+                    <p class="mb-1"><strong>Credit Hours:</strong> ${course.credit_hours}</p>
+                    <p class="mb-1"><strong>Duration:</strong> ${course.Duration} hours/week</p>
+                </div>
+                <div class="col-md-6">
+                    <p class="mb-1"><strong>Level:</strong> ${levelText}</p>
+                    <p class="mb-1"><strong>Elective:</strong> ${course.is_elective ? 'Yes' : 'No'}</p>
+                    <p class="mb-1"><strong>Pattern:</strong> ${course.pattern ? this.formatPattern(course.pattern.type) : 'N/A'}</p>
+                    <p class="mb-1"><strong>Prerequisites:</strong> ${this.formatPrerequisites(course)}</p>
                 </div>
             </div>
-        `;
-        return card;
-    }
+        </div>
+    `;
+    return card;
+}
+
 
     formatPattern(type) {
         const patterns = {
