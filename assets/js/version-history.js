@@ -312,20 +312,28 @@
       // Add event listeners for dynamically created buttons
       setTimeout(() => {
         // View Full Schedule buttons
-        document.querySelectorAll('.view-schedule-btn').forEach(btn => {
+        const viewBtns = document.querySelectorAll('.view-schedule-btn');
+        console.log(`📌 Found ${viewBtns.length} view schedule buttons`);
+        viewBtns.forEach(btn => {
           btn.addEventListener('click', function() {
             const version = parseInt(this.dataset.version);
             const section = this.dataset.section;
             const level = parseInt(this.dataset.level);
+            console.log(`🔍 Viewing schedule - Version: ${version}, Section: ${section}, Level: ${level}`);
             viewFullSchedule(currentSchedule?.grid || {}, version, section, level);
           });
         });
 
         // Compare with Current buttons
-        document.querySelectorAll('.compare-version-btn').forEach(btn => {
-          btn.addEventListener('click', function() {
+        const compareBtns = document.querySelectorAll('.compare-version-btn');
+        console.log(`📌 Found ${compareBtns.length} compare buttons`);
+        compareBtns.forEach(btn => {
+          btn.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
             const oldVersion = parseInt(this.dataset.oldVersion);
             const currentVersion = parseInt(this.dataset.currentVersion);
+            console.log(`🔍 Compare clicked - Old: ${oldVersion}, Current: ${currentVersion}`);
             compareVersions(oldVersion, currentVersion);
           });
         });
@@ -684,9 +692,19 @@
   // Compare Versions
   // ========================================
   function compareVersions(oldVersion, newVersion) {
-    alert(
-      `Comparing Version ${oldVersion} with Version ${newVersion}\n\nThis feature will show a side-by-side comparison.`
-    );
+    console.log(`🔍 compareVersions called with oldVersion=${oldVersion}, newVersion=${newVersion}`);
+
+    // Create a more informative alert
+    const message = `📊 Version Comparison\n\n` +
+                    `Comparing:\n` +
+                    `• History Version ${oldVersion} (older)\n` +
+                    `• History Version ${newVersion} (current)\n\n` +
+                    `This feature will show a side-by-side comparison of the schedules.\n\n` +
+                    `(Feature coming soon!)`;
+
+    alert(message);
+
+    console.log(`✅ Compare versions alert shown successfully`);
   }
 
   // ========================================

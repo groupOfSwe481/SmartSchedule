@@ -399,11 +399,54 @@
         }
       }
       @media (max-width: 768px) {
+        .main-container,
+        .content-card {
+          padding: 1rem;
+        }
       }
-      .main-container,
-      .content-card {
-        padding: 1rem;
+
+      /* === VERSION TIMELINE MODAL STYLING === */
+      #versionTimelineModal .modal-dialog {
+        max-width: 95% !important;
+        width: 95%;
+        margin: 1rem auto;
       }
+
+      #versionTimelineModal .modal-content {
+        background: #f8fafc !important;
+        border: none;
+      }
+
+      #versionTimelineModal .modal-body {
+        background: #f8fafc;
+        padding: 2rem;
+      }
+
+      #versionTimelineModal .card {
+        background: white !important;
+        border: 2px solid #e2e8f0 !important;
+      }
+
+      #versionTimelineModal .card.border-primary {
+        border: 3px solid #6366f1 !important;
+        box-shadow: 0 8px 24px rgba(99, 102, 241, 0.2) !important;
+      }
+
+      /* Current Draft Badge - White background for visibility */
+      #versionTimelineModal .badge.bg-primary {
+        background: white !important;
+        color: #6366f1 !important;
+        border: 2px solid #6366f1;
+        font-weight: 700;
+      }
+
+      #versionTimelineModal .position-absolute .badge.bg-primary {
+        background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%) !important;
+        color: white !important;
+        border: none;
+        box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+      }
+
       /* === FIX FOR WIDE SCHEDULE MODAL === */
 
       /* 1. Target the CORRECT ID and set a max-width */
@@ -743,7 +786,7 @@
     <!-- Version Timeline Modal -->
     <div class="modal fade" id="versionTimelineModal" tabindex="-1">
       <div class="modal-dialog modal-xl modal-dialog-scrollable">
-        <div class="modal-content" style="background: #1e293b;">
+        <div class="modal-content">
           <div class="modal-header" style="background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%); border-bottom: none;">
             <div>
               <h5 class="modal-title fw-bold text-white mb-1">
@@ -758,10 +801,10 @@
               data-bs-dismiss="modal"
             ></button>
           </div>
-          <div class="modal-body p-4" style="background: #1e293b;">
-            <div id="versionEmptyState" class="text-center py-5" style="display: none; color: white;">
-              <i class="bi bi-inbox" style="font-size: 5rem; opacity: 0.5;"></i>
-              <h4 class="mt-4">No Version History</h4>
+          <div class="modal-body p-4">
+            <div id="versionEmptyState" class="text-center py-5" style="display: none;">
+              <i class="bi bi-inbox text-muted" style="font-size: 5rem; opacity: 0.5;"></i>
+              <h4 class="mt-4 text-muted">No Version History</h4>
               <p class="text-muted">This schedule has no recorded changes yet</p>
             </div>
             <div id="versionTimeline"></div>
