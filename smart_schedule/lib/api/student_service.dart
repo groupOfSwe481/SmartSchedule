@@ -24,6 +24,8 @@ class StudentService {
         if (token != null) 'Authorization': 'Bearer $token',
       };
 
+      print('🔍 Fetching from: ${ApiConfig.baseUrl}/api/students/levels');
+
       final response = await http
           .get(
             Uri.parse('${ApiConfig.baseUrl}/api/students/levels'),
@@ -31,20 +33,26 @@ class StudentService {
           )
           .timeout(const Duration(seconds: 10));
 
+      print('📡 Response status: ${response.statusCode}');
+      print('📦 Response body: ${response.body.substring(0, response.body.length > 200 ? 200 : response.body.length)}');
+
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
+        print('✅ Data parsed successfully, items: ${(data['data'] as List?)?.length ?? 0}');
         return {
           'success': true,
           'data': data['data'] ?? [],
         };
       } else {
         final data = jsonDecode(response.body);
+        print('❌ Error response: ${data['error']}');
         return {
           'success': false,
           'message': data['error'] ?? 'Failed to fetch levels'
         };
       }
     } catch (e) {
+      print('💥 Exception in getAllLevels: $e');
       return {'success': false, 'message': _getErrorMessage(e)};
     }
   }
