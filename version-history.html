@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Version History - SmartSchedule</title>
     <link rel="stylesheet" href="assets/css/bootstrap.min.css" />
-    <link rel="stylesheet" href="assets/css/style.css" />
     <link
       rel="stylesheet"
       href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css"
@@ -247,6 +246,8 @@
         color: #1e293b;
         transition: all 0.3s ease;
         border-left: 4px solid transparent;
+        width: 100%;
+        cursor: pointer;
       }
 
       #versionLevelButtons button:hover {
@@ -287,6 +288,7 @@
         transition: all 0.3s ease;
         cursor: pointer;
         border-left: 4px solid transparent;
+        background: white;
       }
 
       #versionSchedulesList .list-group-item:hover {
@@ -403,6 +405,24 @@
         color: #94a3b8;
       }
 
+      /* Modal Fixes */
+      .modal-dialog {
+        max-width: 900px !important;
+        width: 90% !important;
+        margin: 1.5rem auto !important;
+      }
+
+      .modal-content {
+        border-radius: 12px;
+        overflow: hidden;
+      }
+
+      .modal-body {
+        padding: 1.5rem;
+        overflow-x: auto;
+        max-height: calc(100vh - 250px);
+      }
+
       /* RESPONSIVE */
       .sidebar-toggle {
         display: none;
@@ -434,6 +454,16 @@
         .top-header {
           padding-left: 5rem;
         }
+        .modal-dialog {
+          max-width: 95% !important;
+        }
+      }
+
+      @media (max-width: 768px) {
+        .modal-dialog {
+          max-width: 98% !important;
+          margin: 0.5rem !important;
+        }
       }
     </style>
   </head>
@@ -442,10 +472,11 @@
     <button class="sidebar-toggle" id="sidebarToggle">
       <i class="bi bi-list" style="font-size: 1.5rem; color: #6366f1"></i>
     </button>
+    
     <!-- SIDEBAR -->
     <aside class="sidebar" id="sidebar">
       <div class="sidebar-header">
-        <a href="#" class="sidebar-brand">
+        <a href="index.html" class="sidebar-brand">
           <i class="bi bi-calendar-check"></i>
           <span>SmartSchedule</span>
         </a>
@@ -453,7 +484,7 @@
       <nav class="sidebar-nav">
         <ul style="list-style: none; padding: 0; margin: 0">
           <li class="sidebar-nav-item">
-            <a href="#" class="sidebar-nav-link active">
+            <a href="index.html" class="sidebar-nav-link">
               <i class="bi bi-calendar3"></i>
               <span>Schedules</span>
             </a>
@@ -467,19 +498,19 @@
           <li class="sidebar-nav-item">
             <a href="course-management.html" class="sidebar-nav-link">
               <i class="bi bi-folder-plus"></i>
-              <span>Course & Section Management</span>
+              <span>Section Management</span>
             </a>
           </li>
           <li class="sidebar-nav-item">
             <a href="feedback.html" class="sidebar-nav-link">
               <i class="bi bi-chat-dots"></i>
-              <span>Student Feedback</span>
+              <span>Comments</span>
             </a>
           </li>
           <li class="sidebar-nav-item">
             <a href="faculty-electives.html" class="sidebar-nav-link">
               <i class="bi bi-bookmark-check"></i>
-              <span>Elective Selection</span>
+              <span>Electives</span>
             </a>
           </li>
           <li class="sidebar-nav-item">
@@ -495,9 +526,9 @@
             </a>
           </li>
           <li class="sidebar-nav-item">
-            <a href="version-history.html" class="sidebar-nav-link">
+            <a href="version-history.html" class="sidebar-nav-link active">
               <i class="bi bi-clock-history"></i>
-              <span>History</span>
+              <span>Version History</span>
             </a>
           </li>
         </ul>
@@ -518,7 +549,7 @@
     <!-- MAIN CONTENT -->
     <div class="main-wrapper">
       <header class="top-header">
-        <h1>Version History</h1>
+        <h1><i class="bi bi-clock-history me-3"></i>Version History</h1>
         <div class="top-header-actions">
           <button
             class="notification-btn"
@@ -526,7 +557,7 @@
             data-bs-target="#notificationsModal"
           >
             <i class="bi bi-bell-fill"></i>
-            <span class="notification-badge" id="notificationBadge">0</span>
+            <span class="notification-badge">3</span>
           </button>
         </div>
       </header>
@@ -726,6 +757,24 @@
       </div>
     </div>
 
+    <!-- Version Timeline Modal (for showing history) -->
+    <div class="modal fade" id="versionTimelineModal" tabindex="-1">
+      <div class="modal-dialog modal-xl modal-dialog-scrollable">
+        <div class="modal-content">
+          <div class="modal-header bg-primary text-white">
+            <div>
+              <h5 class="modal-title fw-bold mb-1" id="timelineScheduleTitle"></h5>
+              <p class="mb-0 opacity-90" style="font-size: 0.9rem;" id="timelineScheduleSubtitle"></p>
+            </div>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+          </div>
+          <div class="modal-body p-4" id="versionTimeline">
+            <!-- Timeline content goes here -->
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- Scripts -->
     <script src="assets/js/bootstrap.bundle.min.js"></script>
     <script>
@@ -778,7 +827,6 @@
         }
       });
     </script>
-    <script src="assets/js/notifications.js"></script>
     <script src="assets/js/version-history.js"></script>
   </body>
 </html>
