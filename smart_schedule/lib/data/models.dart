@@ -431,7 +431,9 @@ class Course {
           ?.where((e) => e != null)
           .map((e) => e as String)
           .toList() ?? [],
-      pattern: CoursePattern.fromJson(json['pattern'] as Map<String, dynamic>),
+      pattern: json['pattern'] != null
+          ? CoursePattern.fromJson(json['pattern'] as Map<String, dynamic>)
+          : CoursePattern(type: 'custom', lectureHours: 0, labHours: 0, tutorialHours: 0, totalHours: 0),
       createdAt: json['created_at'] != null
           ? DateTime.parse(json['created_at'] as String)
           : DateTime.now(),
