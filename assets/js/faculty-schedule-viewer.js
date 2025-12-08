@@ -210,10 +210,10 @@
    */
   function openCommentForCell(courseCode, courseName, day, timeSlot) {
       console.log('🖱️ Faculty Cell clicked:', { courseCode, courseName, day, timeSlot });
-      
+
       // ✅ 1. استدعاء مدير التعليقات الخاص بالـ Faculty
       if (window.facultyCommentMaker) {
-          
+
           // ✅ 2. إرسال المستوى الحالي (مهم جداً للـ Backend)
           window.facultyCommentMaker.openCommentModal({
               courseCode: courseCode,
@@ -227,7 +227,10 @@
           alert('❌ Faculty comment system not ready. Please refresh the page.');
       }
   }
-  
+
+  // ✅ Expose function globally for onclick attributes
+  window.openCommentForCell = openCommentForCell;
+
   function updateScheduleBadges(version) {
       const badgesContainer = document.getElementById('scheduleBadges');
       if (badgesContainer) {
