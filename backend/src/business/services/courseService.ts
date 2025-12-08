@@ -303,14 +303,23 @@ class CourseService {
   private async getLevelObjectId(levelNum: number): Promise<ObjectId | null> {
     const db = getDB();
     const levelDoc = await db.collection('Level').findOne({ level_num: levelNum });
-    
+
     if (levelDoc && levelDoc._id) {
       console.log(`✅ Found Level ${levelNum} with ObjectId: ${levelDoc._id.toString()}`);
       return levelDoc._id;
     }
-    
+
     console.warn(`⚠️ Level ${levelNum} not found in Level collection`);
     return null;
+  }
+
+  async deleteCourse(courseCode: string): Promise<boolean> {
+    const existingCourse = await courseRepository.findByCode(courseCode);
+    if (!existingCourse) {
+      throw new Error('Course not found');
+    }
+
+    return await courseRepository.delete(courseCode);
   }
 }
 

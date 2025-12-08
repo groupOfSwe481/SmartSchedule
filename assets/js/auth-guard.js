@@ -8,19 +8,23 @@
 
   // Page configuration - maps pages to allowed roles
   const PAGE_ROLES = {
-    // Scheduler/Faculty/LoadCommittee pages
-    'index.html':           ['Scheduler', 'Faculty', 'LoadCommittee'],
-    'rules.html':           ['Scheduler', 'Faculty', 'LoadCommittee'],
-    'version-history.html': ['Scheduler', 'Faculty', 'LoadCommittee'],
-    'Students.html':        ['Scheduler', 'Faculty', 'LoadCommittee'],  // Faculty page for managing students
+    // Scheduler-only pages (course and schedule management)
+    'index.html':              ['Scheduler'],
+    'irregulars.html':         ['Scheduler'],
+    'course-management.html':  ['Scheduler'],
+    'feedback.html':           ['Scheduler'],
+    'faculty-electives.html':  ['Scheduler'],
+    'students.html':           ['Scheduler'],
+    'Students.html':           ['Scheduler'],  // Case variation
+    'rules.html':              ['Scheduler'],
+    'version-history.html':    ['Scheduler'],
 
     // Student-only pages
-    'StudentHP.html':       ['Student'],  // Student homepage
+    'StudentHP.html':          ['Student'],  // Student homepage
 
     // Role-specific pages
-    'FacultyHP.html':           ['Faculty'],
-    'LoadCommitteeHP.html':     ['LoadCommittee'],
-    'faculty-electives.html':   ['Faculty'],
+    'FacultyHP.html':              ['Faculty'],
+    'LoadCommitteeHP.html':        ['LoadCommittee'],
     'load-committee-dashboard.html': ['LoadCommittee']
   };
 

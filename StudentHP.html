@@ -11,10 +11,16 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
     
-    <!-- استخدام ملف style.css الأساسي -->
+    <!-- استخدام ملف style.css   الأساسي -->
     <link rel="stylesheet" href="assets/css/style.css">
     
     <style>
+        /* CSS Variables */
+        :root {
+            --gradient-primary: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+            --primary: #6366f1;
+        }
+
         /* إضافات خاصة بصفحة الطالب فقط */
         body {
             display: block;
@@ -985,12 +991,16 @@ I have a conflict with [CEN401]
 
     <!-- Comment System -->
     <script src="assets/js/student-comments.js"></script>
-    
+
     <!-- Schedule Viewer -->
     <script src="assets/js/Sschedule.js"></script>
-    
+
     <!-- Elective Form -->
     <script src="assets/js/elective-form.js"></script>
+
+    <!-- Notifications Scripts -->
+    <script src="assets/js/notifications-util.js"></script>
+    <script src="assets/js/notifications.js"></script>
 
     <!-- Feedback Form Management -->
     <script>
