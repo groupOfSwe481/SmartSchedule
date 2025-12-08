@@ -576,47 +576,34 @@
 
  <!-- ==================== COMMENT MODAL ==================== -->
 <div class="modal fade" id="commentModal" tabindex="-1" aria-labelledby="commentModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-lg">
+    <div class="modal-dialog">
         <div class="modal-content comment-modal">
             <div class="modal-header bg-primary text-white">
                 <h5 class="modal-title" id="commentModalLabel">
-                    <i class="bi bi-chat-dots"></i> Add Comment
+                    <i class="bi bi-chat-dots"></i> Add Student Comment
                 </h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                <!-- Course Info -->
-                <div class="alert alert-info mb-3">
-                    <strong><i class="bi bi-info-circle"></i> Course:</strong> <span id="modalCourseName"></span>
-                    <br>
-                    <strong><i class="bi bi-clock"></i> Time:</strong> <span id="modalTimeSlot"></span>
-                    <br>
-                    <strong><i class="bi bi-calendar"></i> Day:</strong> <span id="modalDay"></span>
+                <div class="mb-3">
+                    <p><strong>Course:</strong> <span id="modalCourseName"></span></p>
+                    <p><strong>Time:</strong> <span id="modalTimeSlot"></span></p>
                 </div>
+                <div class="mb-3">
+                    <label for="commentText" class="form-label">Your Feedback:</label>
+                    <textarea class="form-control" id="commentText" rows="4" placeholder="Share your feedback about this course...
 
-                <!-- Comment Type Selector -->
-                <div class="mb-4">
-                    <label for="commentType" class="form-label fw-bold">
-                        <i class="bi bi-tag"></i> Select Comment Type <span class="text-danger">*</span>
-                    </label>
-                    <select class="form-select form-select-lg" id="commentType" onchange="commentManager.updateCommentTemplate(this.value)">
-                        <option value="">-- Choose Type --</option>
-                        <option value="conflict">⚠️ Schedule Conflict</option>
-                        <option value="other">💬 General Feedback</option>
-                    </select>
-                </div>
-
-                <!-- Dynamic Form Container -->
-                <div id="commentFormContainer">
-                    <div class="text-center text-muted py-4">
-                        <i class="bi bi-arrow-up" style="font-size: 2rem;"></i>
-                        <p>Please select a comment type above to continue</p>
-                    </div>
+Examples:
+- This course conflicts with my work schedule
+- I prefer morning classes
+- This time slot works perfectly for me
+- I have a conflict with another course"></textarea>
+                    <div class="form-text">Minimum 5 characters required</div>
                 </div>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                <button type="button" class="btn btn-primary" id="saveCommentBtn" disabled>
+                <button type="button" class="btn btn-primary" id="saveCommentBtn">
                     <i class="bi bi-send"></i> Submit Comment
                 </button>
             </div>
