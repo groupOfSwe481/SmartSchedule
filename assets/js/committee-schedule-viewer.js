@@ -248,7 +248,7 @@
    */
   function openCommentForCell(courseCode, courseName, day, timeSlot) {
       console.log('🖱️ Committee Cell clicked:', { courseCode, courseName, day, timeSlot });
-      
+
       if (window.facultyCommentMaker) {
           window.facultyCommentMaker.openCommentModal({
               courseCode: courseCode,
@@ -262,7 +262,10 @@
           alert('❌ Comment system not ready. Please refresh the page.');
       }
   }
-  
+
+  // ✅ Expose function globally for onclick attributes
+  window.openCommentForCell = openCommentForCell;
+
   function updateScheduleBadges(version, publishedAt) {
       const badgesContainer = document.getElementById('scheduleBadges');
       if (badgesContainer) {
