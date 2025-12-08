@@ -710,29 +710,17 @@ Output MUST be pure JSON representing the COMPLETE grid (including the P1/P2 slo
     const parsedSchedule = await generateWithGemini(prompt);
     console.log(`   ✅ Received schedule from Gemini for Group ${groupNum}.`);
 
-    const aiGrid = parsedSchedule[0]?.grid;
-
-    // Check if grid exists, then loop through it to remove "EMPTY"
-    if (aiGrid) {
-      Object.keys(aiGrid).forEach((day) => {
-        Object.keys(aiGrid[day]).forEach((time) => {
-          // If the cell says "EMPTY", replace it with an empty string ""
-          if (aiGrid[day][time] === "EMPTY") {
-            aiGrid[day][time] = "";
-          }
-        });
-      });
-    }
-
     // =================================================================
     // --- START: NEW SAVING LOGIC (Step 10) ---
     // =================================================================
     console.log(`   ... Saving schedule to database for Group ${groupNum}...`);
 
-    // 3. Safety Check
+    const aiGrid = parsedSchedule[0]?.grid;
     if (!aiGrid) {
-      console.warn(` ⚠️ AI returned no grid. Skipping.`);
-      continue;
+      console.warn(
+        `   ⚠️ AI returned no grid for Group ${groupNum}. Skipping save.`
+      );
+      continue; // Skip to the next group in the 'for' loop
     }
 
     const groupSectionName = `Group ${groupNum}`;
@@ -900,45 +888,27 @@ Output MUST be pure JSON representing the COMPLETE grid (including the P1/P2 slo
 // =================================================================
 // --- MAIN FUNCTION 2: getScheduleImpactReport ---
 // =================================================================
-// =================================================================
-// --- FIXED: getScheduleImpactReport Function ---
-// =================================================================
 export const getScheduleImpactReport = async (req, res) => {
   try {
     const { draftScheduleId } = req.body;
 
-    console.log(`📊 Starting impact report for schedule: ${draftScheduleId}`);
-
-    // 1. Get the Draft Schedule
+    // 1. Get the Draft Schedule we want to check
     const draft = await Schedule.findById(draftScheduleId);
     if (!draft) {
       return res.status(404).json({ error: "Draft schedule not found." });
     }
-
     const draftLevel = draft.level;
     const draftGrid = draft.grid;
-    const draftSection = draft.section;
 
-    console.log(`✅ Found draft: ${draftSection}, Level ${draftLevel}`);
-
-    // 2. Get all Irregular Students for this level
+    // 2. Get all Irregular Students for this draft's level
     const irregularStudents = await Student.find({
       level: draftLevel,
       irregulars: true,
     });
 
-    const totalIrregulars = irregularStudents.length;
-    console.log(
-      `📋 Found ${totalIrregulars} irregular students for Level ${draftLevel}`
-    );
-
-    if (totalIrregulars === 0) {
+    if (!irregularStudents || irregularStudents.length === 0) {
       return res.status(200).json({
         message: "No irregular students found for this level.",
-        level: draftLevel,
-        section: draftSection,
-        totalIrregulars: 0,
-        affectedCount: 0,
         impactedStudents: [],
       });
     }
@@ -946,44 +916,28 @@ export const getScheduleImpactReport = async (req, res) => {
     // 3. Get Course/Level data for ALL remaining courses
     const allRemainingCourseCodes = [
       ...new Set(
-        irregularStudents.flatMap(
-          (s) => s.remaining_courses_from_past_levels || []
-        )
+        irregularStudents.flatMap((s) => s.remaining_courses_from_past_levels)
       ),
     ];
-
-    console.log(
-      `📚 Analyzing ${allRemainingCourseCodes.length} unique remaining courses`
-    );
 
     const remainingCoursesData = await Course.find({
       code: { $in: allRemainingCourseCodes },
     }).populate({ path: "level", select: "level_num" });
 
-    // Build course-to-level mapping with error handling
     const courseCodeToLevelMap = new Map();
     remainingCoursesData.forEach((c) => {
-      if (c.level && (c.level as any).level_num) {
-        courseCodeToLevelMap.set(c.code, (c.level as any).level_num);
-      } else {
-        console.warn(
-          `⚠️ Warning: Course '${c.name}' (${c.code}) has missing level data`
-        );
-      }
+      courseCodeToLevelMap.set(c.code, (c.level as any).level_num);
     });
 
-    // 4. Get all Published Master Schedules for past levels
+    // 4. Get all Master Schedules (for past levels)
     const neededPastLevels = [...new Set(courseCodeToLevelMap.values())];
-    console.log(
-      `🔍 Fetching master schedules for levels: ${neededPastLevels.join(", ")}`
-    );
 
+    // FIX: Use Schedule model and filter for PUBLISHED
     const masterSchedules = await Schedule.find({
       level: { $in: neededPastLevels },
       status: "Published",
-    }).sort({ publishedAt: -1 });
+    });
 
-    // Keep only the latest published schedule per level
     const masterSchedulesByLevel = {};
     masterSchedules.forEach((ms) => {
       if (
@@ -995,26 +949,17 @@ export const getScheduleImpactReport = async (req, res) => {
       }
     });
 
-    console.log(
-      `✅ Found master schedules for ${
-        Object.keys(masterSchedulesByLevel).length
-      } levels`
-    );
-
     // 5. Get Prerequisite data for courses in the DRAFT
     const draftCourseCodes = new Set();
-    if (draftGrid) {
-      for (const day of Object.keys(draftGrid)) {
-        for (const time of Object.keys(draftGrid[day])) {
-          const entry = draftGrid[day][time];
-          if (entry && entry !== "EMPTY" && entry !== "") {
-            const courseCodeMatch = entry.match(/^([A-Z]{3,4}\d{3})/);
-            if (courseCodeMatch) draftCourseCodes.add(courseCodeMatch[1]);
-          }
+    for (const day of Object.keys(draftGrid)) {
+      for (const time of Object.keys(draftGrid[day])) {
+        const entry = draftGrid[day][time];
+        if (entry) {
+          const courseCodeMatch = entry.match(/^([A-Z]{3,4}\d{3})/);
+          if (courseCodeMatch) draftCourseCodes.add(courseCodeMatch[1]);
         }
       }
     }
-
     const draftCourses = await Course.find({
       code: { $in: [...draftCourseCodes] },
     }).populate("prerequisites");
@@ -1023,44 +968,34 @@ export const getScheduleImpactReport = async (req, res) => {
     draftCourses.forEach((c) => {
       draftCoursePrereqs.set(
         c.code,
-        (c.prerequisites || []).map((p: any) => p.code)
+        c.prerequisites.map((p: any) => p.code)
       );
     });
 
-    // 6. Run Conflict Check for EACH student
+    // 6. Run the Conflict Check for EACH student
     const impactedStudents = [];
 
     for (const student of irregularStudents) {
       const remainingCourseCodes = new Set(
-        student.remaining_courses_from_past_levels || []
+        student.remaining_courses_from_past_levels
       );
-
-      if (remainingCourseCodes.size === 0) {
-        console.log(
-          `⏭️ Skipping student ${student.student_id} - no remaining courses`
-        );
-        continue;
-      }
-
       let conflictingCourses = [];
 
-      // Calculate 'Freed-Up' Slots for this student
+      // --- Calculate 'Freed-Up' Slots for *this* student ---
       const freedUpSlots = new Set();
-      if (draftGrid) {
-        for (const day of Object.keys(draftGrid)) {
-          for (const time of Object.keys(draftGrid[day])) {
-            const entry = draftGrid[day][time];
-            if (entry && entry !== "EMPTY" && entry !== "") {
-              const courseCodeMatch = entry.match(/^([A-Z]{3,4}\d{3})/);
-              if (courseCodeMatch) {
-                const courseCode = courseCodeMatch[1];
-                const prereqs = draftCoursePrereqs.get(courseCode) || [];
+      for (const day of Object.keys(draftGrid)) {
+        for (const time of Object.keys(draftGrid[day])) {
+          const entry = draftGrid[day][time];
+          if (entry) {
+            const courseCodeMatch = entry.match(/^([A-Z]{3,4}\d{3})/);
+            if (courseCodeMatch) {
+              const courseCode = courseCodeMatch[1];
+              const prereqs = draftCoursePrereqs.get(courseCode) || [];
 
-                for (const prereqCode of prereqs) {
-                  if (remainingCourseCodes.has(prereqCode)) {
-                    freedUpSlots.add(`${day} ${time}`);
-                    break;
-                  }
+              for (const prereqCode of prereqs) {
+                if (remainingCourseCodes.has(prereqCode)) {
+                  freedUpSlots.add(`${day} ${time}`);
+                  break;
                 }
               }
             }
@@ -1070,14 +1005,12 @@ export const getScheduleImpactReport = async (req, res) => {
 
       const finalDraftSlots = getOccupiedSlots(draftGrid, freedUpSlots);
 
-      // Check remaining courses against draft slots
-      for (const courseCode of student.remaining_courses_from_past_levels ||
-        []) {
+      // --- Check remaining courses against the final draft slots ---
+      for (const courseCode of student.remaining_courses_from_past_levels) {
         const courseLevel = courseCodeToLevelMap.get(courseCode);
-
         if (!courseLevel) {
           console.warn(
-            `⚠️ Could not find level for course ${courseCode}. Skipping.`
+            `Could not find level for remaining course ${courseCode}. Skipping.`
           );
           continue;
         }
@@ -1085,22 +1018,20 @@ export const getScheduleImpactReport = async (req, res) => {
         const masterSchedule = masterSchedulesByLevel[courseLevel];
         if (!masterSchedule) {
           console.warn(
-            `⚠️ No master schedule for L${courseLevel} (course: ${courseCode})`
+            `No PUBLISHED master schedule found for L${courseLevel} to check ${courseCode}.`
           );
           continue;
         }
 
-        // Get slots for this course from master schedule
         const courseSlots = new Set();
         const masterGrid = masterSchedule.grid;
-
-        if (masterGrid) {
-          for (const day of Object.keys(masterGrid)) {
-            for (const time of Object.keys(masterGrid[day])) {
-              const entry = masterGrid[day][time];
-              if (entry && entry.startsWith(courseCode)) {
-                courseSlots.add(`${day} ${time}`);
-              }
+        for (const day of Object.keys(masterGrid)) {
+          for (const time of Object.keys(masterGrid[day])) {
+            if (
+              masterGrid[day][time] &&
+              masterGrid[day][time].startsWith(courseCode)
+            ) {
+              courseSlots.add(`${day} ${time}`);
             }
           }
         }
@@ -1110,10 +1041,9 @@ export const getScheduleImpactReport = async (req, res) => {
           conflictingCourses.push({
             code: courseCode,
             level: courseLevel,
-            type: "Remaining Course", // Optional: Add course type/name if available
           });
         }
-      }
+      } // end course loop
 
       if (conflictingCourses.length > 0) {
         impactedStudents.push({
@@ -1121,45 +1051,22 @@ export const getScheduleImpactReport = async (req, res) => {
           conflicts: conflictingCourses,
         });
       }
-    }
+    } // end student loop
 
-    // 7. Send the final report with all required fields
-    const affectedCount = impactedStudents.length;
-
-    console.log(`📊 Impact Report Complete:`);
-    console.log(`   - Total Irregular Students: ${totalIrregulars}`);
-    console.log(`   - Students Affected: ${affectedCount}`);
-    console.log(
-      `   - Impact Rate: ${((affectedCount / totalIrregulars) * 100).toFixed(
-        1
-      )}%`
-    );
-
+    // 7. Send the final report
     res.status(200).json({
-      message:
-        affectedCount > 0
-          ? `Found ${affectedCount} irregular student${
-              affectedCount > 1 ? "s" : ""
-            } with schedule conflicts.`
-          : "No irregular students will be affected by this schedule.",
+      message: `Found ${impactedStudents.length} irregular students impacted by this draft.`,
       draftScheduleId: draftScheduleId,
-      draftSection: draftSection,
-      level: draftLevel,
-      totalIrregulars: totalIrregulars,
-      affectedCount: affectedCount,
+      draftSection: draft.section,
       impactedStudents: impactedStudents,
     });
   } catch (error) {
-    console.error("❌ Error generating impact report:", error);
-    console.error("Stack trace:", error.stack);
-
-    res.status(500).json({
-      error: "Server error during impact report generation.",
-      details: error.message,
-    });
+    console.error("Error generating impact report:", error);
+    res
+      .status(500)
+      .json({ error: "Server error during impact report generation." });
   }
 };
-
 // =================================================================
 // --- RESTORE VERSION FUNCTION (Fixed for history_version) ---
 // =================================================================
