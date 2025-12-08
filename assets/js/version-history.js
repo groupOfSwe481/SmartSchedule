@@ -252,7 +252,9 @@ async function fetchVersionHistory(scheduleId, section, level) {
                 <small class="text-muted d-block mb-1">Modified by</small>
                 <div class="d-flex align-items-center">
                   <i class="bi bi-person-circle text-primary me-2 fs-5"></i>
-                  <strong>${version.user_id || "Unknown User"}</strong>
+                  <strong class="text-dark">${
+                    version.user_id || "Unknown User"
+                  }</strong>
                 </div>
               </div>
               ${
