@@ -194,10 +194,21 @@
                   }
                   
                   if (courseName && courseName.trim() !== '') {
+                      // Extract course code
+                      let courseCode = '';
+                      const match = courseName.match(/^([A-Z]{2,4}\d{3})/);
+                      courseCode = match ? match[1] : courseName.split(' ')[0];
+
                       tableHTML += `
-                          <td class="schedule-cell" style="background-color: #e3f2fd;">
+                          <td class="schedule-cell course-cell"
+                              style="background-color: #e3f2fd; cursor: pointer; position: relative;"
+                              onclick="openStudentCommentModal('${escapeHtml(courseCode)}', '${escapeHtml(courseName)}', '${day}', '${timeSlot}')"
+                              title="Click to add your comment">
                               <div class="course-name fw-bold" style="color: #1976d2;">${courseName}</div>
-                              ${location ? `<small class="text-muted">${location}</small>` : ''}
+                              ${location ? `<small class="text-muted d-block">${location}</small>` : ''}
+                              <small class="text-primary d-block mt-1">
+                                  <i class="bi bi-chat-dots"></i> Add comment
+                              </small>
                           </td>
                       `;
                   } else {
@@ -234,8 +245,39 @@
   function updateScheduleTitle(level, schedule) {
       const scheduleTitle = document.getElementById('scheduleTitle');
       if (scheduleTitle && schedule) {
-          scheduleTitle.innerHTML = 
+          scheduleTitle.innerHTML =
               `<i class="bi bi-calendar3"></i> Academic Schedule - Level ${level} - ${schedule.section || ''}`;
       }
   }
+
+  // ================= HELPER FUNCTIONS =================
+
+  function escapeHtml(text) {
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+  }
+
+  /**
+   * Open comment modal for student
+   * Called when student clicks on a course cell
+   */
+  function openStudentCommentModal(courseCode, courseName, day, timeSlot) {
+      console.log('🖱️ Student Cell clicked:', { courseCode, courseName, day, timeSlot });
+
+      if (window.commentManager) {
+          window.commentManager.openCommentModal({
+              courseCode: courseCode,
+              courseName: courseName,
+              day: day,
+              timeSlot: timeSlot
+          });
+      } else {
+          console.error('❌ Student Comment Manager not initialized');
+          alert('❌ Comment system not ready. Please refresh the page.');
+      }
+  }
+
+  // Expose function globally for onclick attributes
+  window.openStudentCommentModal = openStudentCommentModal;
 })();
