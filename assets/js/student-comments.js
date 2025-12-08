@@ -16,31 +16,76 @@
       }
   
       init() {
+          console.log('🚀 Initializing student comment system...');
+
           // Get user data
-          const userStr = sessionStorage.getItem('user');
+          const userStr = sessionStorage.getItem('user') || localStorage.getItem('user');
           const studentDataStr = localStorage.getItem('studentData');
-  
-          if (!userStr || !studentDataStr) {
-              console.error('❌ No user or student data found');
+
+          // Always setup event listeners first!
+          this.setupEventListeners();
+
+          if (!userStr) {
+              console.error('❌ No user data found in session/local storage');
               return;
           }
-  
+
           try {
               this.userData = JSON.parse(userStr);
-              this.studentData = JSON.parse(studentDataStr);
-              console.log('✅ Comment system initialized for:', this.studentData.student_id);
-              
-              this.setupEventListeners();
+              console.log('✅ User data loaded:', this.userData.email);
+
+              if (studentDataStr) {
+                  this.studentData = JSON.parse(studentDataStr);
+                  console.log('✅ Student data loaded:', this.studentData.student_id);
+              } else {
+                  console.warn('⚠️ No student data in localStorage yet, will try to fetch...');
+                  this.fetchStudentData();
+              }
+
           } catch (error) {
               console.error('❌ Error initializing comment system:', error);
           }
       }
+
+      async fetchStudentData() {
+          if (!this.userData || !this.userData.id) {
+              console.error('❌ Cannot fetch student data - no user ID');
+              return;
+          }
+
+          try {
+              console.log(`📡 Fetching student data for user ID: ${this.userData.id}`);
+
+              const token = sessionStorage.getItem('token') || localStorage.getItem('token');
+              const response = await fetch(`${API_BASE}/student/${this.userData.id}`, {
+                  headers: {
+                      'Authorization': `Bearer ${token}`
+                  }
+              });
+
+              if (response.ok) {
+                  const data = await response.json();
+                  this.studentData = data;
+                  localStorage.setItem('studentData', JSON.stringify(data));
+                  console.log('✅ Student data fetched and cached:', data.student_id);
+              } else {
+                  console.error('❌ Failed to fetch student data:', response.status);
+              }
+          } catch (error) {
+              console.error('❌ Error fetching student data:', error);
+          }
+      }
   
       setupEventListeners() {
+          console.log('🔗 Setting up event listeners...');
+
           // Save comment button
           const saveCommentBtn = document.getElementById('saveCommentBtn');
           if (saveCommentBtn) {
               saveCommentBtn.addEventListener('click', () => this.saveComment());
+              console.log('✅ Submit button listener attached');
+          } else {
+              console.error('❌ saveCommentBtn not found in DOM');
           }
   
           // Clear form when modal closes
@@ -75,18 +120,26 @@
       }
   
       async saveComment() {
+          console.log('💾 Save comment button clicked');
+
           if (!this.currentCellInfo) {
               alert('❌ Error: No course selected');
               return;
           }
-  
+
+          if (!this.studentData || !this.studentData.student_id) {
+              alert('❌ Error: Student data not loaded. Please refresh the page and try again.');
+              console.error('❌ Student data missing:', this.studentData);
+              return;
+          }
+
           const commentText = document.getElementById('commentText').value.trim();
-  
+
           if (!commentText || commentText.length < 5) {
               alert('⚠️ Please enter at least 5 characters');
               return;
           }
-  
+
           console.log('📝 [FRONTEND] Preparing to save comment...');
           console.log('📝 [FRONTEND] Student data:', this.studentData);
           console.log('📝 [FRONTEND] Cell info:', this.currentCellInfo);
