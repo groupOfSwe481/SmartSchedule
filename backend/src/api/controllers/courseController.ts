@@ -82,14 +82,14 @@ export const updateCourse = async (req: Request, res: Response): Promise<void> =
   try {
     const { courseCode } = req.params;
     console.log('🔄 Updating course:', courseCode);
-    
+
     const updated = await courseService.updateCourse(courseCode, req.body);
-    
+
     if (!updated) {
       res.status(404).json({ error: 'Course not found' });
       return;
     }
-    
+
     res.json({
       message: 'Course updated successfully',
       courseCode: courseCode
@@ -97,5 +97,28 @@ export const updateCourse = async (req: Request, res: Response): Promise<void> =
   } catch (error) {
     console.error('Error updating course:', error);
     res.status(400).json({ error: (error as Error).message });
+  }
+};
+
+export const deleteCourse = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { courseCode } = req.params;
+    console.log('🗑️ Deleting course:', courseCode);
+
+    const deleted = await courseService.deleteCourse(courseCode);
+
+    if (!deleted) {
+      res.status(404).json({ error: 'Course not found' });
+      return;
+    }
+
+    res.json({
+      message: 'Course deleted successfully',
+      courseCode: courseCode
+    });
+  } catch (error) {
+    console.error('Error deleting course:', error);
+    const statusCode = (error as Error).message === 'Course not found' ? 404 : 500;
+    res.status(statusCode).json({ error: (error as Error).message });
   }
 };

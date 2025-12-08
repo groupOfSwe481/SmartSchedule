@@ -7,7 +7,8 @@ import {
   getCoursesByDepartment,
   getCourseDetails,
   createCourse,
-  updateCourse
+  updateCourse,
+  deleteCourse
 } from '../api/controllers/courseController.js';
 import { getDB } from '../db/connection.js';
 
@@ -18,6 +19,7 @@ router.get('/courses-by-department', getCoursesByDepartment);
 router.get('/course-details/:courseCode', getCourseDetails);
 router.post('/create-course', createCourse);
 router.put('/update-course/:courseCode', updateCourse);
+router.delete('/delete-course/:courseCode', deleteCourse);
 
 /**
  * GET /api/courses/electives
