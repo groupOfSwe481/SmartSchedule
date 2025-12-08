@@ -37,7 +37,12 @@ class ScheduleService {
             headers: {'Content-Type': 'application/json'},
             body: jsonEncode(body),
           )
-          .timeout(const Duration(seconds: 10));
+          .timeout(
+            const Duration(seconds: 30), // Increased for cold starts
+            onTimeout: () {
+              throw TimeoutException('Request timed out. Server may be starting up, please try again.');
+            },
+          );
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
@@ -56,6 +61,10 @@ class ScheduleService {
         final data = jsonDecode(response.body);
         return {'success': false, 'message': data['message'] ?? 'Login failed'};
       }
+    } on TimeoutException {
+      return {'success': false, 'message': 'Request timed out. Server may be cold starting. Please try again in a moment.'};
+    } on SocketException {
+      return {'success': false, 'message': 'Network error. Please check your internet connection.'};
     } catch (e) {
       return {'success': false, 'message': _getErrorMessage(e)};
     }
@@ -110,7 +119,12 @@ class ScheduleService {
               'Email': email,
             }),
           )
-          .timeout(const Duration(seconds: 20));
+          .timeout(
+            const Duration(seconds: 60), // Increased to 60 seconds for cold starts
+            onTimeout: () {
+              throw TimeoutException('Request timed out. Server may be starting up, please try again.');
+            },
+          );
 
       print('📡 Response status: ${response.statusCode}'); // Debug logging
 
@@ -121,6 +135,12 @@ class ScheduleService {
         final data = jsonDecode(response.body);
         return {'success': false, 'message': data['message'] ?? 'Failed to send reset code'};
       }
+    } on TimeoutException catch (e) {
+      print('⏱️ Timeout: $e'); // Debug logging
+      return {'success': false, 'message': 'Request timed out. Server may be cold starting. Please try again in a moment.'};
+    } on SocketException catch (e) {
+      print('🌐 Network Error: $e'); // Debug logging
+      return {'success': false, 'message': 'Network error. Please check your internet connection.'};
     } catch (e) {
       print('❌ Forgot Password Error: $e'); // Debug logging
       return {'success': false, 'message': _getErrorMessage(e)};
@@ -146,7 +166,12 @@ class ScheduleService {
               'newPassword': newPassword,
             }),
           )
-          .timeout(const Duration(seconds: 20));
+          .timeout(
+            const Duration(seconds: 60), // Increased to 60 seconds for cold starts
+            onTimeout: () {
+              throw TimeoutException('Request timed out. Server may be starting up, please try again.');
+            },
+          );
 
       print('📡 Response status: ${response.statusCode}'); // Debug logging
 
@@ -157,6 +182,12 @@ class ScheduleService {
         final data = jsonDecode(response.body);
         return {'success': false, 'message': data['message'] ?? 'Failed to reset password'};
       }
+    } on TimeoutException catch (e) {
+      print('⏱️ Timeout: $e'); // Debug logging
+      return {'success': false, 'message': 'Request timed out. Server may be cold starting. Please try again in a moment.'};
+    } on SocketException catch (e) {
+      print('🌐 Network Error: $e'); // Debug logging
+      return {'success': false, 'message': 'Network error. Please check your internet connection.'};
     } catch (e) {
       print('❌ Reset Password Error: $e'); // Debug logging
       return {'success': false, 'message': _getErrorMessage(e)};
