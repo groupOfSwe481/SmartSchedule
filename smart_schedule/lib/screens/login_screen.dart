@@ -15,6 +15,7 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
+  // Step 0: Login, Step 1: Verification, Step 2: Forgot Password, Step 3: Reset Password
   int _currentStep = 0;
 
   final _loginEmailController = TextEditingController();
@@ -23,26 +24,27 @@ class _LoginScreenState extends State<LoginScreen> {
 
   final _verificationCodeController = TextEditingController();
 
-  final _registerFirstNameController = TextEditingController();
-  final _registerLastNameController = TextEditingController();
-  final _registerEmailController = TextEditingController();
-  final _registerPasswordController = TextEditingController();
-  bool _registerPasswordVisible = false;
-  String _selectedRole = 'Student';
+  final _forgotEmailController = TextEditingController();
+  final _resetCodeController = TextEditingController();
+  final _newPasswordController = TextEditingController();
+  final _confirmPasswordController = TextEditingController();
+  bool _newPasswordVisible = false;
+  bool _confirmPasswordVisible = false;
 
   bool _isLoading = false;
   String? _currentEmail;
   String? _currentPassword;
+  String? _resetEmail;
 
   @override
   void dispose() {
     _loginEmailController.dispose();
     _loginPasswordController.dispose();
     _verificationCodeController.dispose();
-    _registerFirstNameController.dispose();
-    _registerLastNameController.dispose();
-    _registerEmailController.dispose();
-    _registerPasswordController.dispose();
+    _forgotEmailController.dispose();
+    _resetCodeController.dispose();
+    _newPasswordController.dispose();
+    _confirmPasswordController.dispose();
     super.dispose();
   }
 
@@ -165,42 +167,27 @@ class _LoginScreenState extends State<LoginScreen> {
     });
   }
 
-  Future<void> _handleRegister() async {
-    if (_registerFirstNameController.text.isEmpty ||
-        _registerLastNameController.text.isEmpty ||
-        _registerEmailController.text.isEmpty ||
-        _registerPasswordController.text.isEmpty) {
-      _showAlert('Please fill in all fields', true);
-      return;
-    }
 
-    if (_registerPasswordController.text.length < 6) {
-      _showAlert('Password must be at least 6 characters', true);
+  Future<void> _handleForgotPassword() async {
+    if (_forgotEmailController.text.isEmpty) {
+      _showAlert('Please enter your email', true);
       return;
     }
 
     setState(() => _isLoading = true);
 
     try {
-      final result = await ScheduleService.register(
-        firstName: _registerFirstNameController.text.trim(),
-        lastName: _registerLastNameController.text.trim(),
-        email: _registerEmailController.text.trim(),
-        password: _registerPasswordController.text,
-        role: _selectedRole,
+      final result = await ScheduleService.forgotPassword(
+        email: _forgotEmailController.text.trim(),
       );
 
       if (mounted) {
         if (result['success']) {
-          _showAlert('Registration successful! Please login with your credentials', false);
-          Future.delayed(const Duration(milliseconds: 1500), () {
-            if (mounted) {
-              _clearRegistrationForm();
-              setState(() => _currentStep = 0);
-            }
-          });
+          _resetEmail = _forgotEmailController.text.trim();
+          _showAlert('Reset code sent to your email!', false);
+          setState(() => _currentStep = 3); // Go to reset password screen
         } else {
-          _showAlert(result['message'] ?? 'Registration failed', true);
+          _showAlert(result['message'] ?? 'Failed to send reset code', true);
         }
       }
     } catch (e) {
@@ -214,18 +201,75 @@ class _LoginScreenState extends State<LoginScreen> {
     }
   }
 
-  void _clearRegistrationForm() {
-    _registerFirstNameController.clear();
-    _registerLastNameController.clear();
-    _registerEmailController.clear();
-    _registerPasswordController.clear();
-    _selectedRole = 'Student';
+  Future<void> _handleResetPassword() async {
+    if (_resetCodeController.text.isEmpty) {
+      _showAlert('Please enter the reset code', true);
+      return;
+    }
+
+    if (_newPasswordController.text.isEmpty || _confirmPasswordController.text.isEmpty) {
+      _showAlert('Please fill in all fields', true);
+      return;
+    }
+
+    if (_newPasswordController.text != _confirmPasswordController.text) {
+      _showAlert('Passwords do not match!', true);
+      return;
+    }
+
+    if (_newPasswordController.text.length < 6) {
+      _showAlert('Password must be at least 6 characters!', true);
+      return;
+    }
+
+    setState(() => _isLoading = true);
+
+    try {
+      final result = await ScheduleService.resetPassword(
+        email: _resetEmail!,
+        resetCode: _resetCodeController.text,
+        newPassword: _newPasswordController.text,
+      );
+
+      if (mounted) {
+        if (result['success']) {
+          _showAlert('Password reset successful! Please login with your new password.', false);
+          _resetCodeController.clear();
+          _newPasswordController.clear();
+          _confirmPasswordController.clear();
+          _forgotEmailController.clear();
+          Future.delayed(const Duration(milliseconds: 2000), () {
+            if (mounted) {
+              setState(() => _currentStep = 0);
+            }
+          });
+        } else {
+          _showAlert(result['message'] ?? 'Failed to reset password', true);
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        _showAlert('Error: ${e.toString()}', true);
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
+    }
+  }
+
+  void _showForgotPassword() {
+    setState(() => _currentStep = 2);
   }
 
   void _backToLogin() {
     setState(() {
       _currentStep = 0;
       _verificationCodeController.clear();
+      _forgotEmailController.clear();
+      _resetCodeController.clear();
+      _newPasswordController.clear();
+      _confirmPasswordController.clear();
     });
   }
 
@@ -254,7 +298,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     horizontal: 16,
                     vertical: MediaQuery.of(context).viewInsets.bottom > 0 ? 16 : 32,
                   ),
-                  child: _currentStep == 0 ? _buildTabsWidget() : _buildVerificationWidget(),
+                  child: _buildCurrentStep(),
                 ),
               ],
             ),
@@ -264,7 +308,22 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
-  Widget _buildTabsWidget() {
+  Widget _buildCurrentStep() {
+    switch (_currentStep) {
+      case 0:
+        return _buildLoginWidget();
+      case 1:
+        return _buildVerificationWidget();
+      case 2:
+        return _buildForgotPasswordWidget();
+      case 3:
+        return _buildResetPasswordWidget();
+      default:
+        return _buildLoginWidget();
+    }
+  }
+
+  Widget _buildLoginWidget() {
     return Card(
       elevation: 8,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
@@ -283,292 +342,141 @@ class _LoginScreenState extends State<LoginScreen> {
                 topRight: Radius.circular(20),
               ),
             ),
-            padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
+            padding: const EdgeInsets.symmetric(vertical: 32, horizontal: 16),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                const Icon(Icons.calendar_month, size: 40, color: Colors.white),
-                const SizedBox(height: 8),
+                const Icon(Icons.calendar_month, size: 64, color: Colors.white),
+                const SizedBox(height: 12),
                 const Text(
                   'SmartSchedule',
                   style: TextStyle(
-                    fontSize: 22,
+                    fontSize: 26,
                     fontWeight: FontWeight.bold,
                     color: Colors.white,
                   ),
                   textAlign: TextAlign.center,
                 ),
-                const SizedBox(height: 4),
+                const SizedBox(height: 6),
                 const Text(
-                  'Academic scheduling solution',
+                  'Your intelligent academic scheduling solution',
                   style: TextStyle(
                     color: Color(0xFFE8E8FF),
-                    fontSize: 12,
+                    fontSize: 13,
                   ),
                   textAlign: TextAlign.center,
                 ),
               ],
             ),
           ),
-          // Tabs Content
-          DefaultTabController(
-            length: 2,
+          // Login Form
+          SingleChildScrollView(
+            padding: const EdgeInsets.all(32),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                TabBar(
-                  labelColor: const Color(0xFF667eea),
-                  unselectedLabelColor: Colors.grey,
-                  indicatorColor: const Color(0xFF667eea),
-                  tabs: const [
-                    Tab(text: 'Login'),
-                    Tab(text: 'Register'),
-                  ],
+                const Text(
+                  'Welcome Back!',
+                  style: TextStyle(
+                    fontSize: 22,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
+                const SizedBox(height: 24),
+                // Email
+                TextField(
+                  controller: _loginEmailController,
+                  textInputAction: TextInputAction.next,
+                  decoration: InputDecoration(
+                    labelText: 'Email Address',
+                    hintText: 'Enter your email',
+                    prefixIcon: const Icon(Icons.email_outlined),
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: const BorderSide(color: Color(0xFFe2e8f0), width: 2),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: const BorderSide(color: Color(0xFF667eea), width: 2),
+                    ),
+                  ),
+                  keyboardType: TextInputType.emailAddress,
+                ),
+                const SizedBox(height: 16),
+                // Password
+                TextField(
+                  controller: _loginPasswordController,
+                  textInputAction: TextInputAction.done,
+                  obscureText: !_loginPasswordVisible,
+                  onSubmitted: (_) => _handleLogin(),
+                  decoration: InputDecoration(
+                    labelText: 'Password',
+                    hintText: 'Enter your password',
+                    prefixIcon: const Icon(Icons.lock_outlined),
+                    suffixIcon: IconButton(
+                      icon: Icon(
+                        _loginPasswordVisible ? Icons.visibility : Icons.visibility_off,
+                      ),
+                      onPressed: () {
+                        setState(() => _loginPasswordVisible = !_loginPasswordVisible);
+                      },
+                    ),
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: const BorderSide(color: Color(0xFFe2e8f0), width: 2),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: const BorderSide(color: Color(0xFF667eea), width: 2),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                // Forgot Password Link
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: TextButton(
+                    onPressed: _showForgotPassword,
+                    child: const Text(
+                      'Forgot Password?',
+                      style: TextStyle(
+                        color: Color(0xFF667eea),
+                        fontSize: 14,
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 8),
+                // Login Button
                 SizedBox(
-                  height: 400,
-                  child: TabBarView(
-                    children: [
-                      _buildLoginForm(),
-                      _buildRegistrationForm(),
-                    ],
+                  width: double.infinity,
+                  height: 50,
+                  child: ElevatedButton(
+                    onPressed: _isLoading ? null : _handleLogin,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF667eea),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    ),
+                    child: _isLoading
+                        ? const SizedBox(
+                            height: 24,
+                            width: 24,
+                            child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+                          )
+                        : const Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(Icons.login, color: Colors.white),
+                              SizedBox(width: 8),
+                              Text('Login',
+                                  style: TextStyle(fontSize: 16, color: Colors.white, fontWeight: FontWeight.bold)),
+                            ],
+                          ),
                   ),
                 ),
               ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildLoginForm() {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(24),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          // Email
-          TextField(
-            controller: _loginEmailController,
-            textInputAction: TextInputAction.next,
-            decoration: InputDecoration(
-              labelText: 'Email Address',
-              hintText: 'Enter your email',
-              prefixIcon: const Icon(Icons.email_outlined),
-              border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-              enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: const BorderSide(color: Color(0xFFe2e8f0), width: 2),
-              ),
-              focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: const BorderSide(color: Color(0xFF667eea), width: 2),
-              ),
-            ),
-            keyboardType: TextInputType.emailAddress,
-          ),
-          const SizedBox(height: 16),
-          // Password
-          TextField(
-            controller: _loginPasswordController,
-            textInputAction: TextInputAction.done,
-            obscureText: !_loginPasswordVisible,
-            decoration: InputDecoration(
-              labelText: 'Password',
-              hintText: 'Enter your password',
-              prefixIcon: const Icon(Icons.lock_outlined),
-              suffixIcon: IconButton(
-                icon: Icon(
-                  _loginPasswordVisible ? Icons.visibility : Icons.visibility_off,
-                ),
-                onPressed: () {
-                  setState(() => _loginPasswordVisible = !_loginPasswordVisible);
-                },
-              ),
-              border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-              enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: const BorderSide(color: Color(0xFFe2e8f0), width: 2),
-              ),
-              focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: const BorderSide(color: Color(0xFF667eea), width: 2),
-              ),
-            ),
-          ),
-          const SizedBox(height: 24),
-          // Login Button
-          SizedBox(
-            width: double.infinity,
-            height: 50,
-            child: ElevatedButton(
-              onPressed: _isLoading ? null : _handleLogin,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF667eea),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-              ),
-              child: _isLoading
-                  ? const SizedBox(
-                      height: 24,
-                      width: 24,
-                      child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
-                    )
-                  : const Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(Icons.login, color: Colors.white),
-                        SizedBox(width: 8),
-                        Text('Login',
-                            style: TextStyle(fontSize: 16, color: Colors.white, fontWeight: FontWeight.bold)),
-                      ],
-                    ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildRegistrationForm() {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(24),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          TextField(
-            controller: _registerFirstNameController,
-            textInputAction: TextInputAction.next,
-            decoration: InputDecoration(
-              labelText: 'First Name',
-              hintText: 'Enter your first name',
-              prefixIcon: const Icon(Icons.person_outlined),
-              border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-              enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: const BorderSide(color: Color(0xFFe2e8f0), width: 2),
-              ),
-              focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: const BorderSide(color: Color(0xFF667eea), width: 2),
-              ),
-            ),
-          ),
-          const SizedBox(height: 12),
-          TextField(
-            controller: _registerLastNameController,
-            textInputAction: TextInputAction.next,
-            decoration: InputDecoration(
-              labelText: 'Last Name',
-              hintText: 'Enter your last name',
-              prefixIcon: const Icon(Icons.person_outlined),
-              border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-              enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: const BorderSide(color: Color(0xFFe2e8f0), width: 2),
-              ),
-              focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: const BorderSide(color: Color(0xFF667eea), width: 2),
-              ),
-            ),
-          ),
-          const SizedBox(height: 12),
-          TextField(
-            controller: _registerEmailController,
-            textInputAction: TextInputAction.next,
-            keyboardType: TextInputType.emailAddress,
-            decoration: InputDecoration(
-              labelText: 'Email Address',
-              hintText: 'Enter your email',
-              prefixIcon: const Icon(Icons.email_outlined),
-              border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-              enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: const BorderSide(color: Color(0xFFe2e8f0), width: 2),
-              ),
-              focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: const BorderSide(color: Color(0xFF667eea), width: 2),
-              ),
-            ),
-          ),
-          const SizedBox(height: 12),
-          TextField(
-            controller: _registerPasswordController,
-            textInputAction: TextInputAction.next,
-            obscureText: !_registerPasswordVisible,
-            decoration: InputDecoration(
-              labelText: 'Password',
-              hintText: 'Create a password (min 6 characters)',
-              prefixIcon: const Icon(Icons.lock_outlined),
-              suffixIcon: IconButton(
-                icon: Icon(
-                  _registerPasswordVisible ? Icons.visibility : Icons.visibility_off,
-                ),
-                onPressed: () {
-                  setState(() => _registerPasswordVisible = !_registerPasswordVisible);
-                },
-              ),
-              border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-              enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: const BorderSide(color: Color(0xFFe2e8f0), width: 2),
-              ),
-              focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: const BorderSide(color: Color(0xFF667eea), width: 2),
-              ),
-            ),
-          ),
-          const SizedBox(height: 12),
-          DropdownButtonFormField<String>(
-            initialValue: _selectedRole,
-            items: ['Student', 'Faculty', 'LoadCommittee', 'Scheduler']
-                .map((role) => DropdownMenuItem(value: role, child: Text(role)))
-                .toList(),
-            onChanged: (value) {
-              setState(() => _selectedRole = value ?? 'Student');
-            },
-            decoration: InputDecoration(
-              labelText: 'Role',
-              prefixIcon: const Icon(Icons.badge_outlined),
-              border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-              enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: const BorderSide(color: Color(0xFFe2e8f0), width: 2),
-              ),
-              focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: const BorderSide(color: Color(0xFF667eea), width: 2),
-              ),
-            ),
-          ),
-          const SizedBox(height: 24),
-          SizedBox(
-            width: double.infinity,
-            height: 50,
-            child: ElevatedButton(
-              onPressed: _isLoading ? null : _handleRegister,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF667eea),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-              ),
-              child: _isLoading
-                  ? const SizedBox(
-                      height: 24,
-                      width: 24,
-                      child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
-                    )
-                  : const Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(Icons.person_add, color: Colors.white),
-                        SizedBox(width: 8),
-                        Text('Register',
-                            style: TextStyle(fontSize: 16, color: Colors.white, fontWeight: FontWeight.bold)),
-                      ],
-                    ),
             ),
           ),
         ],
@@ -653,6 +561,283 @@ class _LoginScreenState extends State<LoginScreen> {
                           Icon(Icons.check_circle, color: Colors.white),
                           SizedBox(width: 8),
                           Text('Verify & Login',
+                              style: TextStyle(fontSize: 16, color: Colors.white, fontWeight: FontWeight.bold)),
+                        ],
+                      ),
+              ),
+            ),
+            const SizedBox(height: 12),
+            SizedBox(
+              width: double.infinity,
+              height: 50,
+              child: OutlinedButton(
+                onPressed: _isLoading ? null : _backToLogin,
+                style: OutlinedButton.styleFrom(
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  side: const BorderSide(color: Color(0xFF667eea), width: 2),
+                ),
+                child: const Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(Icons.arrow_back, color: Color(0xFF667eea)),
+                    SizedBox(width: 8),
+                    Text('Back to Login',
+                        style: TextStyle(fontSize: 16, color: Color(0xFF667eea), fontWeight: FontWeight.bold)),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildForgotPasswordWidget() {
+    return Card(
+      elevation: 8,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.all(32),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 80,
+              height: 80,
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(
+                  colors: [Color(0xFF667eea), Color(0xFF764ba2)],
+                ),
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: const Icon(Icons.lock_reset, size: 48, color: Colors.white),
+            ),
+            const SizedBox(height: 24),
+            const Text(
+              'Reset Password',
+              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 12),
+            const Text(
+              'Enter your email address and we\'ll send you a reset code.',
+              textAlign: TextAlign.center,
+              style: TextStyle(color: Colors.grey, fontSize: 14),
+            ),
+            const SizedBox(height: 32),
+            TextField(
+              controller: _forgotEmailController,
+              keyboardType: TextInputType.emailAddress,
+              decoration: InputDecoration(
+                labelText: 'Email Address',
+                hintText: 'Enter your email',
+                prefixIcon: const Icon(Icons.email_outlined),
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: const BorderSide(color: Color(0xFFe2e8f0), width: 2),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: const BorderSide(color: Color(0xFF667eea), width: 2),
+                ),
+              ),
+            ),
+            const SizedBox(height: 24),
+            SizedBox(
+              width: double.infinity,
+              height: 50,
+              child: ElevatedButton(
+                onPressed: _isLoading ? null : _handleForgotPassword,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF667eea),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                ),
+                child: _isLoading
+                    ? const SizedBox(
+                        height: 24,
+                        width: 24,
+                        child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+                      )
+                    : const Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(Icons.send, color: Colors.white),
+                          SizedBox(width: 8),
+                          Text('Send Reset Code',
+                              style: TextStyle(fontSize: 16, color: Colors.white, fontWeight: FontWeight.bold)),
+                        ],
+                      ),
+              ),
+            ),
+            const SizedBox(height: 12),
+            SizedBox(
+              width: double.infinity,
+              height: 50,
+              child: OutlinedButton(
+                onPressed: _isLoading ? null : _backToLogin,
+                style: OutlinedButton.styleFrom(
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  side: const BorderSide(color: Color(0xFF667eea), width: 2),
+                ),
+                child: const Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(Icons.arrow_back, color: Color(0xFF667eea)),
+                    SizedBox(width: 8),
+                    Text('Back to Login',
+                        style: TextStyle(fontSize: 16, color: Color(0xFF667eea), fontWeight: FontWeight.bold)),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildResetPasswordWidget() {
+    return Card(
+      elevation: 8,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.all(32),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 80,
+              height: 80,
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(
+                  colors: [Color(0xFF667eea), Color(0xFF764ba2)],
+                ),
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: const Icon(Icons.key, size: 48, color: Colors.white),
+            ),
+            const SizedBox(height: 24),
+            const Text(
+              'Enter New Password',
+              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 12),
+            const Text(
+              'Enter the code we sent to your email and your new password.',
+              textAlign: TextAlign.center,
+              style: TextStyle(color: Colors.grey, fontSize: 14),
+            ),
+            const SizedBox(height: 32),
+            TextField(
+              controller: _resetCodeController,
+              keyboardType: TextInputType.number,
+              maxLength: 6,
+              textAlign: TextAlign.center,
+              inputFormatters: [
+                FilteringTextInputFormatter.allow(RegExp(r'[0-9]')),
+              ],
+              decoration: InputDecoration(
+                labelText: 'Reset Code',
+                hintText: '000000',
+                prefixIcon: const Icon(Icons.shield_outlined),
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: const BorderSide(color: Color(0xFFe2e8f0), width: 2),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: const BorderSide(color: Color(0xFF667eea), width: 2),
+                ),
+                counterText: '',
+              ),
+              style: const TextStyle(fontSize: 20, letterSpacing: 4, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 16),
+            TextField(
+              controller: _newPasswordController,
+              obscureText: !_newPasswordVisible,
+              decoration: InputDecoration(
+                labelText: 'New Password',
+                hintText: 'Enter new password',
+                prefixIcon: const Icon(Icons.lock_outlined),
+                suffixIcon: IconButton(
+                  icon: Icon(
+                    _newPasswordVisible ? Icons.visibility : Icons.visibility_off,
+                  ),
+                  onPressed: () {
+                    setState(() => _newPasswordVisible = !_newPasswordVisible);
+                  },
+                ),
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: const BorderSide(color: Color(0xFFe2e8f0), width: 2),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: const BorderSide(color: Color(0xFF667eea), width: 2),
+                ),
+              ),
+            ),
+            const SizedBox(height: 16),
+            TextField(
+              controller: _confirmPasswordController,
+              obscureText: !_confirmPasswordVisible,
+              decoration: InputDecoration(
+                labelText: 'Confirm Password',
+                hintText: 'Confirm new password',
+                prefixIcon: const Icon(Icons.lock_outlined),
+                suffixIcon: IconButton(
+                  icon: Icon(
+                    _confirmPasswordVisible ? Icons.visibility : Icons.visibility_off,
+                  ),
+                  onPressed: () {
+                    setState(() => _confirmPasswordVisible = !_confirmPasswordVisible);
+                  },
+                ),
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: const BorderSide(color: Color(0xFFe2e8f0), width: 2),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: const BorderSide(color: Color(0xFF667eea), width: 2),
+                ),
+              ),
+            ),
+            const SizedBox(height: 8),
+            const Align(
+              alignment: Alignment.centerLeft,
+              child: Text(
+                'Password must be at least 6 characters',
+                style: TextStyle(color: Colors.grey, fontSize: 12),
+              ),
+            ),
+            const SizedBox(height: 24),
+            SizedBox(
+              width: double.infinity,
+              height: 50,
+              child: ElevatedButton(
+                onPressed: _isLoading ? null : _handleResetPassword,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF667eea),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                ),
+                child: _isLoading
+                    ? const SizedBox(
+                        height: 24,
+                        width: 24,
+                        child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+                      )
+                    : const Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(Icons.check_circle, color: Colors.white),
+                          SizedBox(width: 8),
+                          Text('Reset Password',
                               style: TextStyle(fontSize: 16, color: Colors.white, fontWeight: FontWeight.bold)),
                         ],
                       ),

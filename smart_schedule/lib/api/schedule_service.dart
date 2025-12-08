@@ -95,6 +95,74 @@ class ScheduleService {
     }
   }
 
+  static Future<Map<String, dynamic>> forgotPassword({
+    required String email,
+  }) async {
+    try {
+      final url = '${ApiConfig.baseUrl}/api/auth/forgot-password';
+      print('🔗 Forgot Password URL: $url'); // Debug logging
+
+      final response = await http
+          .post(
+            Uri.parse(url),
+            headers: {'Content-Type': 'application/json'},
+            body: jsonEncode({
+              'Email': email,
+            }),
+          )
+          .timeout(const Duration(seconds: 20));
+
+      print('📡 Response status: ${response.statusCode}'); // Debug logging
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        return {'success': true, 'message': data['message']};
+      } else {
+        final data = jsonDecode(response.body);
+        return {'success': false, 'message': data['message'] ?? 'Failed to send reset code'};
+      }
+    } catch (e) {
+      print('❌ Forgot Password Error: $e'); // Debug logging
+      return {'success': false, 'message': _getErrorMessage(e)};
+    }
+  }
+
+  static Future<Map<String, dynamic>> resetPassword({
+    required String email,
+    required String resetCode,
+    required String newPassword,
+  }) async {
+    try {
+      final url = '${ApiConfig.baseUrl}/api/auth/reset-password';
+      print('🔗 Reset Password URL: $url'); // Debug logging
+
+      final response = await http
+          .post(
+            Uri.parse(url),
+            headers: {'Content-Type': 'application/json'},
+            body: jsonEncode({
+              'Email': email,
+              'resetCode': resetCode,
+              'newPassword': newPassword,
+            }),
+          )
+          .timeout(const Duration(seconds: 20));
+
+      print('📡 Response status: ${response.statusCode}'); // Debug logging
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        return {'success': true, 'message': data['message']};
+      } else {
+        final data = jsonDecode(response.body);
+        return {'success': false, 'message': data['message'] ?? 'Failed to reset password'};
+      }
+    } catch (e) {
+      print('❌ Reset Password Error: $e'); // Debug logging
+      return {'success': false, 'message': _getErrorMessage(e)};
+    }
+  }
+
   // Student Schedules (Version 2+, Published only)
   static Future<Map<String, dynamic>> getStudentScheduleByLevel(int level) async {
     try {
